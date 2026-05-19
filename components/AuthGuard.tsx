@@ -11,22 +11,47 @@ export default function AuthGuard({ children }: { children: React.ReactNode }) {
   const [checking, setChecking] = useState(true)
 
   useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => {
+    const check = async () => {
+      const { data: { session } } = await supabase.auth.getSession()
+
       if (!session) {
         router.replace("/login")
         return
       }
 
-      const userId   = session.user.id
-      const onboarded = localStorage.getItem(`postpilot_onboarded_${userId}`)
+      const userId = session.user.id
 
-      if (!onboarded && pathname !== "/onboarding") {
+      // 1. Fast path — localStorage already set
+      if (localStorage.getItem(`postpilot_onboarded_${userId}`)) {
+        setChecking(false)
+        return
+      }
+
+      // 2. Fallback — check Supabase in case user completed onboarding
+      //    on a different device or localStorage was cleared
+      const { data: profile } = await supabase
+        .from("users")
+        .select("niche")
+        .eq("id", userId)
+        .single()
+
+      if (profile?.niche) {
+        // They've completed onboarding — set the flag and proceed
+        localStorage.setItem(`postpilot_onboarded_${userId}`, "true")
+        setChecking(false)
+        return
+      }
+
+      // 3. Not onboarded yet — send to onboarding
+      if (pathname !== "/onboarding") {
         router.replace("/onboarding")
         return
       }
 
       setChecking(false)
-    })
+    }
+
+    check()
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_, session) => {
       if (!session) router.replace("/login")
