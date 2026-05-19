@@ -10,6 +10,7 @@ import {
   LayoutTemplate,
 } from "lucide-react"
 import { supabase } from "@/lib/supabase"
+import UpgradeModal from "@/components/UpgradeModal"
 
 const navItems = [
   { icon: LayoutDashboard, label: "Dashboard",    href: "/dashboard" },
@@ -28,9 +29,11 @@ const FREE_LIMIT = 10
 export default function Sidebar() {
   const pathname = usePathname()
   const router   = useRouter()
-  const [email,    setEmail]    = useState("")
-  const [initials, setInitials] = useState("U")
-  const [credits,  setCredits]  = useState<number | null>(null)
+  const [email,       setEmail]       = useState("")
+  const [initials,    setInitials]    = useState("U")
+  const [credits,     setCredits]     = useState<number | null>(null)
+  const [planName,    setPlanName]    = useState("free")
+  const [upgradeOpen, setUpgradeOpen] = useState(false)
 
   useEffect(() => {
     supabase.auth.getUser().then(({ data: { user } }) => {
@@ -38,11 +41,13 @@ export default function Sidebar() {
       setEmail(user.email)
       setInitials(user.email[0].toUpperCase())
 
-      supabase
-        .from("generations")
-        .select("id", { count: "exact" })
-        .eq("user_id", user.id)
-        .then(({ count }) => setCredits(count ?? 0))
+      Promise.all([
+        supabase.from("generations").select("id", { count: "exact" }).eq("user_id", user.id),
+        supabase.from("users").select("plan_name").eq("id", user.id).single(),
+      ]).then(([genRes, planRes]) => {
+        setCredits(genRes.count ?? 0)
+        setPlanName(planRes.data?.plan_name ?? "free")
+      })
     })
   }, [])
 
@@ -51,11 +56,14 @@ export default function Sidebar() {
     router.replace("/login")
   }
 
+  const isPro     = planName !== "free"
+  const planLabel = isPro ? `${planName.charAt(0).toUpperCase()}${planName.slice(1)} Plan` : "Free Plan"
   const usedPct    = credits !== null ? Math.min((credits / FREE_LIMIT) * 100, 100) : 0
   const remaining  = credits !== null ? Math.max(FREE_LIMIT - credits, 0) : null
   const nearLimit  = credits !== null && credits >= FREE_LIMIT - 2
 
   return (
+    <>
     <aside
       className="fixed left-0 top-0 h-screen w-60 flex flex-col z-40"
       style={{
@@ -167,30 +175,32 @@ export default function Sidebar() {
           </p>
         </div>
 
-        {/* Upgrade card */}
-        <motion.div
-          whileHover={{ scale: 1.01 }}
-          transition={{ duration: 0.2 }}
-          className="rounded-xl p-3.5 relative overflow-hidden"
-          style={{
-            background: "linear-gradient(135deg, rgba(247,190,77,0.12) 0%, rgba(247,190,77,0.04) 100%)",
-            border: "1px solid rgba(247,190,77,0.2)",
-          }}
-        >
-          <div className="absolute top-0 right-0 w-16 h-16 bg-[#F7BE4D]/10 rounded-full blur-xl" />
-          <div className="relative">
-            <div className="flex items-center gap-1.5 mb-1.5">
-              <Zap className="w-3.5 h-3.5 text-[#F7BE4D]" fill="currentColor" strokeWidth={0} />
-              <span className="text-xs font-bold text-white">Upgrade to Pro</span>
+        {/* Upgrade card — free users only */}
+        {!isPro && (
+          <motion.div
+            whileHover={{ scale: 1.01 }}
+            transition={{ duration: 0.2 }}
+            className="rounded-xl p-3.5 relative overflow-hidden"
+            style={{
+              background: "linear-gradient(135deg, rgba(247,190,77,0.12) 0%, rgba(247,190,77,0.04) 100%)",
+              border: "1px solid rgba(247,190,77,0.2)",
+            }}
+          >
+            <div className="absolute top-0 right-0 w-16 h-16 bg-[#F7BE4D]/10 rounded-full blur-xl" />
+            <div className="relative">
+              <div className="flex items-center gap-1.5 mb-1.5">
+                <Zap className="w-3.5 h-3.5 text-[#F7BE4D]" fill="currentColor" strokeWidth={0} />
+                <span className="text-xs font-bold text-white">Upgrade to Pro</span>
+              </div>
+              <p className="text-[11px] text-slate-500 mb-3 leading-relaxed">
+                Unlimited generations, workspace & analytics.
+              </p>
+              <button onClick={() => setUpgradeOpen(true)} className="btn-primary w-full text-xs py-2 rounded-lg">
+                Upgrade →
+              </button>
             </div>
-            <p className="text-[11px] text-slate-500 mb-3 leading-relaxed">
-              Unlimited generations, workspace & analytics.
-            </p>
-            <button className="btn-primary w-full text-xs py-2 rounded-lg">
-              Upgrade →
-            </button>
-          </div>
-        </motion.div>
+          </motion.div>
+        )}
 
         {/* User row */}
         <div className="flex items-center gap-2.5 px-2.5 py-2 rounded-xl
@@ -201,7 +211,7 @@ export default function Sidebar() {
             {initials}
           </div>
           <div className="flex-1 min-w-0">
-            <p className="text-[11px] font-semibold text-white truncate">Free Plan</p>
+            <p className="text-[11px] font-semibold text-white truncate">{planLabel}</p>
             <p className="text-[10px] text-slate-600 truncate">{email || "Loading..."}</p>
           </div>
           <button
@@ -214,5 +224,11 @@ export default function Sidebar() {
         </div>
       </div>
     </aside>
+    <UpgradeModal
+      open={upgradeOpen}
+      onClose={() => setUpgradeOpen(false)}
+      onSuccess={(plan) => { setPlanName(plan); setCredits(0) }}
+    />
+    </>
   )
 }

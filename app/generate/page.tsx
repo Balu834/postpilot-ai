@@ -8,6 +8,9 @@ import {
   LinkIcon, Package, Hash, CalendarClock, Zap, Layers,
 } from "lucide-react"
 import { supabase } from "@/lib/supabase"
+import UpgradeModal from "@/components/UpgradeModal"
+
+const FREE_LIMIT = 10
 
 // ── Types ────────────────────────────────────────────────────────
 interface FullResult {
@@ -292,15 +295,18 @@ export default function GeneratePage() {
   const searchParams = useSearchParams()
   const router = useRouter()
 
-  const [topic,   setTopic]   = useState("")
-  const [product, setProduct] = useState("")
-  const [blogUrl, setBlogUrl] = useState("")
-  const [tone,    setTone]    = useState("engaging")
-  const [loading, setLoading] = useState(false)
+  const [topic,        setTopic]        = useState("")
+  const [product,      setProduct]      = useState("")
+  const [blogUrl,      setBlogUrl]      = useState("")
+  const [tone,         setTone]         = useState("engaging")
+  const [loading,      setLoading]      = useState(false)
   const [loadingPhase, setLoadingPhase] = useState(0)
-  const [result,  setResult]  = useState<FullResult | null>(null)
-  const [error,   setError]   = useState("")
-  const [activeTab, setActiveTab] = useState<keyof Omit<FullResult, "hashtags" | "carousel"> | "hashtags" | "carousel">("instagram")
+  const [result,       setResult]       = useState<FullResult | null>(null)
+  const [error,        setError]        = useState("")
+  const [activeTab,    setActiveTab]    = useState<keyof Omit<FullResult, "hashtags" | "carousel"> | "hashtags" | "carousel">("instagram")
+  const [upgradeOpen,  setUpgradeOpen]  = useState(false)
+  const [planName,     setPlanName]     = useState("free")
+  const [genCount,     setGenCount]     = useState(0)
   const phaseRef = useRef<ReturnType<typeof setInterval> | null>(null)
 
   useEffect(() => {
@@ -309,6 +315,19 @@ export default function GeneratePage() {
     if (t)  setTopic(decodeURIComponent(t))
     if (tn) setTone(tn)
   }, [searchParams])
+
+  useEffect(() => {
+    supabase.auth.getUser().then(({ data: { user } }) => {
+      if (!user) return
+      Promise.all([
+        supabase.from("generations").select("id", { count: "exact" }).eq("user_id", user.id),
+        supabase.from("users").select("plan_name").eq("id", user.id).single(),
+      ]).then(([genRes, planRes]) => {
+        setGenCount(genRes.count ?? 0)
+        setPlanName(planRes.data?.plan_name ?? "free")
+      })
+    })
+  }, [])
 
   // Rotate loading messages every 2s
   useEffect(() => {
@@ -327,6 +346,13 @@ export default function GeneratePage() {
       setError("Please enter a topic or blog URL")
       return
     }
+
+    // Free plan limit check
+    if (planName === "free" && genCount >= FREE_LIMIT) {
+      setUpgradeOpen(true)
+      return
+    }
+
     setLoading(true)
     setError("")
     setResult(null)
@@ -350,6 +376,7 @@ export default function GeneratePage() {
           platform: "all",
           output: JSON.stringify(data.data),
         })
+        setGenCount(c => c + 1)
       }
     } catch (e: unknown) {
       setError(e instanceof Error ? e.message : "Something went wrong")
@@ -369,6 +396,12 @@ export default function GeneratePage() {
   const activeTabConfig = resultTabs.find(t => t.key === activeTab)!
 
   return (
+    <>
+    <UpgradeModal
+      open={upgradeOpen}
+      onClose={() => setUpgradeOpen(false)}
+      onSuccess={(plan) => { setPlanName(plan); setGenCount(0) }}
+    />
     <div className="max-w-5xl space-y-5 relative">
 
       {/* Background ambient glows */}
@@ -468,6 +501,13 @@ export default function GeneratePage() {
               ))}
             </div>
           </div>
+
+          {planName === "free" && genCount >= FREE_LIMIT - 2 && genCount < FREE_LIMIT && (
+            <div className="flex items-center gap-2 text-xs text-amber-400 bg-amber-500/10 border border-amber-500/20 rounded-xl px-4 py-2.5 mb-4">
+              <Zap className="w-3.5 h-3.5 flex-shrink-0" />
+              <span>{FREE_LIMIT - genCount} free {FREE_LIMIT - genCount === 1 ? "generation" : "generations"} left. <button onClick={() => setUpgradeOpen(true)} className="underline font-semibold hover:text-amber-300">Upgrade for unlimited</button></span>
+            </div>
+          )}
 
           {error && (
             <p className="text-red-400 text-xs mb-4 flex items-center gap-1.5">
@@ -638,5 +678,6 @@ export default function GeneratePage() {
         </motion.div>
       )}
     </div>
+    </>
   )
 }

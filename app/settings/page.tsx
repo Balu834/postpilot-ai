@@ -2,17 +2,23 @@
 
 import { useState, useEffect } from "react"
 import { motion } from "framer-motion"
-import { User, Key, Loader2, CheckCircle2 } from "lucide-react"
+import { User, Key, Loader2, CheckCircle2, Zap, Crown } from "lucide-react"
 import { supabase } from "@/lib/supabase"
+import UpgradeModal from "@/components/UpgradeModal"
 
 export default function SettingsPage() {
-  const [name, setName] = useState("")
-  const [email, setEmail] = useState("")
-  const [credits, setCredits] = useState(0)
-  const [plan, setPlan] = useState("free")
-  const [loading, setLoading] = useState(true)
-  const [saving, setSaving] = useState(false)
-  const [saved, setSaved] = useState(false)
+  const [name,        setName]        = useState("")
+  const [email,       setEmail]       = useState("")
+  const [credits,     setCredits]     = useState(0)
+  const [planName,    setPlanName]    = useState("free")
+  const [expiresAt,   setExpiresAt]   = useState<string | null>(null)
+  const [loading,     setLoading]     = useState(true)
+  const [saving,      setSaving]      = useState(false)
+  const [saved,       setSaved]       = useState(false)
+  const [upgradeOpen, setUpgradeOpen] = useState(false)
+
+  const FREE_LIMIT = 10
+  const isPro = planName !== "free"
 
   useEffect(() => {
     loadProfile()
@@ -22,20 +28,20 @@ export default function SettingsPage() {
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) return
 
-    const { data } = await supabase
-      .from("users")
-      .select("name, email, plan, credits_used")
-      .eq("id", user.id)
-      .single()
+    const [profileRes, genRes] = await Promise.all([
+      supabase.from("users").select("name, email, plan_name, plan_expires_at").eq("id", user.id).single(),
+      supabase.from("generations").select("id", { count: "exact" }).eq("user_id", user.id),
+    ])
 
-    if (data) {
-      setName(data.name || "")
-      setEmail(data.email || user.email || "")
-      setPlan(data.plan || "free")
-      setCredits(data.credits_used || 0)
+    if (profileRes.data) {
+      setName(profileRes.data.name || "")
+      setEmail(profileRes.data.email || user.email || "")
+      setPlanName(profileRes.data.plan_name || "free")
+      setExpiresAt(profileRes.data.plan_expires_at || null)
     } else {
       setEmail(user.email || "")
     }
+    setCredits(genRes.count ?? 0)
     setLoading(false)
   }
 
@@ -55,6 +61,12 @@ export default function SettingsPage() {
   }
 
   return (
+    <>
+    <UpgradeModal
+      open={upgradeOpen}
+      onClose={() => setUpgradeOpen(false)}
+      onSuccess={(plan) => { setPlanName(plan); setCredits(0) }}
+    />
     <div className="max-w-2xl space-y-5">
       {/* Profile */}
       <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="glass rounded-2xl p-5 border border-white/6">
@@ -113,29 +125,64 @@ export default function SettingsPage() {
 
       {/* Plan */}
       <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }} className="glass rounded-2xl p-5 border border-white/6">
-        <div className="flex items-center justify-between">
+        <div className="flex items-center gap-2.5 mb-4">
+          <div className="w-8 h-8 rounded-lg flex items-center justify-center"
+            style={{ background: isPro ? "rgba(129,140,248,0.15)" : "rgba(247,190,77,0.15)" }}>
+            {isPro
+              ? <Crown className="w-4 h-4 text-[#818cf8]" />
+              : <Zap className="w-4 h-4 text-[#F7BE4D]" fill="currentColor" strokeWidth={0} />
+            }
+          </div>
           <div>
-            <h2 className="text-sm font-semibold text-white mb-1">Current Plan</h2>
-            <p className="text-xs text-slate-500 capitalize">You're on the {plan} plan · 50 credits / month</p>
+            <h2 className="text-sm font-semibold text-white">Billing & Plan</h2>
+            <p className="text-[11px] text-slate-500">
+              {isPro
+                ? `${planName.charAt(0).toUpperCase()}${planName.slice(1)} Plan${expiresAt ? ` · renews ${new Date(expiresAt).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })}` : ""}`
+                : "Free Plan · 10 generations / month"
+              }
+            </p>
           </div>
-          <button className="text-xs font-semibold bg-[#F7BE4D] text-[#050816] px-4 py-2 rounded-xl hover:bg-[#ffd166] transition-colors glow-yellow-sm">
-            Upgrade to Pro →
-          </button>
+          {!isPro && (
+            <button
+              onClick={() => setUpgradeOpen(true)}
+              className="ml-auto text-xs font-semibold bg-[#F7BE4D] text-[#050816] px-4 py-2 rounded-xl hover:bg-[#ffd166] transition-colors glow-yellow-sm"
+            >
+              Upgrade to Pro →
+            </button>
+          )}
         </div>
-        <div className="mt-4">
-          <div className="flex items-center justify-between text-[11px] mb-1.5">
-            <span className="text-slate-500">Credits used</span>
-            <span className="text-slate-400">{credits} / 50</span>
+
+        {!isPro && (
+          <div>
+            <div className="flex items-center justify-between text-[11px] mb-1.5">
+              <span className="text-slate-500">Generations used this month</span>
+              <span className={`font-semibold tabular-nums ${credits >= FREE_LIMIT ? "text-red-400" : "text-slate-400"}`}>{credits} / {FREE_LIMIT}</span>
+            </div>
+            <div className="w-full h-1.5 bg-white/5 rounded-full overflow-hidden">
+              <motion.div
+                initial={{ width: 0 }}
+                animate={{ width: `${Math.min((credits / FREE_LIMIT) * 100, 100)}%` }}
+                transition={{ delay: 0.5, duration: 0.6 }}
+                className="h-full rounded-full"
+                style={{
+                  background: credits >= FREE_LIMIT
+                    ? "linear-gradient(90deg, #f87171, #ef4444)"
+                    : "linear-gradient(90deg, #F7BE4D, #ffd166)",
+                }}
+              />
+            </div>
+            {credits >= FREE_LIMIT && (
+              <p className="text-[11px] text-red-400 mt-1.5">Limit reached — upgrade for unlimited generations</p>
+            )}
           </div>
-          <div className="w-full h-1.5 bg-white/5 rounded-full overflow-hidden">
-            <motion.div
-              initial={{ width: 0 }}
-              animate={{ width: `${Math.min((credits / 50) * 100, 100)}%` }}
-              transition={{ delay: 0.5, duration: 0.6 }}
-              className="h-full rounded-full bg-gradient-to-r from-[#F7BE4D] to-[#ffd166]"
-            />
+        )}
+
+        {isPro && (
+          <div className="flex items-center gap-2 text-[11px] text-slate-500 bg-white/[0.03] border border-white/[0.06] rounded-xl px-4 py-3">
+            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 flex-shrink-0" />
+            Unlimited AI generations · All platforms · Priority support
           </div>
-        </div>
+        )}
       </motion.div>
 
       {/* Save */}
@@ -155,5 +202,6 @@ export default function SettingsPage() {
         </button>
       </div>
     </div>
+    </>
   )
 }
