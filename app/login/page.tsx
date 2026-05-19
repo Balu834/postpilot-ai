@@ -256,8 +256,12 @@ export default function LoginPage() {
           router.replace("/onboarding")
         }
       } else {
-        const { error } = await supabase.auth.signInWithPassword({ email, password })
+        const { error, data } = await supabase.auth.signInWithPassword({ email, password })
         if (error) throw error
+        // Existing users skip onboarding — mark as done so AuthGuard lets them through
+        if (data.user) {
+          localStorage.setItem(`postpilot_onboarded_${data.user.id}`, "true")
+        }
         router.replace("/dashboard")
       }
     } catch (e: unknown) {

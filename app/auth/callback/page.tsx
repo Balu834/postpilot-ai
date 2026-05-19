@@ -10,17 +10,37 @@ export default function AuthCallbackPage() {
 
   useEffect(() => {
     supabase.auth.getSession().then(async ({ data: { session } }) => {
-      if (session?.user) {
-        // Upsert user record in case it doesn't exist yet (Google sign-up)
-        await supabase.from("users").upsert({
-          id: session.user.id,
-          email: session.user.email,
-        }, { onConflict: "id", ignoreDuplicates: true })
-
-        const onboarded = localStorage.getItem(`postpilot_onboarded_${session.user.id}`)
-        router.replace(onboarded ? "/dashboard" : "/onboarding")
-      } else {
+      if (!session?.user) {
         router.replace("/login")
+        return
+      }
+
+      const userId = session.user.id
+
+      // Upsert user record (handles Google first-time sign-up)
+      await supabase.from("users").upsert(
+        { id: userId, email: session.user.email },
+        { onConflict: "id", ignoreDuplicates: true }
+      )
+
+      // Check if already onboarded via localStorage (fast path)
+      if (localStorage.getItem(`postpilot_onboarded_${userId}`)) {
+        router.replace("/dashboard")
+        return
+      }
+
+      // Fallback: check Supabase — existing users with niche set skip onboarding
+      const { data: profile } = await supabase
+        .from("users")
+        .select("niche")
+        .eq("id", userId)
+        .single()
+
+      if (profile?.niche) {
+        localStorage.setItem(`postpilot_onboarded_${userId}`, "true")
+        router.replace("/dashboard")
+      } else {
+        router.replace("/onboarding")
       }
     })
   }, [router])
