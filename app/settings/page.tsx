@@ -1,12 +1,22 @@
 "use client"
 
-import { useState, useEffect } from "react"
-import { motion } from "framer-motion"
-import { User, Key, Loader2, CheckCircle2, Zap, Crown } from "lucide-react"
+import { useState, useEffect, useCallback } from "react"
+import { motion, AnimatePresence } from "framer-motion"
+import { User, Key, Loader2, CheckCircle2, Zap, Crown, Link2, Unlink, AlertCircle } from "lucide-react"
+import { useSearchParams } from "next/navigation"
 import { supabase } from "@/lib/supabase"
 import UpgradeModal from "@/components/UpgradeModal"
 
+interface SocialAccount { platform: string; username: string | null; expires_at: string | null }
+
+const SOCIAL_PLATFORMS = [
+  { key: "twitter",   label: "Twitter / X",  icon: "𝕏",  color: "#94a3b8", bg: "rgba(148,163,184,0.12)" },
+  { key: "linkedin",  label: "LinkedIn",     icon: "💼", color: "#0077B5", bg: "rgba(0,119,181,0.12)"   },
+  { key: "instagram", label: "Instagram",    icon: "📸", color: "#E1306C", bg: "rgba(225,48,108,0.12)",  comingSoon: true },
+] as const
+
 export default function SettingsPage() {
+  const searchParams = useSearchParams()
   const [name,        setName]        = useState("")
   const [email,       setEmail]       = useState("")
   const [credits,     setCredits]     = useState(0)
@@ -17,8 +27,71 @@ export default function SettingsPage() {
   const [saved,       setSaved]       = useState(false)
   const [upgradeOpen, setUpgradeOpen] = useState(false)
 
+  const [accounts,     setAccounts]     = useState<SocialAccount[]>([])
+  const [connecting,   setConnecting]   = useState<string | null>(null)
+  const [socialMsg,    setSocialMsg]    = useState<{ type: "success" | "error"; text: string } | null>(null)
+
   const FREE_LIMIT = 10
   const isPro = planName !== "free"
+
+  const loadAccounts = useCallback(async () => {
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) return
+    const { data } = await supabase.from("social_accounts").select("platform, username, expires_at").eq("user_id", user.id)
+    setAccounts((data as SocialAccount[]) || [])
+  }, [])
+
+  useEffect(() => {
+    loadProfile()
+    loadAccounts()
+
+    const connected = searchParams.get("social_connected")
+    const error     = searchParams.get("social_error")
+    if (connected) setSocialMsg({ type: "success", text: `${connected.charAt(0).toUpperCase() + connected.slice(1)} connected successfully!` })
+    if (error)     setSocialMsg({ type: "error",   text: `Failed to connect ${error.replace("_session", "").replace("_state", "")}. Please try again.` })
+    if (connected || error) {
+      const url = new URL(window.location.href)
+      url.searchParams.delete("social_connected")
+      url.searchParams.delete("social_error")
+      window.history.replaceState({}, "", url)
+    }
+  }, [loadAccounts, searchParams])
+
+  const connectPlatform = async (platform: string) => {
+    setConnecting(platform)
+    setSocialMsg(null)
+    try {
+      const { data: { session } } = await supabase.auth.getSession()
+      const res = await fetch(`/api/social/${platform}/connect`, {
+        method:  "POST",
+        headers: { Authorization: `Bearer ${session?.access_token}` },
+      })
+      const { url, error } = await res.json()
+      if (error || !url) throw new Error(error || "Failed to get auth URL")
+      window.location.href = url
+    } catch (err: unknown) {
+      setSocialMsg({ type: "error", text: err instanceof Error ? err.message : "Connection failed" })
+      setConnecting(null)
+    }
+  }
+
+  const disconnectPlatform = async (platform: string) => {
+    setConnecting(platform)
+    try {
+      const { data: { session } } = await supabase.auth.getSession()
+      await fetch("/api/social/disconnect", {
+        method:  "POST",
+        headers: { Authorization: `Bearer ${session?.access_token}`, "Content-Type": "application/json" },
+        body:    JSON.stringify({ platform }),
+      })
+      setAccounts(a => a.filter(acc => acc.platform !== platform))
+      setSocialMsg({ type: "success", text: `${platform.charAt(0).toUpperCase() + platform.slice(1)} disconnected.` })
+    } catch {
+      setSocialMsg({ type: "error", text: "Disconnect failed" })
+    } finally {
+      setConnecting(null)
+    }
+  }
 
   useEffect(() => {
     loadProfile()
@@ -183,6 +256,92 @@ export default function SettingsPage() {
             Unlimited AI generations · All platforms · Priority support
           </div>
         )}
+      </motion.div>
+
+      {/* Connected Accounts */}
+      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }} className="glass rounded-2xl p-5 border border-white/6">
+        <div className="flex items-center gap-2.5 mb-5">
+          <div className="w-8 h-8 rounded-lg bg-emerald-500/15 flex items-center justify-center">
+            <Link2 className="w-4 h-4 text-emerald-400" />
+          </div>
+          <div>
+            <h2 className="text-sm font-semibold text-white">Connected Accounts</h2>
+            <p className="text-[11px] text-slate-500">Connect platforms to publish directly from PostPilot</p>
+          </div>
+        </div>
+
+        {/* Toast */}
+        <AnimatePresence>
+          {socialMsg && (
+            <motion.div
+              initial={{ opacity: 0, y: -6 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}
+              className="flex items-center gap-2 text-xs px-3.5 py-2.5 rounded-xl mb-4"
+              style={{
+                background: socialMsg.type === "success" ? "rgba(52,211,153,0.1)" : "rgba(248,113,113,0.1)",
+                border:     socialMsg.type === "success" ? "1px solid rgba(52,211,153,0.2)" : "1px solid rgba(248,113,113,0.2)",
+                color:      socialMsg.type === "success" ? "#34d399" : "#f87171",
+              }}>
+              {socialMsg.type === "success"
+                ? <CheckCircle2 className="w-3.5 h-3.5 flex-shrink-0" />
+                : <AlertCircle className="w-3.5 h-3.5 flex-shrink-0" />
+              }
+              {socialMsg.text}
+              <button onClick={() => setSocialMsg(null)} className="ml-auto opacity-60 hover:opacity-100">✕</button>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        <div className="space-y-3">
+          {SOCIAL_PLATFORMS.map(platform => {
+            const account  = accounts.find(a => a.platform === platform.key)
+            const isLoading = connecting === platform.key
+            return (
+              <div key={platform.key}
+                className="flex items-center gap-3 p-3.5 rounded-xl border transition-all"
+                style={{
+                  background:   account ? platform.bg : "rgba(255,255,255,0.02)",
+                  borderColor:  account ? `${platform.color}30` : "rgba(255,255,255,0.06)",
+                }}>
+                <div className="w-9 h-9 rounded-xl flex items-center justify-center text-base flex-shrink-0"
+                  style={{ background: platform.bg }}>
+                  {platform.icon}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-semibold text-white">{platform.label}</p>
+                  <p className="text-[11px] truncate" style={{ color: account ? platform.color : "#475569" }}>
+                    {account
+                      ? account.username ? `@${account.username}` : "Connected"
+                      : (platform as { comingSoon?: boolean }).comingSoon ? "Coming soon" : "Not connected"
+                    }
+                  </p>
+                </div>
+                {!(platform as { comingSoon?: boolean }).comingSoon && (
+                  account ? (
+                    <button
+                      onClick={() => disconnectPlatform(platform.key)}
+                      disabled={isLoading}
+                      className="flex items-center gap-1.5 text-[11px] font-medium px-3 py-1.5 rounded-lg border border-red-500/20 text-red-400 hover:bg-red-500/10 transition-all disabled:opacity-50">
+                      {isLoading ? <Loader2 className="w-3 h-3 animate-spin" /> : <Unlink className="w-3 h-3" />}
+                      Disconnect
+                    </button>
+                  ) : (
+                    <button
+                      onClick={() => connectPlatform(platform.key)}
+                      disabled={isLoading}
+                      className="flex items-center gap-1.5 text-[11px] font-semibold px-3 py-1.5 rounded-lg transition-all disabled:opacity-50"
+                      style={{ background: `${platform.color}20`, color: platform.color, border: `1px solid ${platform.color}30` }}>
+                      {isLoading ? <Loader2 className="w-3 h-3 animate-spin" /> : <Link2 className="w-3 h-3" />}
+                      Connect
+                    </button>
+                  )
+                )}
+                {(platform as { comingSoon?: boolean }).comingSoon && (
+                  <span className="text-[10px] px-2.5 py-1 rounded-full bg-white/5 text-slate-600 border border-white/8">Soon</span>
+                )}
+              </div>
+            )
+          })}
+        </div>
       </motion.div>
 
       {/* Save */}

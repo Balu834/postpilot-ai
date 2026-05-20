@@ -1,0 +1,98 @@
+import { NextRequest, NextResponse } from "next/server"
+import { createClient } from "@supabase/supabase-js"
+
+const supabaseAdmin = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.SUPABASE_SERVICE_ROLE_KEY!
+)
+
+async function postToTwitter(content: string, accessToken: string) {
+  const res = await fetch("https://api.twitter.com/2/tweets", {
+    method:  "POST",
+    headers: { Authorization: `Bearer ${accessToken}`, "Content-Type": "application/json" },
+    body:    JSON.stringify({ text: content.slice(0, 280) }),
+  })
+  if (!res.ok) {
+    const err = await res.json()
+    throw new Error(err.detail || err.title || "Twitter publish failed")
+  }
+}
+
+async function postToLinkedIn(content: string, accessToken: string) {
+  const profileRes = await fetch("https://api.linkedin.com/v2/userinfo", {
+    headers: { Authorization: `Bearer ${accessToken}` },
+  })
+  const profile   = await profileRes.json()
+  const authorUrn = `urn:li:person:${profile.sub}`
+
+  const res = await fetch("https://api.linkedin.com/v2/ugcPosts", {
+    method:  "POST",
+    headers: {
+      Authorization:                  `Bearer ${accessToken}`,
+      "Content-Type":                 "application/json",
+      "X-Restli-Protocol-Version":    "2.0.0",
+    },
+    body: JSON.stringify({
+      author:         authorUrn,
+      lifecycleState: "PUBLISHED",
+      specificContent: {
+        "com.linkedin.ugc.ShareContent": {
+          shareCommentary:   { text: content },
+          shareMediaCategory: "NONE",
+        },
+      },
+      visibility: { "com.linkedin.ugc.MemberNetworkVisibility": "PUBLIC" },
+    }),
+  })
+  if (!res.ok) {
+    const err = await res.json()
+    throw new Error(err.message || "LinkedIn publish failed")
+  }
+}
+
+export async function POST(req: NextRequest) {
+  try {
+    const token = req.headers.get("authorization")?.replace("Bearer ", "")
+    if (!token) return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+
+    const supabase = createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+    )
+    const { data: { user } } = await supabase.auth.getUser(token)
+    if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+
+    const { postId } = await req.json()
+
+    const { data: post } = await supabaseAdmin
+      .from("scheduled_posts").select("*").eq("id", postId).eq("user_id", user.id).single()
+    if (!post) return NextResponse.json({ error: "Post not found" }, { status: 404 })
+
+    const { data: account } = await supabaseAdmin
+      .from("social_accounts").select("*").eq("user_id", user.id).eq("platform", post.platform).single()
+    if (!account) {
+      return NextResponse.json({
+        error: `${post.platform} not connected. Go to Settings → Connected Accounts.`,
+      }, { status: 400 })
+    }
+
+    try {
+      if (post.platform === "twitter") {
+        await postToTwitter(post.content, account.access_token)
+      } else if (post.platform === "linkedin") {
+        await postToLinkedIn(post.content, account.access_token)
+      } else {
+        throw new Error(`Direct publishing for ${post.platform} is not supported yet`)
+      }
+
+      await supabaseAdmin.from("scheduled_posts").update({ status: "published" }).eq("id", postId)
+      return NextResponse.json({ success: true })
+    } catch (publishErr: unknown) {
+      await supabaseAdmin.from("scheduled_posts").update({ status: "failed" }).eq("id", postId)
+      throw publishErr
+    }
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : "Publish failed"
+    return NextResponse.json({ error: message }, { status: 500 })
+  }
+}

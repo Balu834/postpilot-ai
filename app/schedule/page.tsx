@@ -4,7 +4,7 @@ import { useState, useEffect, useMemo } from "react"
 import { motion, AnimatePresence } from "framer-motion"
 import {
   ChevronLeft, ChevronRight, Plus, X, CalendarDays,
-  List, Clock, CheckCircle2, AlertCircle, Trash2, Loader2,
+  List, Clock, CheckCircle2, AlertCircle, Trash2, Loader2, Send,
 } from "lucide-react"
 import { supabase } from "@/lib/supabase"
 
@@ -165,12 +165,37 @@ function AddPostModal({
 }
 
 // ── Post Detail Modal ─────────────────────────────────────────────
-function PostDetailInner({ post, onClose, onDelete }: {
-  post: ScheduledPost; onClose: () => void; onDelete: (id: string) => void
+function PostDetailInner({ post, onClose, onDelete, onStatusChange }: {
+  post: ScheduledPost; onClose: () => void
+  onDelete: (id: string) => void
+  onStatusChange: (id: string, status: Status) => void
 }) {
-  const cfg    = PLATFORM[post.platform]
-  const stCfg  = STATUS[post.status]
-  const StIcon = stCfg.Icon
+  const cfg      = PLATFORM[post.platform]
+  const stCfg    = STATUS[post.status]
+  const StIcon   = stCfg.Icon
+  const [publishing, setPublishing] = useState(false)
+  const [pubError,   setPubError]   = useState("")
+
+  const handlePublish = async () => {
+    setPublishing(true); setPubError("")
+    try {
+      const { data: { session } } = await supabase.auth.getSession()
+      const res  = await fetch("/api/social/publish", {
+        method:  "POST",
+        headers: { Authorization: `Bearer ${session?.access_token}`, "Content-Type": "application/json" },
+        body:    JSON.stringify({ postId: post.id }),
+      })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error)
+      onStatusChange(post.id, "published")
+      onClose()
+    } catch (err: unknown) {
+      setPubError(err instanceof Error ? err.message : "Publish failed")
+    } finally {
+      setPublishing(false)
+    }
+  }
+
   return (
     <motion.div
       initial={{ y: 24, opacity: 0 }} animate={{ y: 0, opacity: 1 }}
@@ -201,19 +226,32 @@ function PostDetailInner({ post, onClose, onDelete }: {
       </div>
       <div className="p-5">
         <p className="text-sm text-slate-300 leading-relaxed mb-4 whitespace-pre-wrap">{post.content}</p>
-        <div className="flex items-center gap-1.5 text-xs text-slate-500">
+        <div className="flex items-center gap-1.5 text-xs text-slate-500 mb-4">
           <Clock className="w-3.5 h-3.5" />
           {new Date(post.scheduled_time).toLocaleString("en-US", {
             weekday: "long", month: "long", day: "numeric", hour: "2-digit", minute: "2-digit",
           })}
         </div>
+        {pubError && (
+          <p className="text-xs text-red-400 bg-red-500/10 border border-red-500/20 rounded-xl px-3 py-2 mb-3">{pubError}</p>
+        )}
+        {post.status === "pending" && (
+          <button onClick={handlePublish} disabled={publishing}
+            className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl text-xs font-bold transition-all disabled:opacity-60"
+            style={{ background: `linear-gradient(135deg, ${cfg.color}, ${cfg.color}cc)`, color: "#fff", boxShadow: `0 4px 16px ${cfg.color}30` }}>
+            {publishing ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Send className="w-3.5 h-3.5" />}
+            {publishing ? "Publishing..." : `Publish to ${cfg.label} Now`}
+          </button>
+        )}
       </div>
     </motion.div>
   )
 }
 
-function PostDetail({ post, onClose, onDelete }: {
-  post: ScheduledPost | null; onClose: () => void; onDelete: (id: string) => void
+function PostDetail({ post, onClose, onDelete, onStatusChange }: {
+  post: ScheduledPost | null; onClose: () => void
+  onDelete: (id: string) => void
+  onStatusChange: (id: string, status: Status) => void
 }) {
   return (
     <AnimatePresence>
@@ -224,7 +262,7 @@ function PostDetail({ post, onClose, onDelete }: {
           style={{ background: "rgba(5,8,22,0.7)", backdropFilter: "blur(8px)" }}
           onClick={e => e.target === e.currentTarget && onClose()}
         >
-          <PostDetailInner post={post} onClose={onClose} onDelete={onDelete} />
+          <PostDetailInner post={post} onClose={onClose} onDelete={onDelete} onStatusChange={onStatusChange} />
         </motion.div>
       )}
     </AnimatePresence>
@@ -261,6 +299,10 @@ export default function SchedulePage() {
   const handleDelete = async (id: string) => {
     await supabase.from("scheduled_posts").delete().eq("id", id)
     setPosts(ps => ps.filter(p => p.id !== id))
+  }
+
+  const handleStatusChange = (id: string, status: Status) => {
+    setPosts(ps => ps.map(p => p.id === id ? { ...p, status } : p))
   }
 
   // Calendar grid
@@ -305,7 +347,7 @@ export default function SchedulePage() {
         initialDate={addDate}
         onSave={post => setPosts(ps => [...ps, post])}
       />
-      <PostDetail post={detail} onClose={() => setDetail(null)} onDelete={handleDelete} />
+      <PostDetail post={detail} onClose={() => setDetail(null)} onDelete={handleDelete} onStatusChange={handleStatusChange} />
 
       <div className="max-w-5xl space-y-5">
 
