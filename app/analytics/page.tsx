@@ -6,7 +6,7 @@ import {
   BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer,
   PieChart, Pie, Cell, Legend,
 } from "recharts"
-import { Sparkles, CalendarClock, CheckCircle2, TrendingUp, Loader2 } from "lucide-react"
+import { Sparkles, CalendarClock, CheckCircle2, TrendingUp, Loader2, Heart, Repeat2, Eye, MessageCircle, ExternalLink } from "lucide-react"
 import { supabase } from "@/lib/supabase"
 
 interface DayData { day: string; posts: number }
@@ -18,6 +18,27 @@ interface Stats {
   published: number
   creditsUsed: number
   topPlatform: string
+}
+
+interface SocialPlatformData {
+  platform:  string
+  handle?:   string
+  connected?: boolean
+  note?:     string
+  totals?: {
+    impressions:     number
+    likes:           number
+    retweets:        number
+    replies:         number
+    quotes:          number
+    engagementRate:  string
+  } | null
+  tweets?: {
+    id:         string
+    text:       string
+    created_at: string
+    metrics:    Record<string, number>
+  }[]
 }
 
 const PLATFORM_COLORS: Record<string, string> = {
@@ -60,8 +81,24 @@ export default function AnalyticsPage() {
   const [weeklyData, setWeeklyData] = useState<DayData[]>([])
   const [platformData, setPlatformData] = useState<PlatformData[]>([])
   const [loading, setLoading] = useState(true)
+  const [socialData, setSocialData] = useState<SocialPlatformData[]>([])
+  const [socialLoading, setSocialLoading] = useState(true)
 
-  useEffect(() => { fetchData() }, [])
+  useEffect(() => { fetchData(); fetchSocialData() }, [])
+
+  const fetchSocialData = async () => {
+    setSocialLoading(true)
+    const { data: { session } } = await supabase.auth.getSession()
+    if (!session) { setSocialLoading(false); return }
+    try {
+      const res = await fetch("/api/analytics/social", {
+        headers: { Authorization: `Bearer ${session.access_token}` },
+      })
+      const data = await res.json()
+      setSocialData(data.platforms ?? [])
+    } catch { /* no connected accounts or API error */ }
+    setSocialLoading(false)
+  }
 
   const fetchData = async () => {
     const { data: { user } } = await supabase.auth.getUser()
@@ -284,6 +321,95 @@ export default function AnalyticsPage() {
           </div>
         </motion.div>
       )}
+
+      {/* ── Social Engagement (real platform data) ─────────────────── */}
+      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.5 }}>
+        <div className="flex items-center gap-2 mb-3">
+          <h3 className="text-sm font-semibold text-white">Social Engagement</h3>
+          <span className="text-[10px] px-2 py-0.5 rounded-full bg-emerald-500/15 text-emerald-400 border border-emerald-500/20 font-semibold">LIVE</span>
+        </div>
+
+        {socialLoading ? (
+          <div className="glass rounded-2xl p-8 border border-white/6 flex items-center justify-center gap-2 text-slate-500">
+            <Loader2 className="w-4 h-4 animate-spin" />
+            <span className="text-sm">Fetching from connected platforms…</span>
+          </div>
+        ) : socialData.length === 0 ? (
+          <div className="glass rounded-2xl p-8 border border-white/6 text-center">
+            <p className="text-sm text-slate-500 mb-2">No connected accounts</p>
+            <p className="text-xs text-slate-600">Connect Twitter or LinkedIn in <a href="/settings" className="text-[#F7BE4D] hover:underline">Settings</a> to see real engagement data.</p>
+          </div>
+        ) : (
+          <div className="space-y-4">
+            {socialData.map((platform) => (
+              <div key={platform.platform} className="glass rounded-2xl p-5 border border-white/6">
+                {/* Platform header */}
+                <div className="flex items-center gap-2.5 mb-4">
+                  <span className="text-lg">{platform.platform === "twitter" ? "𝕏" : "💼"}</span>
+                  <div>
+                    <p className="text-sm font-semibold text-white capitalize">{platform.platform === "twitter" ? "Twitter / X" : "LinkedIn"}</p>
+                    {platform.handle && <p className="text-[11px] text-slate-500">@{platform.handle}</p>}
+                  </div>
+                  <span className="ml-auto flex items-center gap-1 text-[10px] text-emerald-400 font-semibold">
+                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
+                    Connected
+                  </span>
+                </div>
+
+                {platform.totals ? (
+                  <>
+                    {/* Metric cards */}
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-4">
+                      {[
+                        { label: "Impressions",      value: platform.totals.impressions, icon: Eye,            color: "#818cf8" },
+                        { label: "Likes",            value: platform.totals.likes,       icon: Heart,          color: "#f472b6" },
+                        { label: "Retweets",         value: platform.totals.retweets,    icon: Repeat2,        color: "#34d399" },
+                        { label: "Engagement Rate",  value: platform.totals.engagementRate + "%", icon: TrendingUp, color: "#F7BE4D", isString: true },
+                      ].map(m => (
+                        <div key={m.label} className="rounded-xl px-3 py-3 border border-white/6" style={{ background: `${m.color}08` }}>
+                          <div className="flex items-center gap-1.5 mb-1.5">
+                            <m.icon className="w-3 h-3" style={{ color: m.color }} />
+                            <span className="text-[10px] text-slate-500 font-medium">{m.label}</span>
+                          </div>
+                          <p className="text-lg font-bold" style={{ color: m.color }}>
+                            {(m as any).isString ? m.value : Number(m.value).toLocaleString()}
+                          </p>
+                        </div>
+                      ))}
+                    </div>
+
+                    {/* Recent tweets */}
+                    {platform.tweets && platform.tweets.length > 0 && (
+                      <div>
+                        <p className="text-[11px] text-slate-500 font-semibold uppercase tracking-wide mb-2">Recent Posts</p>
+                        <div className="space-y-2">
+                          {platform.tweets.map(tweet => (
+                            <div key={tweet.id} className="flex items-start gap-3 p-3 rounded-xl border border-white/5 bg-white/[0.02] group">
+                              <p className="text-xs text-slate-400 leading-relaxed flex-1 line-clamp-2">{tweet.text}</p>
+                              <div className="flex items-center gap-3 flex-shrink-0 text-[10px] text-slate-600">
+                                <span className="flex items-center gap-1"><Heart className="w-3 h-3" />{tweet.metrics.like_count}</span>
+                                <span className="flex items-center gap-1"><Repeat2 className="w-3 h-3" />{tweet.metrics.retweet_count}</span>
+                                <a href={`https://twitter.com/i/web/status/${tweet.id}`} target="_blank" rel="noreferrer"
+                                  className="opacity-0 group-hover:opacity-100 transition-opacity">
+                                  <ExternalLink className="w-3 h-3 text-slate-500 hover:text-white" />
+                                </a>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </>
+                ) : (
+                  <p className="text-xs text-slate-600 bg-white/[0.02] rounded-xl px-4 py-3 border border-white/5">
+                    {platform.note ?? "Analytics not available for this platform yet."}
+                  </p>
+                )}
+              </div>
+            ))}
+          </div>
+        )}
+      </motion.div>
 
       {/* Empty state — no data at all */}
       {!loading && stats.totalGenerated === 0 && stats.scheduled === 0 && (
