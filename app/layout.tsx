@@ -3,6 +3,7 @@ import { Geist, Geist_Mono } from "next/font/google"
 import "./globals.css"
 import CrispChat from "@/components/CrispChat"
 import { PostHogProvider, PostHogPageView } from "@/components/providers/PostHogProvider"
+import FeedbackWidget from "@/components/FeedbackWidget"
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -83,6 +84,7 @@ export default function RootLayout({
         <PostHogProvider>
           <PostHogPageView />
           {children}
+          <FeedbackWidget />
           <CrispChat />
         </PostHogProvider>
       </body>

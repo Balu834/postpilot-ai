@@ -56,4 +56,22 @@ export const analytics = {
 
   subscriptionCreated: (plan: string) =>
     safe(() => posthog.capture("subscription_created", { plan })),
+
+  bugReported: (page: string) =>
+    safe(() => posthog.capture("bug_reported", { page })),
+
+  featureRequested: (description: string) =>
+    safe(() => posthog.capture("feature_requested", { description: description.slice(0, 100) })),
+
+  feedbackOpened: () =>
+    safe(() => posthog.capture("feedback_opened")),
+
+  feedbackSubmitted: (category: string, hasEmail: boolean) =>
+    safe(() => posthog.capture("feedback_submitted", { category, has_email: hasEmail })),
+
+  waitlistJoined: (feature: string) =>
+    safe(() => posthog.capture("waitlist_joined", { feature })),
+
+  reactionGiven: (positive: boolean, context: string) =>
+    safe(() => posthog.capture("reaction_given", { positive, context })),
 }

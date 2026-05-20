@@ -585,6 +585,7 @@ export default function GeneratePage() {
   const [planName,     setPlanName]     = useState("free")
   const [genCount,     setGenCount]     = useState(0)
   const [upgradeOpen,  setUpgradeOpen]  = useState(false)
+  const [reacted,      setReacted]      = useState<"up" | "down" | null>(null)
 
   const abortRef = useRef<AbortController | null>(null)
 
@@ -630,6 +631,7 @@ export default function GeneratePage() {
     setVisibleTabs([])
     setCompletedPlatforms(new Set())
     setStreamPhase(STREAM_PHASES[0])
+    setReacted(null)
     const genStartedAt = Date.now()
     analytics.generationStarted({
       topic_length: effectiveTopic.trim().length,
@@ -1069,6 +1071,45 @@ export default function GeneratePage() {
                 <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.3 }}
                   className="px-5 pb-5 pt-1 border-t border-white/[0.04]">
                   <RefinementBar onRefine={handleRefine} disabled={isStreaming} />
+                </motion.div>
+              )}
+
+              {/* Quick reaction */}
+              {finalResult && !isStreaming && (
+                <motion.div
+                  initial={{ opacity: 0, y: 4 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.6 }}
+                  className="flex items-center justify-center gap-3 px-5 pb-4 pt-2 border-t border-white/[0.03]"
+                >
+                  <span className="text-[11px] text-slate-600">Was this generation helpful?</span>
+                  {(["up", "down"] as const).map(dir => (
+                    <motion.button
+                      key={dir}
+                      onClick={() => {
+                        if (reacted) return
+                        setReacted(dir)
+                        analytics.reactionGiven(dir === "up", "generation")
+                      }}
+                      whileHover={!reacted ? { scale: 1.22 } : {}}
+                      whileTap={!reacted ? { scale: 0.9 } : {}}
+                      className="text-xl transition-all"
+                      style={{ opacity: reacted && reacted !== dir ? 0.2 : 1 }}
+                    >
+                      {dir === "up" ? "👍" : "👎"}
+                    </motion.button>
+                  ))}
+                  <AnimatePresence>
+                    {reacted && (
+                      <motion.span
+                        initial={{ opacity: 0, x: -6 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        className="text-[11px] text-slate-600"
+                      >
+                        {reacted === "up" ? "Glad it helped!" : "We'll make it better"}
+                      </motion.span>
+                    )}
+                  </AnimatePresence>
                 </motion.div>
               )}
             </motion.div>
