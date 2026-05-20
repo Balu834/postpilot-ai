@@ -219,18 +219,18 @@ function HeroGenerate({ prefs }: { prefs: UserPrefs | null }) {
   const [topic, setTopic] = useState("")
 
   const placeholder = (() => {
-    if (!prefs?.niche) return "e.g. 'How AI is reshaping content marketing in 2025'…"
+    if (!prefs?.niche) return "e.g. 'How AI is reshaping content marketing in 2026'…"
     const examples: Record<string, string> = {
       tech:      "e.g. 'Why we ditched Notion for Linear and never looked back'…",
       fitness:   "e.g. 'The 5-minute morning routine that changed my energy'…",
       business:  "e.g. 'How I closed our first ₹10L client with cold DMs'…",
-      personal:  "e.g. 'The brutal truth about building a personal brand in 2025'…",
+      personal:  "e.g. 'The brutal truth about building a personal brand in 2026'…",
       travel:    "e.g. 'How I spent a month in Japan for under ₹80K'…",
       food:      "e.g. 'My 3-ingredient pasta that tastes like it took hours'…",
       fashion:   "e.g. '5 outfits I wear on repeat every single week'…",
       education: "e.g. 'The Feynman technique: why it works and how to use it'…",
     }
-    return examples[prefs.niche] ?? "e.g. 'How AI is reshaping content marketing in 2025'…"
+    return examples[prefs.niche] ?? "e.g. 'How AI is reshaping content marketing in 2026'…"
   })()
 
   const activePlatforms = prefs?.platforms?.length

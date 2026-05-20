@@ -364,9 +364,13 @@ export default function GeneratePage() {
     setResult(null)
 
     try {
+      const { data: { session } } = await supabase.auth.getSession()
       const res = await fetch("/api/generate", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          ...(session?.access_token ? { Authorization: `Bearer ${session.access_token}` } : {}),
+        },
         body: JSON.stringify({ topic: effectiveTopic, product, blogUrl, tone, brandVoice }),
       })
       const data = await res.json()
@@ -461,7 +465,7 @@ export default function GeneratePage() {
                 value={topic}
                 onChange={e => setTopic(e.target.value)}
                 onKeyDown={e => { if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) generate() }}
-                placeholder="e.g. 'How AI is reshaping content marketing in 2025' or 'Launching our new productivity app'"
+                placeholder="e.g. 'How AI is reshaping content marketing in 2026' or 'Launching our new productivity app'"
                 rows={3}
                 className="input-premium w-full px-4 py-3 text-sm resize-none leading-relaxed"
               />

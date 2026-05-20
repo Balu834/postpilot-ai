@@ -25,7 +25,7 @@ const TEMPLATES = [
     category: "Education",
     color: "#818cf8",
     description: "Share deep insights that establish you as a thought leader",
-    prompt: "Here's everything you need to know about [TOPIC] — a complete breakdown from beginner to advanced level in 2025.",
+    prompt: "Here's everything you need to know about [TOPIC] — a complete breakdown from beginner to advanced level in 2026.",
     tone: "educational",
     tags: ["Education", "Thread"],
   },

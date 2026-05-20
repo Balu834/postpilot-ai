@@ -45,16 +45,16 @@ const PLATFORM_LABELS: Record<string, { icon: string; color: string; label: stri
 const DEMO_GENERATIONS: Generation[] = [
   {
     id: "demo-1",
-    prompt: "How AI is changing content marketing in 2025",
+    prompt: "How AI is changing content marketing in 2026",
     created_at: new Date(Date.now() - 86400000 * 2).toISOString(),
     output: {
       linkedin: [
         "AI isn't replacing content creators — it's giving them superpowers. Here's how forward-thinking marketers are using AI to create 10x more content without sacrificing quality. The key? Using AI for ideation and structure, humans for voice and strategy. 🚀",
-        "The content teams that will win in 2025 are the ones treating AI as a creative partner, not a replacement. 3 things they do differently: 1) They use AI for first drafts, not final copy. 2) They train AI on their brand voice. 3) They measure engagement, not just output.",
+        "The content teams that will win in 2026 are the ones treating AI as a creative partner, not a replacement. 3 things they do differently: 1) They use AI for first drafts, not final copy. 2) They train AI on their brand voice. 3) They measure engagement, not just output.",
       ],
       twitter: [
-        "Hot take: The best content creators in 2025 won't be the most creative — they'll be the best AI prompt engineers. The skill is shifting. Are you adapting?",
-        "AI content tools in 2025: ✅ First drafts ✅ Ideation ✅ Repurposing ❌ Brand voice ❌ Emotional nuance ❌ Original research Know what to delegate.",
+        "Hot take: The best content creators in 2026 won't be the most creative — they'll be the best AI prompt engineers. The skill is shifting. Are you adapting?",
+        "AI content tools in 2026: ✅ First drafts ✅ Ideation ✅ Repurposing ❌ Brand voice ❌ Emotional nuance ❌ Original research Know what to delegate.",
       ],
       instagram: [
         "POV: You just turned one blog post into 20 pieces of content in under 10 minutes 🤯 This is the power of AI-assisted content marketing. Not replacing creativity — amplifying it. What content workflow are you automating right now?",
