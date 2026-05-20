@@ -19,9 +19,24 @@ export default function AuthCallbackPage() {
 
       // Upsert user record (handles Google first-time sign-up)
       await supabase.from("users").upsert(
-        { id: userId, email: session.user.email },
+        { id: userId, email: session.user.email, referral_code: userId.slice(0, 8) },
         { onConflict: "id", ignoreDuplicates: true }
       )
+
+      // Track referral if cookie is set
+      const refCode = document.cookie.match(/postpilot_ref=([^;]+)/)?.[1]
+      if (refCode) {
+        fetch("/api/referral/track", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${session.access_token}`,
+          },
+          body: JSON.stringify({ referralCode: refCode }),
+        }).catch(() => {})
+        // Clear cookie
+        document.cookie = "postpilot_ref=; path=/; max-age=0"
+      }
 
       // Check if already onboarded via localStorage (fast path)
       if (localStorage.getItem(`postpilot_onboarded_${userId}`)) {

@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react"
 import { motion, AnimatePresence } from "framer-motion"
-import { User, Key, Loader2, CheckCircle2, Zap, Crown, Link2, Unlink, AlertCircle, Bell } from "lucide-react"
+import { User, Key, Loader2, CheckCircle2, Zap, Crown, Link2, Unlink, AlertCircle, Bell, Gift, Copy, CheckCheck } from "lucide-react"
 import { useSearchParams } from "next/navigation"
 import { supabase } from "@/lib/supabase"
 import UpgradeModal from "@/components/UpgradeModal"
@@ -34,6 +34,10 @@ export default function SettingsPage() {
   const [notifyDigest,    setNotifyDigest]    = useState(false)
   const [savingNotif,     setSavingNotif]     = useState(false)
   const [notifSaved,      setNotifSaved]      = useState(false)
+  const [referralCode,    setReferralCode]    = useState("")
+  const [referralCount,   setReferralCount]   = useState(0)
+  const [referralCredits, setReferralCredits] = useState(0)
+  const [copiedRef,       setCopiedRef]       = useState(false)
 
   const FREE_LIMIT = 10
   const isPro = planName !== "free"
@@ -105,9 +109,10 @@ export default function SettingsPage() {
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) return
 
-    const [profileRes, genRes] = await Promise.all([
-      supabase.from("users").select("name, email, plan_name, plan_expires_at, email_notify_published, email_notify_digest").eq("id", user.id).single(),
+    const [profileRes, genRes, refRes] = await Promise.all([
+      supabase.from("users").select("name, email, plan_name, plan_expires_at, email_notify_published, email_notify_digest, referral_code, referral_credits").eq("id", user.id).single(),
       supabase.from("generations").select("id", { count: "exact" }).eq("user_id", user.id),
+      supabase.from("referrals").select("id", { count: "exact" }).eq("referrer_id", user.id),
     ])
 
     if (profileRes.data) {
@@ -117,6 +122,9 @@ export default function SettingsPage() {
       setExpiresAt(profileRes.data.plan_expires_at || null)
       setNotifyPublished(profileRes.data.email_notify_published ?? false)
       setNotifyDigest(profileRes.data.email_notify_digest ?? false)
+      setReferralCode(profileRes.data.referral_code ?? "")
+      setReferralCredits(profileRes.data.referral_credits ?? 0)
+      setReferralCount(refRes.count ?? 0)
     } else {
       setEmail(user.email || "")
     }
@@ -433,6 +441,71 @@ export default function SettingsPage() {
             {notifSaved && <CheckCircle2 className="w-3.5 h-3.5" />}
             {notifSaved ? "Saved!" : "Save Preferences"}
           </button>
+        </div>
+      </motion.div>
+
+      {/* Referral Program */}
+      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.5 }}
+        className="rounded-2xl p-5 border relative overflow-hidden"
+        style={{ background: "linear-gradient(135deg, rgba(247,190,77,0.07) 0%, rgba(247,190,77,0.02) 100%)", borderColor: "rgba(247,190,77,0.18)" }}>
+        <div className="absolute -top-10 -right-10 w-40 h-40 rounded-full blur-3xl opacity-30"
+          style={{ background: "radial-gradient(circle, #F7BE4D 0%, transparent 70%)" }} />
+
+        <div className="relative">
+          <div className="flex items-center gap-2.5 mb-4">
+            <div className="w-8 h-8 rounded-lg bg-[#F7BE4D]/20 flex items-center justify-center">
+              <Gift className="w-4 h-4 text-[#F7BE4D]" />
+            </div>
+            <div>
+              <h2 className="text-sm font-semibold text-white">Refer & Earn</h2>
+              <p className="text-[11px] text-slate-500">Get +5 free credits for every friend who signs up</p>
+            </div>
+          </div>
+
+          {/* Stats row */}
+          <div className="grid grid-cols-2 gap-3 mb-4">
+            {[
+              { label: "Friends referred", value: referralCount },
+              { label: "Credits earned",   value: referralCredits },
+            ].map(s => (
+              <div key={s.label} className="rounded-xl px-4 py-3 border border-white/6"
+                style={{ background: "rgba(255,255,255,0.03)" }}>
+                <p className="text-xl font-black text-[#F7BE4D]">{s.value}</p>
+                <p className="text-[11px] text-slate-500 mt-0.5">{s.label}</p>
+              </div>
+            ))}
+          </div>
+
+          {/* Referral link */}
+          <div>
+            <p className="text-xs text-slate-400 font-medium mb-2">Your referral link</p>
+            <div className="flex items-center gap-2">
+              <div className="flex-1 flex items-center gap-2 px-3 py-2.5 rounded-xl border border-white/8 min-w-0"
+                style={{ background: "rgba(255,255,255,0.03)" }}>
+                <span className="text-xs text-slate-400 truncate">
+                  {typeof window !== "undefined" ? `${window.location.origin}/ref/` : ""}
+                  <span className="text-white font-mono">{referralCode || "loading..."}</span>
+                </span>
+              </div>
+              <button
+                onClick={() => {
+                  if (!referralCode) return
+                  const url = `${window.location.origin}/ref/${referralCode}`
+                  navigator.clipboard.writeText(url)
+                  setCopiedRef(true)
+                  setTimeout(() => setCopiedRef(false), 2000)
+                }}
+                className={`flex items-center gap-1.5 text-xs font-semibold px-3 py-2.5 rounded-xl
+                  border transition-all flex-shrink-0 ${
+                  copiedRef
+                    ? "bg-emerald-500/15 text-emerald-400 border-emerald-500/25"
+                    : "bg-[#F7BE4D]/15 text-[#F7BE4D] border-[#F7BE4D]/25 hover:bg-[#F7BE4D]/25"
+                }`}>
+                {copiedRef ? <CheckCheck className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
+                {copiedRef ? "Copied!" : "Copy"}
+              </button>
+            </div>
+          </div>
         </div>
       </motion.div>
 

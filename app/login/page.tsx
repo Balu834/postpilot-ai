@@ -253,11 +253,23 @@ export default function LoginPage() {
         const { data, error } = await supabase.auth.signUp({ email, password })
         if (error) throw error
         if (data.user && data.session) {
-          // DB trigger (handle_new_user) creates the users record automatically
           fetch("/api/email/welcome", {
             method: "POST",
             headers: { authorization: `Bearer ${data.session.access_token}` },
           }).catch(() => {})
+          // Track referral from cookie
+          const refCode = document.cookie.match(/postpilot_ref=([^;]+)/)?.[1]
+          if (refCode) {
+            fetch("/api/referral/track", {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+                Authorization: `Bearer ${data.session.access_token}`,
+              },
+              body: JSON.stringify({ referralCode: refCode }),
+            }).catch(() => {})
+            document.cookie = "postpilot_ref=; path=/; max-age=0"
+          }
           router.replace("/onboarding")
         }
       } else {
