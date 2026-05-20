@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server"
 import { createClient } from "@supabase/supabase-js"
+import { sendPublishedEmail } from "@/lib/resend"
 
 const supabaseAdmin = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -86,6 +87,14 @@ export async function POST(req: NextRequest) {
       }
 
       await supabaseAdmin.from("scheduled_posts").update({ status: "published" }).eq("id", postId)
+
+      // Send email notification if enabled
+      const { data: prefs } = await supabaseAdmin
+        .from("users").select("email_notify_published").eq("id", user.id).single()
+      if (prefs?.email_notify_published && user.email) {
+        sendPublishedEmail(user.email, post.platform, post.content).catch(console.error)
+      }
+
       return NextResponse.json({ success: true })
     } catch (publishErr: unknown) {
       await supabaseAdmin.from("scheduled_posts").update({ status: "failed" }).eq("id", postId)

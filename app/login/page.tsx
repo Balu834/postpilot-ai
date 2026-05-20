@@ -251,16 +251,24 @@ export default function LoginPage() {
       if (mode === "signup") {
         const { data, error } = await supabase.auth.signUp({ email, password })
         if (error) throw error
-        if (data.user) {
+        if (data.user && data.session) {
           // DB trigger (handle_new_user) creates the users record automatically
+          fetch("/api/email/welcome", {
+            method: "POST",
+            headers: { authorization: `Bearer ${data.session.access_token}` },
+          }).catch(() => {})
           router.replace("/onboarding")
         }
       } else {
         const { error, data } = await supabase.auth.signInWithPassword({ email, password })
         if (error) throw error
-        // Existing users skip onboarding — mark as done so AuthGuard lets them through
-        if (data.user) {
+        if (data.user && data.session) {
           localStorage.setItem(`postpilot_onboarded_${data.user.id}`, "true")
+          // Send welcome email to new users who haven't received it yet
+          fetch("/api/email/welcome", {
+            method: "POST",
+            headers: { authorization: `Bearer ${data.session.access_token}` },
+          }).catch(() => {})
         }
         router.replace("/dashboard")
       }
