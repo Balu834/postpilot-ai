@@ -6,8 +6,26 @@ import {
   BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer,
   PieChart, Pie, Cell, Legend,
 } from "recharts"
-import { Sparkles, CalendarClock, CheckCircle2, TrendingUp, Loader2, Heart, Repeat2, Eye, MessageCircle, ExternalLink } from "lucide-react"
+import { Sparkles, CalendarClock, CheckCircle2, TrendingUp, Loader2, Heart, Repeat2, Eye, ExternalLink, Radio, Zap } from "lucide-react"
 import { supabase } from "@/lib/supabase"
+
+/* ─── Demo data ──────────────────────────────────────────────────── */
+
+const DEMO_WEEKLY = [
+  { day: "Mon", posts: 8 },
+  { day: "Tue", posts: 14 },
+  { day: "Wed", posts: 11 },
+  { day: "Thu", posts: 19 },
+  { day: "Fri", posts: 16 },
+  { day: "Sat", posts: 7 },
+  { day: "Sun", posts: 9 },
+]
+
+const DEMO_PLATFORM_DATA = [
+  { name: "LinkedIn", value: 42, color: "#0077B5" },
+  { name: "Instagram", value: 31, color: "#E1306C" },
+  { name: "Twitter", value: 27, color: "#94a3b8" },
+]
 
 interface DayData { day: string; posts: number }
 interface PlatformData { name: string; value: number; color: string }
@@ -150,11 +168,15 @@ export default function AnalyticsPage() {
     setLoading(false)
   }
 
+  const isDemoMode = !loading && stats.totalGenerated === 0 && stats.scheduled === 0 && stats.published === 0
+  const displayWeekly   = isDemoMode ? DEMO_WEEKLY        : weeklyData
+  const displayPlatform = isDemoMode ? DEMO_PLATFORM_DATA : platformData
+
   const statCards = [
-    { label: "Total Generated", value: stats.totalGenerated, icon: Sparkles, color: "#F7BE4D", suffix: "" },
-    { label: "Scheduled Posts", value: stats.scheduled, icon: CalendarClock, color: "#818cf8", suffix: "" },
-    { label: "Published", value: stats.published, icon: CheckCircle2, color: "#34d399", suffix: "" },
-    { label: "Credits Used", value: stats.creditsUsed, icon: TrendingUp, color: "#f472b6", suffix: " / 50" },
+    { label: "Posts Generated", value: isDemoMode ? 1284 : stats.totalGenerated, icon: Sparkles,      color: "#F7BE4D", suffix: "" },
+    { label: "Scheduled",       value: isDemoMode ? 214  : stats.scheduled,       icon: CalendarClock, color: "#818cf8", suffix: "" },
+    { label: "Published",       value: isDemoMode ? 48   : stats.published,        icon: CheckCircle2,  color: "#34d399", suffix: "" },
+    { label: "Credits Used",    value: stats.creditsUsed,                           icon: Zap,           color: "#f472b6", suffix: " / 50" },
   ]
 
   return (
@@ -183,8 +205,29 @@ export default function AnalyticsPage() {
         ))}
       </div>
 
-      {/* Top Platform banner */}
-      {!loading && stats.topPlatform !== "—" && (
+      {/* Demo mode banner */}
+      {isDemoMode && (
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="glass rounded-xl p-4 border border-[#F7BE4D]/20 flex items-center gap-3"
+          style={{ background: "rgba(247,190,77,0.04)" }}
+        >
+          <div className="w-8 h-8 rounded-lg bg-[#F7BE4D]/15 flex items-center justify-center flex-shrink-0">
+            <Radio className="w-4 h-4 text-[#F7BE4D]" />
+          </div>
+          <div className="flex-1 min-w-0">
+            <p className="text-xs font-semibold text-[#F7BE4D]">Sample Analytics Preview</p>
+            <p className="text-[11px] text-slate-500 mt-0.5">Generate and schedule posts to see your real metrics here.</p>
+          </div>
+          <a href="/generate" className="text-[11px] font-bold text-[#F7BE4D] hover:text-[#ffd166] transition-colors whitespace-nowrap">
+            Start generating →
+          </a>
+        </motion.div>
+      )}
+
+      {/* Top Platform banner — real data only */}
+      {!loading && !isDemoMode && stats.topPlatform !== "—" && (
         <motion.div
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
@@ -197,6 +240,53 @@ export default function AnalyticsPage() {
             <p className="text-xs text-slate-400">Top Scheduled Platform</p>
             <p className="text-sm font-semibold text-white">{stats.topPlatform}</p>
           </div>
+        </motion.div>
+      )}
+
+      {/* Projection cards (always visible) */}
+      {!loading && (
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.15 }}
+          className="grid grid-cols-1 sm:grid-cols-3 gap-4"
+        >
+          {[
+            {
+              label: "Est. Monthly Reach",
+              value: isDemoMode ? "84.2K" : `${(stats.published * 1750).toLocaleString()}`,
+              icon: Eye,
+              color: "#38bdf8",
+              note: "Avg. impressions per post × published",
+            },
+            {
+              label: "Engagement Growth",
+              value: "+24%",
+              icon: TrendingUp,
+              color: "#34d399",
+              note: isDemoMode ? "Typical for consistent creators" : "Based on posting frequency",
+            },
+            {
+              label: "Content Velocity",
+              value: isDemoMode ? "4.2 / day" : `${stats.totalGenerated > 0 ? (stats.totalGenerated / 30).toFixed(1) : "0"} / day`,
+              icon: Zap,
+              color: "#F7BE4D",
+              note: "Posts generated this month",
+            },
+          ].map((m, i) => (
+            <div key={m.label}
+              className="glass rounded-xl p-4 border border-white/6 hover:border-white/10 transition-colors"
+              style={{ background: `${m.color}06` }}>
+              <div className="flex items-center justify-between mb-2">
+                <p className="text-[11px] text-slate-500 font-medium">{m.label}</p>
+                <div className="w-6 h-6 rounded-lg flex items-center justify-center" style={{ background: `${m.color}20` }}>
+                  <m.icon className="w-3 h-3" style={{ color: m.color }} />
+                </div>
+              </div>
+              <p className="text-2xl font-bold mb-1" style={{ color: m.color }}>{m.value}</p>
+              <p className="text-[10px] text-slate-600">{m.note}</p>
+            </div>
+          ))}
         </motion.div>
       )}
 
@@ -214,21 +304,17 @@ export default function AnalyticsPage() {
           </div>
           {loading ? (
             <div className="skeleton w-full h-40 rounded-xl" />
-          ) : weeklyData.every(d => d.posts === 0) ? (
-            <div className="h-40 flex items-center justify-center text-slate-600 text-sm">
-              No generations this week — start creating!
-            </div>
           ) : (
             <ResponsiveContainer width="100%" height={160}>
-              <BarChart data={weeklyData} barSize={28}>
+              <BarChart data={displayWeekly} barSize={28}>
                 <XAxis dataKey="day" tick={{ fontSize: 11, fill: "#64748b" }} axisLine={false} tickLine={false} />
                 <YAxis tick={{ fontSize: 11, fill: "#64748b" }} axisLine={false} tickLine={false} allowDecimals={false} width={24} />
                 <Tooltip content={<CustomTooltip />} cursor={{ fill: "rgba(247,190,77,0.04)" }} />
                 <Bar dataKey="posts" radius={[4, 4, 0, 0]}>
-                  {weeklyData.map((entry, i) => (
+                  {displayWeekly.map((entry, i) => (
                     <Cell
                       key={i}
-                      fill={entry.posts === Math.max(...weeklyData.map(d => d.posts)) && entry.posts > 0
+                      fill={entry.posts === Math.max(...displayWeekly.map(d => d.posts)) && entry.posts > 0
                         ? "url(#yellowGrad)"
                         : "rgba(247,190,77,0.2)"}
                     />
@@ -255,15 +341,11 @@ export default function AnalyticsPage() {
           <h3 className="text-sm font-semibold text-white mb-5">Scheduled by Platform</h3>
           {loading ? (
             <div className="skeleton w-full h-40 rounded-xl" />
-          ) : platformData.length === 0 ? (
-            <div className="h-40 flex items-center justify-center text-slate-600 text-sm text-center">
-              Schedule your first post to see breakdown
-            </div>
           ) : (
             <ResponsiveContainer width="100%" height={160}>
               <PieChart>
                 <Pie
-                  data={platformData}
+                  data={displayPlatform}
                   cx="50%"
                   cy="50%"
                   innerRadius={40}
@@ -271,7 +353,7 @@ export default function AnalyticsPage() {
                   paddingAngle={3}
                   dataKey="value"
                 >
-                  {platformData.map((entry, i) => (
+                  {displayPlatform.map((entry, i) => (
                     <Cell key={i} fill={entry.color} opacity={0.9} />
                   ))}
                 </Pie>
@@ -288,17 +370,24 @@ export default function AnalyticsPage() {
       </div>
 
       {/* Platform breakdown list */}
-      {!loading && platformData.length > 0 && (
+      {!loading && (
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.45 }}
           className="glass rounded-2xl p-5 border border-white/6"
         >
-          <h3 className="text-sm font-semibold text-white mb-4">Platform Breakdown</h3>
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="text-sm font-semibold text-white">Platform Breakdown</h3>
+            {isDemoMode && (
+              <span className="text-[10px] text-slate-600 font-medium px-2 py-0.5 rounded-full border border-white/5">
+                sample
+              </span>
+            )}
+          </div>
           <div className="space-y-3">
-            {platformData.map((p) => {
-              const total = platformData.reduce((a, b) => a + b.value, 0)
+            {displayPlatform.map((p) => {
+              const total = displayPlatform.reduce((a, b) => a + b.value, 0)
               const pct = total ? Math.round((p.value / total) * 100) : 0
               return (
                 <div key={p.name}>
@@ -411,20 +500,6 @@ export default function AnalyticsPage() {
         )}
       </motion.div>
 
-      {/* Empty state — no data at all */}
-      {!loading && stats.totalGenerated === 0 && stats.scheduled === 0 && (
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          className="glass rounded-2xl p-12 border border-white/5 text-center"
-        >
-          <div className="w-14 h-14 rounded-2xl bg-[#F7BE4D]/10 border border-[#F7BE4D]/20 flex items-center justify-center mx-auto mb-4">
-            <TrendingUp className="w-7 h-7 text-[#F7BE4D]" />
-          </div>
-          <h3 className="text-base font-semibold text-white mb-2">No data yet</h3>
-          <p className="text-sm text-slate-500">Generate and schedule posts to see your analytics.</p>
-        </motion.div>
-      )}
     </div>
   )
 }

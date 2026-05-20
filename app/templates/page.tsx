@@ -17,6 +17,8 @@ const TEMPLATES = [
     prompt: "We just launched [PRODUCT NAME]. It helps [TARGET AUDIENCE] to [KEY BENEFIT] without [MAIN PAIN POINT]. Here's what makes it different.",
     tone: "engaging",
     tags: ["Launch", "Startup"],
+    engagement: "⚡ High conversion",
+    reach: "18K–42K avg reach",
   },
   {
     id: "educational-thread",
@@ -28,6 +30,8 @@ const TEMPLATES = [
     prompt: "Here's everything you need to know about [TOPIC] — a complete breakdown from beginner to advanced level in 2026.",
     tone: "educational",
     tags: ["Education", "Thread"],
+    engagement: "💾 High saves",
+    reach: "24K–58K avg reach",
   },
   {
     id: "viral-hook",
@@ -39,6 +43,8 @@ const TEMPLATES = [
     prompt: "Controversial take: [YOUR BOLD OPINION ABOUT TOPIC]. Most people disagree — but here's the data that proves it.",
     tone: "witty",
     tags: ["Viral", "Engagement"],
+    engagement: "🔁 High reshares",
+    reach: "35K–120K avg reach",
   },
   {
     id: "startup-story",
@@ -50,6 +56,8 @@ const TEMPLATES = [
     prompt: "We've been building in stealth for [TIMEFRAME]. Today we're finally sharing what we've been working on: [PRODUCT] — [ONE SENTENCE PITCH].",
     tone: "inspirational",
     tags: ["Startup", "Story"],
+    engagement: "💬 High comments",
+    reach: "12K–34K avg reach",
   },
   {
     id: "tutorial",
@@ -61,6 +69,8 @@ const TEMPLATES = [
     prompt: "How to [ACHIEVE SPECIFIC RESULT] in [TIMEFRAME] — a complete step-by-step guide for [TARGET AUDIENCE] even if you're starting from zero.",
     tone: "educational",
     tags: ["Tutorial", "Education"],
+    engagement: "💾 High saves",
+    reach: "20K–55K avg reach",
   },
   {
     id: "milestone",
@@ -72,6 +82,8 @@ const TEMPLATES = [
     prompt: "We just hit [MILESTONE NUMBER] [USERS/CUSTOMERS/FOLLOWERS/REVENUE]. Here are the [NUMBER] lessons we learned along the way that nobody talks about.",
     tone: "inspirational",
     tags: ["Milestone", "Community"],
+    engagement: "❤️ High likes",
+    reach: "14K–28K avg reach",
   },
   {
     id: "data-insight",
@@ -83,6 +95,8 @@ const TEMPLATES = [
     prompt: "[SHOCKING STAT] about [INDUSTRY / TOPIC]. Most people don't know this. Here's what the data really means for [TARGET AUDIENCE].",
     tone: "professional",
     tags: ["Data", "Insight"],
+    engagement: "🔁 High reshares",
+    reach: "28K–72K avg reach",
   },
   {
     id: "comparison",
@@ -94,6 +108,8 @@ const TEMPLATES = [
     prompt: "[OPTION A] vs [OPTION B] for [USE CASE / GOAL]. I've personally tested both for [TIMEFRAME]. Here's my brutally honest take.",
     tone: "engaging",
     tags: ["Comparison", "Opinion"],
+    engagement: "💬 High debates",
+    reach: "22K–65K avg reach",
   },
   {
     id: "motivational",
@@ -105,6 +121,8 @@ const TEMPLATES = [
     prompt: "The single mindset shift that completely changed how I approach [TOPIC / CHALLENGE]. I wish someone had told me this [TIMEFRAME] ago.",
     tone: "inspirational",
     tags: ["Motivation", "Mindset"],
+    engagement: "❤️ High likes",
+    reach: "16K–40K avg reach",
   },
   {
     id: "promotion",
@@ -116,6 +134,8 @@ const TEMPLATES = [
     prompt: "Limited time: [SPECIFIC OFFER DETAILS] for [TARGET AUDIENCE]. [REASON WHY NOW IS THE TIME]. Here's exactly what you get.",
     tone: "engaging",
     tags: ["Promotion", "Sales"],
+    engagement: "⚡ High clicks",
+    reach: "10K–24K avg reach",
   },
   {
     id: "behind-scenes",
@@ -127,6 +147,8 @@ const TEMPLATES = [
     prompt: "A day in my life building [PRODUCT / COMPANY / CAREER]. What really happens behind the scenes that most people never see.",
     tone: "engaging",
     tags: ["Behind Scenes", "Authentic"],
+    engagement: "💬 High comments",
+    reach: "11K–26K avg reach",
   },
   {
     id: "thought-leadership",
@@ -138,6 +160,8 @@ const TEMPLATES = [
     prompt: "Most [PROFESSIONALS / FOUNDERS / MARKETERS] believe [COMMON ASSUMPTION]. After [YEARS / EXPERIENCE], I've come to believe something completely different — and here's why.",
     tone: "professional",
     tags: ["Leadership", "Opinion"],
+    engagement: "🔁 High reshares",
+    reach: "30K–80K avg reach",
   },
 ]
 
@@ -187,10 +211,21 @@ function TemplateCard({
       </p>
 
       {/* Prompt preview */}
-      <div className="p-3 rounded-xl mb-4 text-[11px] text-slate-400 leading-relaxed
+      <div className="p-3 rounded-xl mb-3 text-[11px] text-slate-400 leading-relaxed
         italic line-clamp-2"
         style={{ background: `${template.color}07`, border: `1px solid ${template.color}15` }}>
         "{template.prompt.slice(0, 100)}..."
+      </div>
+
+      {/* Engagement + reach chips */}
+      <div className="flex items-center gap-2 mb-4 flex-wrap">
+        <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full"
+          style={{ background: `${template.color}12`, color: template.color, border: `1px solid ${template.color}20` }}>
+          {template.engagement}
+        </span>
+        <span className="text-[10px] text-slate-600 font-medium">
+          {template.reach}
+        </span>
       </div>
 
       {/* CTA */}

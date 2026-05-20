@@ -40,6 +40,72 @@ const MONTHS = ["January","February","March","April","May","June","July","August
 function daysInMonth(y: number, m: number) { return new Date(y, m + 1, 0).getDate() }
 function firstDay(y: number, m: number)    { return new Date(y, m, 1).getDay() }
 
+/* ─── Demo schedule posts (shown when calendar is empty) ──────────── */
+
+function getDemoSchedulePosts(): ScheduledPost[] {
+  const now  = new Date()
+  const day  = now.getDay()
+  // Start of current week (Monday)
+  const mon  = new Date(now)
+  mon.setDate(now.getDate() - ((day + 6) % 7))
+  mon.setHours(0, 0, 0, 0)
+
+  const at = (daysAhead: number, hour: number) =>
+    new Date(mon.getTime() + daysAhead * 86400000 + hour * 3600000).toISOString()
+
+  return [
+    {
+      id: "demo-s1",
+      platform: "linkedin",
+      status: "published",
+      scheduled_time: at(0, 9),
+      content: "AI won't replace creators. Creators using AI will replace creators who don't. Here's why every founder needs an AI content stack in 2026.",
+    },
+    {
+      id: "demo-s2",
+      platform: "instagram",
+      status: "published",
+      scheduled_time: at(1, 14),
+      content: "Most startups don't fail because of product quality. They fail because nobody notices them. AI-powered content systems are the unfair advantage. 🚀",
+    },
+    {
+      id: "demo-s3",
+      platform: "twitter",
+      status: "pending",
+      scheduled_time: at(2, 10),
+      content: "AI content creation in 2026: • Faster workflows • Better personalization • Multi-platform generation • Automated repurposing. Creators who adapt early win.",
+    },
+    {
+      id: "demo-s4",
+      platform: "linkedin",
+      status: "pending",
+      scheduled_time: at(3, 9),
+      content: "I tested 12 AI content tools for 30 days so you don't have to. The results were shocking. Here's my brutally honest breakdown of what actually works.",
+    },
+    {
+      id: "demo-s5",
+      platform: "instagram",
+      status: "pending",
+      scheduled_time: at(4, 15),
+      content: "The one thing separating successful creators from struggling ones isn't talent — it's systems. Here's the content system I wish I had when I started 👇",
+    },
+    {
+      id: "demo-s6",
+      platform: "twitter",
+      status: "pending",
+      scheduled_time: at(7, 11),
+      content: "Hot take: Consistency > creativity for building an audience. The algorithm rewards people who show up. Your average daily post beats your once-a-week masterpiece.",
+    },
+    {
+      id: "demo-s7",
+      platform: "linkedin",
+      status: "pending",
+      scheduled_time: at(8, 8),
+      content: "3 years ago I had 200 LinkedIn followers. Today: 28K. The only thing that changed? I started treating LinkedIn like a product, not a diary.",
+    },
+  ]
+}
+
 // ── Add Post Modal ────────────────────────────────────────────────
 function AddPostModal({
   open, onClose, initialDate, onSave,
@@ -310,14 +376,18 @@ export default function SchedulePage() {
   const startDay   = firstDay(curYear, curMonth)
   const totalCells = Math.ceil((startDay + numDays) / 7) * 7
 
+  const demoPosts = useMemo(() => getDemoSchedulePosts(), [])
+  const isDemo    = !loading && posts.length === 0
+
   const postsByDay = useMemo(() => {
     const map: Record<string, ScheduledPost[]> = {}
-    posts.forEach(p => {
+    const source = isDemo ? demoPosts : posts
+    source.forEach(p => {
       const key = new Date(p.scheduled_time).toLocaleDateString("en-CA")
       ;(map[key] ??= []).push(p)
     })
     return map
-  }, [posts])
+  }, [posts, demoPosts, isDemo])
 
   const prevMonth = () => curMonth === 0 ? (setCurYear(y => y - 1), setCurMonth(11)) : setCurMonth(m => m - 1)
   const nextMonth = () => curMonth === 11 ? (setCurYear(y => y + 1), setCurMonth(0)) : setCurMonth(m => m + 1)
@@ -327,18 +397,21 @@ export default function SchedulePage() {
     setAddOpen(true)
   }
 
-  // Stats
-  const pendingCount   = posts.filter(p => p.status === "pending").length
-  const publishedCount = posts.filter(p => {
+  // Stats — use demo data when no real posts
+  const activePosts    = isDemo ? demoPosts : posts
+  const pendingCount   = activePosts.filter(p => p.status === "pending").length
+  const publishedCount = activePosts.filter(p => {
     const d = new Date(p.scheduled_time)
     return p.status === "published" && d.getMonth() === curMonth && d.getFullYear() === curYear
   }).length
-  const thisMonthCount = posts.filter(p => {
+  const thisMonthCount = activePosts.filter(p => {
     const d = new Date(p.scheduled_time)
     return d.getMonth() === curMonth && d.getFullYear() === curYear
   }).length
 
-  const filteredList = listFilter === "all" ? posts : posts.filter(p => p.status === listFilter)
+  const filteredList = listFilter === "all"
+    ? activePosts
+    : activePosts.filter(p => p.status === listFilter)
 
   return (
     <>
@@ -408,6 +481,21 @@ export default function SchedulePage() {
             </motion.div>
           ))}
         </div>
+
+        {/* Demo mode banner */}
+        {isDemo && (
+          <motion.div
+            initial={{ opacity: 0, y: 6 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="flex items-center gap-2 px-4 py-2.5 rounded-xl"
+            style={{ background: "rgba(247,190,77,0.05)", border: "1px solid rgba(247,190,77,0.15)" }}
+          >
+            <span className="w-1.5 h-1.5 rounded-full bg-[#F7BE4D] animate-pulse flex-shrink-0" />
+            <p className="text-[11px] text-slate-500">
+              <span className="text-[#F7BE4D] font-semibold">Sample schedule</span> — schedule your first post to replace this demo calendar.
+            </p>
+          </motion.div>
+        )}
 
         {loading ? (
           <div className="flex items-center justify-center py-20">
@@ -506,20 +594,21 @@ export default function SchedulePage() {
             {filteredList.length === 0 ? (
               <div className="glass-card rounded-2xl p-12 text-center">
                 <CalendarDays className="w-10 h-10 text-slate-700 mx-auto mb-3" />
-                <p className="text-sm text-slate-500 mb-1">No posts found</p>
-                <p className="text-xs text-slate-600">Click "Schedule Post" to add your first post</p>
+                <p className="text-sm text-slate-500 mb-1">No posts match this filter</p>
+                <p className="text-xs text-slate-600">Try "All posts" or click "Schedule Post" to add content</p>
               </div>
             ) : (
               filteredList.map((post, i) => {
                 const cfg    = PLATFORM[post.platform]
                 const st     = STATUS[post.status]
                 const StIcon = st.Icon
+                const isPostDemo = post.id.startsWith("demo-")
                 return (
                   <motion.div key={post.id}
                     initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: i * 0.04 }}
-                    onClick={() => setDetail(post)}
-                    className="glass-card rounded-xl p-4 border border-white/[0.06] hover:border-white/[0.10] transition-colors group cursor-pointer">
+                    onClick={() => !isPostDemo && setDetail(post)}
+                    className={`glass-card rounded-xl p-4 border border-white/[0.06] hover:border-white/[0.10] transition-colors group ${isPostDemo ? "cursor-default" : "cursor-pointer"}`}>
                     <div className="flex items-start gap-3">
                       <div className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0 text-base"
                         style={{ background: `${cfg.color}18` }}>
@@ -542,11 +631,13 @@ export default function SchedulePage() {
                           })}
                         </div>
                       </div>
-                      <button
-                        onClick={e => { e.stopPropagation(); handleDelete(post.id) }}
-                        className="opacity-0 group-hover:opacity-100 p-1.5 rounded-lg text-slate-600 hover:text-red-400 hover:bg-red-500/10 transition-all flex-shrink-0">
-                        <Trash2 className="w-3.5 h-3.5" />
-                      </button>
+                      {!isPostDemo && (
+                        <button
+                          onClick={e => { e.stopPropagation(); handleDelete(post.id) }}
+                          className="opacity-0 group-hover:opacity-100 p-1.5 rounded-lg text-slate-600 hover:text-red-400 hover:bg-red-500/10 transition-all flex-shrink-0">
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
+                      )}
                     </div>
                   </motion.div>
                 )

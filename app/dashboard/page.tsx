@@ -466,6 +466,45 @@ interface RecentPost { id: string; platform: string; content: string; time: stri
 const platformColors: Record<string, string> = { instagram: "#E1306C", linkedin: "#0077B5", twitter: "#1DA1F2" }
 const platformIcons:  Record<string, string>  = { instagram: "📸", linkedin: "💼", twitter: "🐦" }
 
+/* ─── Demo data (shown when user has no content yet) ──────────────── */
+
+const DEMO_RECENT: RecentPost[] = [
+  {
+    id: "demo-1",
+    platform: "instagram",
+    content: "AI won't replace creators. Creators using AI will replace creators who don't. Here are 5 tools changing content creation in 2026 👇",
+    time: "2h ago",
+    status: "published",
+  },
+  {
+    id: "demo-2",
+    platform: "linkedin",
+    content: "Most startups don't fail because of product quality. They fail because nobody notices them. AI-powered content systems are the unfair advantage for modern SaaS companies.",
+    time: "Tomorrow 9:00 AM",
+    status: "pending",
+  },
+  {
+    id: "demo-3",
+    platform: "twitter",
+    content: "AI content creation in 2026: • Faster workflows • Better personalization • Multi-platform generation • Automated repurposing. Creators who adapt early win.",
+    time: "Wed 2:00 PM",
+    status: "pending",
+  },
+  {
+    id: "demo-4",
+    platform: "instagram",
+    content: "I tested 12 AI tools for 30 days. Here's the one that completely changed my workflow — and it's not what most people recommend.",
+    time: "Yesterday",
+    status: "published",
+  },
+]
+
+const ACTIVITY_PULSE = [
+  { platform: "instagram", action: "generated", time: "3m ago",  reach: "8.4K" },
+  { platform: "linkedin",  action: "scheduled", time: "12m ago", reach: "6.1K" },
+  { platform: "twitter",   action: "published", time: "1h ago",  reach: "12.8K" },
+]
+
 /* ─── Page ──────────────────────────────────────────────────────── */
 
 export default function DashboardPage() {
@@ -666,48 +705,61 @@ export default function DashboardPage() {
                 </div>
               ))}
             </div>
-          ) : recentPosts.length === 0 ? (
-            <div className="text-center py-12">
-              <div className="w-12 h-12 rounded-2xl bg-white/5 flex items-center justify-center mx-auto mb-3">
-                <CalendarClock className="w-6 h-6 text-slate-600" />
-              </div>
-              <p className="text-sm text-slate-500 mb-1">No posts scheduled yet</p>
-              <Link href="/generate" className="text-xs text-[#F7BE4D] hover:text-[#ffd166] transition-colors">
-                Generate your first post →
-              </Link>
-            </div>
           ) : (
-            <div className="space-y-2">
-              {recentPosts.map((post, i) => (
-                <motion.div
-                  key={post.id}
-                  initial={{ opacity: 0, x: 12 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ delay: 0.5 + i * 0.07 }}
-                  whileHover={{ backgroundColor: "rgba(255,255,255,0.03)" }}
-                  className="flex items-start gap-3 p-3 rounded-xl transition-colors group"
-                >
-                  <div className="w-8 h-8 rounded-xl flex items-center justify-center flex-shrink-0 text-sm mt-0.5"
-                    style={{ background: `${platformColors[post.platform] || "#818cf8"}18` }}>
-                    {platformIcons[post.platform] || "📝"}
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 mb-1">
-                      <span className="text-xs font-medium text-slate-300 capitalize">{post.platform}</span>
-                      <span className={`text-[10px] px-2 py-0.5 rounded-full font-medium ${
-                        post.status === "published"
-                          ? "bg-emerald-500/12 text-emerald-400"
-                          : "bg-[#F7BE4D]/12 text-[#F7BE4D]"
-                      }`}>
-                        {post.status}
-                      </span>
+            <>
+              {recentPosts.length === 0 && (
+                <div className="flex items-center gap-2 mb-3 px-1">
+                  <span className="w-1.5 h-1.5 rounded-full bg-[#F7BE4D] animate-pulse" />
+                  <span className="text-[10px] text-slate-600 font-medium tracking-wide">Sample content preview</span>
+                </div>
+              )}
+
+              <div className="space-y-1.5">
+                {(recentPosts.length > 0 ? recentPosts : DEMO_RECENT).map((post, i) => (
+                  <motion.div
+                    key={post.id}
+                    initial={{ opacity: 0, x: 12 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ delay: 0.5 + i * 0.07 }}
+                    whileHover={{ backgroundColor: "rgba(255,255,255,0.03)" }}
+                    className="flex items-start gap-3 p-3 rounded-xl transition-colors group cursor-default"
+                  >
+                    <div className="w-8 h-8 rounded-xl flex items-center justify-center flex-shrink-0 text-sm mt-0.5"
+                      style={{ background: `${platformColors[post.platform] || "#818cf8"}18` }}>
+                      {platformIcons[post.platform] || "📝"}
                     </div>
-                    <p className="text-xs text-slate-400 truncate leading-relaxed">{post.content}</p>
-                    <p className="text-[10px] text-slate-600 mt-1">{post.time}</p>
-                  </div>
-                </motion.div>
-              ))}
-            </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 mb-1">
+                        <span className="text-xs font-medium text-slate-300 capitalize">{post.platform}</span>
+                        <span className={`text-[10px] px-2 py-0.5 rounded-full font-medium ${
+                          post.status === "published"
+                            ? "bg-emerald-500/12 text-emerald-400"
+                            : "bg-[#F7BE4D]/12 text-[#F7BE4D]"
+                        }`}>
+                          {post.status}
+                        </span>
+                        {post.status === "published" && (
+                          <span className="text-[10px] text-slate-600 ml-auto">
+                            Est. reach {ACTIVITY_PULSE[i % ACTIVITY_PULSE.length]?.reach ?? "—"}
+                          </span>
+                        )}
+                      </div>
+                      <p className="text-xs text-slate-400 truncate leading-relaxed">{post.content}</p>
+                      <p className="text-[10px] text-slate-600 mt-1">{post.time}</p>
+                    </div>
+                  </motion.div>
+                ))}
+              </div>
+
+              {recentPosts.length === 0 && (
+                <div className="pt-3 mt-1 text-center border-t border-white/[0.04]">
+                  <Link href="/generate"
+                    className="text-xs text-[#F7BE4D] hover:text-[#ffd166] transition-colors font-medium">
+                    Generate your first post →
+                  </Link>
+                </div>
+              )}
+            </>
           )}
         </motion.div>
       </div>

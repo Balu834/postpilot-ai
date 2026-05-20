@@ -30,6 +30,59 @@ const platformConfig = [
   { key: "twitter" as const, label: "Twitter / X", icon: "𝕏", color: "#94a3b8" },
 ]
 
+/* ─── Demo generations (shown when history is empty) ─────────────── */
+
+const DEMO_GENS: Generation[] = [
+  {
+    id: "demo-gen-1",
+    prompt: "How AI is changing content marketing in 2026",
+    platform: "instagram",
+    output: JSON.stringify({
+      instagram: "AI won't replace creators.\n\nCreators using AI will replace creators who don't.\n\nHere are 5 tools changing content creation in 2026 👇\n\n1. PostPilot AI — multi-platform generation\n2. Synthesia — AI video\n3. Midjourney — AI visuals\n4. ElevenLabs — voice cloning\n5. Notion AI — structured thinking\n\nSave this. Share this.",
+      linkedin: "Most content teams are still creating manually in 2026.\n\nThat's like using a typewriter when everyone else has a supercomputer.\n\nAI-assisted creation isn't the future. It's the present.\n\nHow top teams use it:\n• AI for ideation & first drafts\n• Humans for voice & strategy\n• Automation for repurposing\n\nThe result? 10x content. Same team.",
+      twitter: "Hot take: The best content creators in 2026 won't be the most creative — they'll be the best AI prompt engineers.\n\nThe skill is shifting. Are you adapting?",
+      hashtags: ["AIContent", "ContentMarketing", "SocialMediaStrategy", "CreatorEconomy", "DigitalMarketing", "ContentCreation", "AITools", "MarketingTips", "ContentStrategy", "FutureOfWork"],
+    }),
+    created_at: new Date(Date.now() - 2 * 3600000).toISOString(),
+  },
+  {
+    id: "demo-gen-2",
+    prompt: "LinkedIn personal branding for SaaS founders",
+    platform: "linkedin",
+    output: JSON.stringify({
+      instagram: "Building a SaaS company in public changed everything for us 📈\n\nWhat happened when we started sharing:\n• Inbound went up 340%\n• Partnerships came to us\n• Hiring became 10x easier\n• Revenue grew from word of mouth\n\nAuthenticity is the best marketing strategy.",
+      linkedin: "Most SaaS founders underestimate LinkedIn.\n\nThey build the product. They don't build the audience.\n\nYour personal brand is your most valuable distribution channel.\n\nThe founders who win in 2026:\n✓ Share their journey, not just their wins\n✓ Teach what they learn in public\n✓ Build relationships before they need them\n✓ Show up consistently, even on hard days\n\nYour next 100 customers are reading LinkedIn right now.",
+      twitter: "Controversial: The best SaaS growth strategy in 2026 isn't paid ads.\n\nIt's the founder's personal brand.\n\nEvery post is a sales call that scales.",
+      hashtags: ["SaaSFounder", "PersonalBranding", "LinkedInStrategy", "StartupMarketing", "BuildInPublic", "SaaSGrowth", "FounderLife", "B2BMarketing", "ThoughtLeadership", "Entrepreneurship"],
+    }),
+    created_at: new Date(Date.now() - 26 * 3600000).toISOString(),
+  },
+  {
+    id: "demo-gen-3",
+    prompt: "5 AI tools every creator needs in 2026",
+    platform: "instagram",
+    output: JSON.stringify({
+      instagram: "The creator stack changed completely in 2026 🚀\n\nHere's what the top 1% of creators are using:\n\n✅ PostPilot AI — multi-platform content\n✅ Descript — AI-powered video editing\n✅ Midjourney — stunning AI visuals\n✅ ElevenLabs — voice cloning\n✅ Gamma — AI presentations\n\nYour competitors are already using these. Are you?",
+      linkedin: "I analyzed the workflows of 50 successful creators in 2026.\n\nEvery single one uses at least 3 AI tools.\n\nHere's the stack that separates good from great:\n\n1. Content generation (PostPilot AI)\n2. Visual design (Midjourney + Canva AI)\n3. Video editing (Descript)\n4. Distribution (scheduling + automation)\n5. Analytics (data-driven decisions)\n\nAI doesn't replace the creator. It gives them superpowers.",
+      twitter: "Unpopular opinion: Creators who refuse to use AI in 2026 aren't being authentic.\n\nThey're just less productive.\n\nThe tools changed. The craft didn't.",
+      hashtags: ["CreatorTools", "AIForCreators", "ContentCreation", "CreatorEconomy", "SocialMediaTools", "AITools2026", "ContentStrategy", "DigitalCreator", "ContentMarketing", "GrowthHacks"],
+    }),
+    created_at: new Date(Date.now() - 3 * 24 * 3600000).toISOString(),
+  },
+  {
+    id: "demo-gen-4",
+    prompt: "How to grow on LinkedIn from 0 to 10k followers",
+    platform: "linkedin",
+    output: JSON.stringify({
+      instagram: "0 to 10K LinkedIn followers in 90 days 🎯\n\nThe playbook nobody talks about:\n\n1. Post at 8AM Tue–Thu (best times)\n2. Lead with a bold opening line\n3. Use white space, not paragraphs\n4. End with a question to drive comments\n5. Reply to every comment in first hour\n6. Engage with 10 posts before you post\n\nConsistency beats perfection every time.",
+      linkedin: "I grew my LinkedIn from 0 to 10,000 followers in 90 days.\n\nNo shortcuts. No paid promotions. Just this system:\n\nMorning routine:\n→ Engage with 10 posts (20 min)\n→ Post at 8AM\n→ Reply to all comments in first hour\n\nContent mix:\n→ 3x educational posts/week\n→ 1x personal story/week\n→ 1x hot take/week\n\nKey insight: LinkedIn rewards early engagement. The algorithm is that simple.",
+      twitter: "The LinkedIn growth playbook for 2026:\n\n• Post Tu/W/Th at 8AM\n• Bold first line (no preamble)\n• White space over paragraphs\n• End with a question\n• Reply every comment in hour 1\n\nDo this for 90 days. Watch what happens.",
+      hashtags: ["LinkedInGrowth", "PersonalBranding", "SocialMediaMarketing", "ContentStrategy", "LinkedInTips", "DigitalMarketing", "GrowthHacking", "LinkedInMarketing", "OnlinePresence", "CreatorTips"],
+    }),
+    created_at: new Date(Date.now() - 5 * 24 * 3600000).toISOString(),
+  },
+]
+
 function timeAgo(dateStr: string) {
   const diff = Date.now() - new Date(dateStr).getTime()
   const mins = Math.floor(diff / 60000)
@@ -40,10 +93,11 @@ function timeAgo(dateStr: string) {
   return `${Math.floor(hrs / 24)}d ago`
 }
 
-function GenerationCard({ gen, onDelete, onToast }: {
+function GenerationCard({ gen, onDelete, onToast, isDemo = false }: {
   gen: Generation
   onDelete: (id: string) => void
   onToast: (msg: string) => void
+  isDemo?: boolean
 }) {
   const router = useRouter()
   const [activePlatform, setActivePlatform] = useState<"instagram" | "linkedin" | "twitter">("instagram")
@@ -110,16 +164,18 @@ function GenerationCard({ gen, onDelete, onToast }: {
             className="flex items-center gap-1 text-[11px] text-slate-400 hover:text-[#F7BE4D] px-2 py-1.5 rounded-lg hover:bg-[#F7BE4D]/8 transition-all"
           >
             <Repeat2 className="w-3.5 h-3.5" />
-            Reuse
+            {isDemo ? "Try this" : "Reuse"}
           </button>
-          <button
-            onClick={handleDelete}
-            disabled={deleting}
-            title="Delete"
-            className="p-1.5 text-slate-600 hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-all"
-          >
-            <Trash2 className="w-3.5 h-3.5" />
-          </button>
+          {!isDemo && (
+            <button
+              onClick={handleDelete}
+              disabled={deleting}
+              title="Delete"
+              className="p-1.5 text-slate-600 hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-all"
+            >
+              <Trash2 className="w-3.5 h-3.5" />
+            </button>
+          )}
         </div>
       </div>
 
@@ -280,27 +336,37 @@ export default function HistoryPage() {
         </div>
       )}
 
-      {/* Empty state */}
+      {/* Empty state — show demo generations */}
       {!loading && generations.length === 0 && (
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="glass rounded-2xl p-16 border border-white/5 text-center"
-        >
-          <div className="w-16 h-16 rounded-2xl bg-[#F7BE4D]/10 border border-[#F7BE4D]/20 flex items-center justify-center mx-auto mb-5">
-            <History className="w-8 h-8 text-[#F7BE4D]" />
+        <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }}>
+          {/* Demo mode header */}
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center gap-2">
+              <span className="w-1.5 h-1.5 rounded-full bg-[#F7BE4D] animate-pulse" />
+              <span className="text-[11px] text-slate-600 font-medium">Sample generations — generate yours to replace these</span>
+            </div>
+            <button
+              onClick={() => router.push("/generate")}
+              className="flex items-center gap-1.5 text-xs font-bold text-[#F7BE4D] hover:text-[#ffd166] transition-colors"
+            >
+              <Sparkles className="w-3.5 h-3.5" />
+              Generate now
+            </button>
           </div>
-          <h2 className="text-xl font-bold text-white mb-2">No generations yet</h2>
-          <p className="text-sm text-slate-500 max-w-xs mx-auto mb-6">
-            Generate your first AI social post and it will appear here.
-          </p>
-          <button
-            onClick={() => router.push("/generate")}
-            className="flex items-center gap-2 bg-[#F7BE4D] text-[#050816] font-semibold px-6 py-2.5 rounded-xl hover:bg-[#ffd166] transition-all glow-yellow-sm mx-auto text-sm"
-          >
-            <Sparkles className="w-4 h-4" />
-            Generate Content
-          </button>
+          <AnimatePresence mode="popLayout">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {DEMO_GENS.map((gen, i) => (
+                <motion.div
+                  key={gen.id}
+                  initial={{ opacity: 0, y: 16 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: i * 0.07 }}
+                >
+                  <GenerationCard gen={gen} onDelete={() => {}} onToast={showToast} isDemo />
+                </motion.div>
+              ))}
+            </div>
+          </AnimatePresence>
         </motion.div>
       )}
 
