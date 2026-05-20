@@ -3,7 +3,7 @@ import { openai } from "@/lib/openai"
 
 export async function POST(req: NextRequest) {
   try {
-    const { topic, product, blogUrl, tone = "engaging" } = await req.json()
+    const { topic, product, blogUrl, tone = "engaging", brandVoice } = await req.json()
 
     if (!topic && !blogUrl) {
       return NextResponse.json({ error: "Topic or blog URL is required" }, { status: 400 })
@@ -16,9 +16,21 @@ export async function POST(req: NextRequest) {
       `Tone: ${tone}`,
     ].filter(Boolean).join("\n")
 
+    const voiceSection = brandVoice ? `
+BRAND VOICE GUIDELINES (follow strictly):
+${brandVoice.brand_name ? `- Brand name: ${brandVoice.brand_name}` : ""}
+${brandVoice.industry ? `- Industry: ${brandVoice.industry}` : ""}
+${brandVoice.audience ? `- Target audience: ${brandVoice.audience}` : ""}
+${brandVoice.key_topics?.length ? `- Preferred topics/themes: ${brandVoice.key_topics.join(", ")}` : ""}
+${brandVoice.avoid_words?.length ? `- Words/phrases to AVOID: ${brandVoice.avoid_words.join(", ")}` : ""}
+${brandVoice.emoji_style === "heavy" ? "- Use emojis liberally throughout" : brandVoice.emoji_style === "none" ? "- Do NOT use any emojis" : "- Use emojis sparingly and purposefully"}
+${brandVoice.sample_post ? `- Example of ideal content style:\n"${brandVoice.sample_post}"` : ""}
+`.trim() : ""
+
     const prompt = `You are a world-class social media strategist who creates high-converting, viral content.
 
 ${context}
+${voiceSection ? `\n${voiceSection}` : ""}
 
 Generate platform-optimized social media content. Return ONLY valid JSON with this exact structure:
 {

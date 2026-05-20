@@ -7,7 +7,7 @@ import { motion, AnimatePresence } from "framer-motion"
 import {
   LayoutDashboard, Wand2, CalendarClock, BarChart3,
   Settings, Zap, LogOut, History, Repeat2, FolderOpen,
-  LayoutTemplate,
+  LayoutTemplate, Mic2,
 } from "lucide-react"
 import { supabase } from "@/lib/supabase"
 import UpgradeModal from "@/components/UpgradeModal"
@@ -15,6 +15,7 @@ import UpgradeModal from "@/components/UpgradeModal"
 const navItems = [
   { icon: LayoutDashboard, label: "Dashboard",    href: "/dashboard" },
   { icon: Wand2,           label: "Generate",     href: "/generate"  },
+  { icon: Mic2,            label: "Brand Voice",  href: "/brand-voice", badge: "NEW" },
   { icon: Repeat2,         label: "Blog → Posts", href: "/repurpose", badge: "HOT" },
   { icon: LayoutTemplate,  label: "Templates",    href: "/templates" },
   { icon: FolderOpen,      label: "Workspace",    href: "/workspace" },

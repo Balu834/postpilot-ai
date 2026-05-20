@@ -307,6 +307,7 @@ export default function GeneratePage() {
   const [upgradeOpen,  setUpgradeOpen]  = useState(false)
   const [planName,     setPlanName]     = useState("free")
   const [genCount,     setGenCount]     = useState(0)
+  const [brandVoice,   setBrandVoice]   = useState<Record<string, unknown> | null>(null)
   const phaseRef = useRef<ReturnType<typeof setInterval> | null>(null)
 
   useEffect(() => {
@@ -317,15 +318,20 @@ export default function GeneratePage() {
   }, [searchParams])
 
   useEffect(() => {
-    supabase.auth.getUser().then(({ data: { user } }) => {
-      if (!user) return
-      Promise.all([
-        supabase.from("generations").select("id", { count: "exact" }).eq("user_id", user.id),
-        supabase.from("users").select("plan_name").eq("id", user.id).single(),
-      ]).then(([genRes, planRes]) => {
-        setGenCount(genRes.count ?? 0)
-        setPlanName(planRes.data?.plan_name ?? "free")
+    supabase.auth.getSession().then(async ({ data: { session } }) => {
+      if (!session) return
+      const [genRes, planRes] = await Promise.all([
+        supabase.from("generations").select("id", { count: "exact" }).eq("user_id", session.user.id),
+        supabase.from("users").select("plan_name").eq("id", session.user.id).single(),
+      ])
+      setGenCount(genRes.count ?? 0)
+      setPlanName(planRes.data?.plan_name ?? "free")
+
+      const bvRes = await fetch("/api/brand-voice", {
+        headers: { authorization: `Bearer ${session.access_token}` },
       })
+      const bvJson = await bvRes.json()
+      if (bvJson.data) setBrandVoice(bvJson.data)
     })
   }, [])
 
@@ -361,7 +367,7 @@ export default function GeneratePage() {
       const res = await fetch("/api/generate", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ topic: effectiveTopic, product, blogUrl, tone }),
+        body: JSON.stringify({ topic: effectiveTopic, product, blogUrl, tone, brandVoice }),
       })
       const data = await res.json()
       if (!res.ok) throw new Error(data.error || "Generation failed")
