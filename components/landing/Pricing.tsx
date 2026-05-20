@@ -601,7 +601,7 @@ export default function Pricing() {
           ))}
         </motion.div>
 
-        {/* ── Bottom CTA strip ───────────────────────────────────── */}
+        {/* ── Bottom note ────────────────────────────────────────── */}
         <motion.div
           initial={{ opacity: 0, y: 12 }}
           whileInView={{ opacity: 1, y: 0 }}
@@ -609,13 +609,6 @@ export default function Pricing() {
           transition={{ delay: 0.5 }}
           className="mt-12 text-center"
         >
-          <p className="text-sm text-slate-600 mb-4">
-            Questions about pricing?{" "}
-            <a href="mailto:support@postpilot.ai"
-              className="text-[#F7BE4D] hover:text-[#ffd166] transition-colors">
-              Talk to us →
-            </a>
-          </p>
           <p className="text-xs text-slate-700">
             Prices shown in Indian Rupees (INR) including applicable taxes.
             All plans renew automatically.
