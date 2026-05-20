@@ -1,7 +1,7 @@
 "use client"
 
 import { useEffect } from "react"
-import Crisp from "crisp-sdk-web"
+import { Crisp } from "crisp-sdk-web"
 
 const CRISP_WEBSITE_ID = process.env.NEXT_PUBLIC_CRISP_WEBSITE_ID ?? ""
 
