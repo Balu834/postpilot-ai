@@ -7,6 +7,7 @@ import {
   List, Clock, CheckCircle2, AlertCircle, Trash2, Loader2, Send,
 } from "lucide-react"
 import { supabase } from "@/lib/supabase"
+import { analytics } from "@/lib/analytics"
 
 // ── Types ────────────────────────────────────────────────────────
 type Platform = "linkedin" | "twitter" | "instagram"
@@ -133,6 +134,7 @@ function AddPostModal({
       .select().single()
 
     if (err) { setError(err.message); setSaving(false); return }
+    analytics.scheduleCreated(form.platform)
     onSave(data as ScheduledPost)
     setForm({ content: "", platform: "linkedin", scheduled_time: "" })
     onClose()

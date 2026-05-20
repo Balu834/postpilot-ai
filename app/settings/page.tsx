@@ -6,6 +6,7 @@ import { User, Key, Loader2, CheckCircle2, Zap, Crown, Link2, Unlink, AlertCircl
 import { useSearchParams } from "next/navigation"
 import { supabase } from "@/lib/supabase"
 import UpgradeModal from "@/components/UpgradeModal"
+import { analytics } from "@/lib/analytics"
 
 interface SocialAccount { platform: string; username: string | null; expires_at: string | null }
 
@@ -244,7 +245,7 @@ export default function SettingsPage() {
           </div>
           {!isPro && (
             <button
-              onClick={() => setUpgradeOpen(true)}
+              onClick={() => { analytics.upgradeClicked("settings"); setUpgradeOpen(true) }}
               className="ml-auto text-xs font-semibold bg-[#F7BE4D] text-[#050816] px-4 py-2 rounded-xl hover:bg-[#ffd166] transition-colors glow-yellow-sm"
             >
               Upgrade to Pro →

@@ -4,6 +4,7 @@ import { useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { Zap } from "lucide-react"
 import { supabase } from "@/lib/supabase"
+import { analytics } from "@/lib/analytics"
 
 export default function AuthCallbackPage() {
   const router = useRouter()
@@ -18,10 +19,14 @@ export default function AuthCallbackPage() {
       const userId = session.user.id
 
       // Upsert user record (handles Google first-time sign-up)
-      await supabase.from("users").upsert(
+      const { error: upsertError } = await supabase.from("users").upsert(
         { id: userId, email: session.user.email, referral_code: userId.slice(0, 8) },
         { onConflict: "id", ignoreDuplicates: true }
       )
+      const isNewUser = !upsertError
+      analytics.identify(userId, { email: session.user.email ?? undefined })
+      if (isNewUser) analytics.signup("google")
+      else analytics.login("google")
 
       // Track referral if cookie is set
       const refCode = document.cookie.match(/postpilot_ref=([^;]+)/)?.[1]

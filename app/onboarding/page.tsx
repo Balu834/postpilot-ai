@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation"
 import { motion, AnimatePresence } from "framer-motion"
 import { Zap, ArrowRight, ArrowLeft, Check, Sparkles } from "lucide-react"
 import { supabase } from "@/lib/supabase"
+import { analytics } from "@/lib/analytics"
 
 /* ─── Data ─────────────────────────────────────────────────────── */
 
@@ -454,7 +455,8 @@ export default function OnboardingPage() {
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
-      if (!session) router.replace("/login")
+      if (!session) { router.replace("/login"); return }
+      analytics.onboardingStarted()
     })
   }, [router])
 
@@ -477,6 +479,8 @@ export default function OnboardingPage() {
       localStorage.setItem(`postpilot_onboarded_${user.id}`, "true")
       // Store prefs in localStorage for instant dashboard personalization
       localStorage.setItem(`postpilot_prefs_${user.id}`, JSON.stringify({ platforms, niche, tone, goal }))
+      analytics.onboardingCompleted({ niche, tone, goal, platforms })
+      analytics.identify(user.id, { niche, tone, goal, platforms })
     }
     supabaseDone.current = true
   }
@@ -732,7 +736,9 @@ export default function OnboardingPage() {
                   <motion.button
                     whileHover={canAdvance ? { scale: 1.02 } : {}}
                     whileTap={canAdvance ? { scale: 0.98 } : {}}
-                    onClick={step < 4 ? () => setStep(s => s + 1) : handleFinish}
+                    onClick={step < 4
+                      ? () => { analytics.onboardingStepCompleted(step, STEP_META[step - 1].tag); setStep(s => s + 1) }
+                      : handleFinish}
                     disabled={!canAdvance}
                     className="flex-1 flex items-center justify-center gap-2 font-bold py-3 rounded-xl text-sm transition-all"
                     style={{

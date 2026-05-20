@@ -9,6 +9,7 @@ import {
   CalendarClock, Megaphone,
 } from "lucide-react"
 import { supabase } from "@/lib/supabase"
+import { analytics } from "@/lib/analytics"
 
 // ── Types ─────────────────────────────────────────────────────────
 interface RepurposeResult {
@@ -409,6 +410,9 @@ export default function RepurposePage() {
     setLoading(true)
     setError("")
     setResult(null)
+    if (!refineAction) {
+      analytics.blogToPostsUsed(content.trim().startsWith("http"))
+    }
 
     try {
       const { data: { session } } = await supabase.auth.getSession()

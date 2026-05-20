@@ -10,6 +10,7 @@ import {
 } from "lucide-react"
 import { supabase } from "@/lib/supabase"
 import UpgradeModal from "@/components/UpgradeModal"
+import { analytics } from "@/lib/analytics"
 
 const FREE_LIMIT = 10
 
@@ -537,6 +538,7 @@ function CopyAllBtn({ result }: { result: FullResult }) {
       `#️⃣ HASHTAGS\n${result.hashtags.map(h => `#${h}`).join(" ")}`,
     ].join("\n\n──────────────\n\n")
     await navigator.clipboard.writeText(text)
+    analytics.copyClicked("all")
     setCopied(true)
     setTimeout(() => setCopied(false), 2500)
   }
@@ -610,7 +612,11 @@ export default function GeneratePage() {
   const generate = useCallback(async (topicOverride?: string) => {
     const effectiveTopic = topicOverride ?? topic
     if (!effectiveTopic.trim() && !blogUrl.trim()) { setError("Please enter a topic or blog URL"); return }
-    if (planName === "free" && genCount >= FREE_LIMIT) { setUpgradeOpen(true); return }
+    if (planName === "free" && genCount >= FREE_LIMIT) {
+      analytics.upgradeClicked("free_limit_hit")
+      setUpgradeOpen(true)
+      return
+    }
 
     // Cancel any in-flight request
     abortRef.current?.abort()
@@ -624,6 +630,13 @@ export default function GeneratePage() {
     setVisibleTabs([])
     setCompletedPlatforms(new Set())
     setStreamPhase(STREAM_PHASES[0])
+    const genStartedAt = Date.now()
+    analytics.generationStarted({
+      topic_length: effectiveTopic.trim().length,
+      tone,
+      has_product: !!product.trim(),
+      has_blog_url: !!blogUrl.trim(),
+    })
 
     try {
       const { data: { session } } = await supabase.auth.getSession()
@@ -697,6 +710,11 @@ export default function GeneratePage() {
               setIsStreaming(false)
               setShowSuccess(true)
               setTimeout(() => setShowSuccess(false), 3800)
+              analytics.generationCompleted({
+                tone,
+                topic_length: effectiveTopic.trim().length,
+                duration_ms: Date.now() - genStartedAt,
+              })
 
               // Save to history
               const { data: { user } } = await supabase.auth.getUser()
@@ -719,7 +737,9 @@ export default function GeneratePage() {
       }
     } catch (e: unknown) {
       if ((e as Error).name === "AbortError") return
-      setError(e instanceof Error ? e.message : "Something went wrong")
+      const msg = e instanceof Error ? e.message : "Something went wrong"
+      analytics.generationFailed(msg)
+      setError(msg)
       setIsStreaming(false)
     }
   }, [topic, product, blogUrl, tone, brandVoice, planName, genCount])

@@ -9,6 +9,7 @@ import {
   Check, Star, TrendingUp, Calendar, Users, BarChart3,
 } from "lucide-react"
 import { supabase } from "@/lib/supabase"
+import { analytics } from "@/lib/analytics"
 
 function GoogleIcon() {
   return (
@@ -253,6 +254,8 @@ export default function LoginPage() {
         const { data, error } = await supabase.auth.signUp({ email, password })
         if (error) throw error
         if (data.user && data.session) {
+          analytics.signup("email")
+          analytics.identify(data.user.id, { email: data.user.email })
           fetch("/api/email/welcome", {
             method: "POST",
             headers: { authorization: `Bearer ${data.session.access_token}` },
@@ -276,6 +279,8 @@ export default function LoginPage() {
         const { error, data } = await supabase.auth.signInWithPassword({ email, password })
         if (error) throw error
         if (data.user && data.session) {
+          analytics.login("email")
+          analytics.identify(data.user.id, { email: data.user.email })
           localStorage.setItem(`postpilot_onboarded_${data.user.id}`, "true")
           // Send welcome email to new users who haven't received it yet
           fetch("/api/email/welcome", {

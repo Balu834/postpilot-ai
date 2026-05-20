@@ -4,6 +4,7 @@ import { useState } from "react"
 import { useRouter } from "next/navigation"
 import { motion, AnimatePresence } from "framer-motion"
 import { Sparkles, ArrowRight, Zap, Search } from "lucide-react"
+import { analytics } from "@/lib/analytics"
 
 // ── Template data ─────────────────────────────────────────────────
 const TEMPLATES = [
@@ -260,6 +261,7 @@ export default function TemplatesPage() {
   })
 
   const handleUse = (template: typeof TEMPLATES[0]) => {
+    analytics.templateUsed(template.id, template.title, template.category)
     const params = new URLSearchParams({
       topic: template.prompt,
       tone: template.tone,

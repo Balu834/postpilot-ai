@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next"
 import { Geist, Geist_Mono } from "next/font/google"
 import "./globals.css"
 import CrispChat from "@/components/CrispChat"
+import { PostHogProvider, PostHogPageView } from "@/components/providers/PostHogProvider"
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -79,8 +80,11 @@ export default function RootLayout({
   return (
     <html lang="en" className={`${geistSans.variable} ${geistMono.variable} dark`}>
       <body className="min-h-screen bg-[#050816] text-slate-100 antialiased">
-        {children}
-        <CrispChat />
+        <PostHogProvider>
+          <PostHogPageView />
+          {children}
+          <CrispChat />
+        </PostHogProvider>
       </body>
     </html>
   )
