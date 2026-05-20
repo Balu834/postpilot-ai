@@ -194,15 +194,11 @@ function PlanCard({
       viewport={{ once: true, margin: "-40px" }}
       transition={{ duration: 0.45, delay: index * 0.1 }}
       whileHover={!isPro ? { y: -4 } : {}}
-      className={`relative flex flex-col rounded-2xl transition-all duration-300 ${
-        isPro
-          ? "md:scale-[1.06] z-10"
-          : "z-0"
-      }`}
+      className="relative flex flex-col rounded-2xl transition-all duration-300 h-full"
     >
       {/* Card body */}
       <div
-        className={`relative flex flex-col flex-1 rounded-2xl p-7 overflow-hidden
+        className={`relative flex flex-col h-full rounded-2xl p-7 overflow-hidden
           transition-all duration-300 ${isPro ? "" : "hover:border-white/14"}`}
         style={{
           background: isPro
@@ -249,7 +245,7 @@ function PlanCard({
           />
         )}
 
-        <div className="relative">
+        <div className="relative flex flex-col flex-1">
           {/* Badge */}
           {plan.badge && (
             <div className="absolute -top-1 -right-1 z-10">
@@ -510,7 +506,7 @@ export default function Pricing() {
         </motion.div>
 
         {/* ── Pricing cards ──────────────────────────────────────── */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-5 md:gap-4 items-center">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-5 md:gap-4 items-stretch">
           {PLANS.map((plan, i) => (
             <PlanCard key={plan.name} plan={plan} billing={billing} index={i} />
           ))}

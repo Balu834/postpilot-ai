@@ -47,7 +47,7 @@ export default function Navbar() {
 
         {/* Desktop nav */}
         <div className="hidden md:flex items-center gap-8">
-          {["Features", "Demo", "Pricing"].map((item) => (
+          {["Features", "Demo", "Pricing", "FAQ"].map((item) => (
             <a
               key={item}
               href={`#${item.toLowerCase()}`}
@@ -103,7 +103,7 @@ export default function Navbar() {
             className="md:hidden glass border-t border-white/5"
           >
             <div className="px-6 py-4 flex flex-col gap-4">
-              {["Features", "Demo", "Pricing"].map((item) => (
+              {["Features", "Demo", "Pricing", "FAQ"].map((item) => (
                 <a
                   key={item}
                   href={`#${item.toLowerCase()}`}

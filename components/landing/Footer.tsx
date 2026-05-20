@@ -21,7 +21,7 @@ export default function Footer() {
           ))}
         </div>
 
-        <p className="text-xs text-slate-600">© 2025 PostPilot AI. All rights reserved.</p>
+        <p className="text-xs text-slate-600">© 2026 PostPilot AI. All rights reserved.</p>
       </div>
     </footer>
   )
