@@ -231,13 +231,31 @@ const PARTICLES = [
   { x: "90%",  y: "60%", color: "#F7BE4D", dur: 3.8, delay: 1.5  },
 ]
 
-function HeroGenerate({ prefs }: { prefs: UserPrefs | null }) {
+function HeroGenerate({ prefs, brandName }: { prefs: UserPrefs | null; brandName?: string }) {
   const router = useRouter()
   const [topic,       setTopic]       = useState("")
   const [focused,     setFocused]     = useState(false)
   const [hoveredChip, setHoveredChip] = useState<string | null>(null)
 
+  const brand = brandName?.trim() || null
+
   const placeholder = (() => {
+    // Brand-personalized placeholder takes highest priority
+    if (brand) {
+      const nicheExamples: Record<string, string> = {
+        tech:      `e.g. "How ${brand} is building the future of AI in 2026"…`,
+        business:  `e.g. "How ${brand} went from 0 to first 100 customers"…`,
+        fitness:   `e.g. "Why ${brand}'s approach to fitness actually works"…`,
+        personal:  `e.g. "The story behind ${brand} — what nobody tells you"…`,
+        travel:    `e.g. "How ${brand} is redefining travel experiences in 2026"…`,
+        food:      `e.g. "The secret behind ${brand}'s most-loved recipe"…`,
+        fashion:   `e.g. "How ${brand} is changing the way people dress in 2026"…`,
+        education: `e.g. "What makes ${brand}'s learning approach different"…`,
+      }
+      return (prefs?.niche && nicheExamples[prefs.niche])
+        ? nicheExamples[prefs.niche]
+        : `e.g. "How ${brand} is reshaping the industry in 2026"…`
+    }
     if (!prefs?.niche) return `e.g. "How AI is reshaping content marketing in 2026"…`
     const examples: Record<string, string> = {
       tech:      `e.g. "Why we ditched Notion for Linear and never looked back"…`,
@@ -455,6 +473,7 @@ export default function DashboardPage() {
   const [recentPosts, setRecentPosts] = useState<RecentPost[]>([])
   const [loading,     setLoading]     = useState(true)
   const [prefs,       setPrefs]       = useState<UserPrefs | null>(null)
+  const [brandName,   setBrandName]   = useState<string>("")
   const [greeting,    setGreeting]    = useState("Welcome back")
 
   useEffect(() => {
@@ -476,12 +495,13 @@ export default function DashboardPage() {
       try { setPrefs(JSON.parse(cached)) } catch {}
     }
 
-    const [genRes, scheduledRes, publishedRes, recentRes, profileRes] = await Promise.all([
+    const [genRes, scheduledRes, publishedRes, recentRes, profileRes, brandRes] = await Promise.all([
       supabase.from("generations").select("id", { count: "exact" }).eq("user_id", user.id),
       supabase.from("scheduled_posts").select("id", { count: "exact" }).eq("user_id", user.id).eq("status", "pending"),
       supabase.from("scheduled_posts").select("id", { count: "exact" }).eq("user_id", user.id).eq("status", "published"),
       supabase.from("scheduled_posts").select("id,content,platform,scheduled_time,status").eq("user_id", user.id).order("created_at", { ascending: false }).limit(4),
       supabase.from("users").select("platforms,niche,tone,goal").eq("id", user.id).single(),
+      supabase.from("brand_voices").select("brand_name").eq("user_id", user.id).maybeSingle(),
     ])
 
     setStats({ generated: genRes.count || 0, scheduled: scheduledRes.count || 0, published: publishedRes.count || 0 })
@@ -496,6 +516,10 @@ export default function DashboardPage() {
       const p = profileRes.data as UserPrefs
       setPrefs(p)
       localStorage.setItem(`postpilot_prefs_${user.id}`, JSON.stringify(p))
+    }
+
+    if (brandRes.data?.brand_name) {
+      setBrandName(brandRes.data.brand_name)
     }
 
     setLoading(false)
@@ -526,7 +550,7 @@ export default function DashboardPage() {
       </AnimatePresence>
 
       {/* Hero */}
-      <HeroGenerate prefs={prefs} />
+      <HeroGenerate prefs={prefs} brandName={brandName} />
 
       {/* Stats */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
