@@ -46,7 +46,7 @@ const PLANS: Plan[] = [
     glowColor:    "rgba(100,116,139,0.12)",
     features: [
       { text: "30 AI generations / month",   power: true },
-      { text: "Instagram + X captions" },
+      { text: "Instagram + Facebook + X captions" },
       { text: "Basic hashtag suggestions" },
       { text: "5 scheduled posts" },
       { text: "Community support" },
@@ -67,7 +67,7 @@ const PLANS: Plan[] = [
     glowColor:     "rgba(247,190,77,0.18)",
     features: [
       { text: "Unlimited AI generations",              power: true },
-      { text: "All platforms: LinkedIn + Instagram + X" },
+      { text: "All platforms: Instagram + Facebook + LinkedIn + X" },
       { text: "Blog → 20 Posts repurposing",           power: true },
       { text: "Unlimited scheduling" },
       { text: "Analytics dashboard" },

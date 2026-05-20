@@ -11,7 +11,7 @@ const faqs = [
   },
   {
     q: "Which social media platforms are supported?",
-    a: "PostPilot AI supports Instagram, LinkedIn, and Twitter / X. Each post is tailored for the platform's tone, format, and character limits. Instagram support is coming soon for direct publishing.",
+    a: "PostPilot AI supports Instagram, LinkedIn, Twitter / X, and Facebook. Each post is tailored for the platform's tone, format, and character limits.",
   },
   {
     q: "How does the AI generate content?",

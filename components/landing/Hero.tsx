@@ -108,9 +108,10 @@ export default function Hero() {
               <span className="ml-4 text-xs text-slate-500 font-mono">postpilot.ai/generate</span>
             </div>
             {/* Mock content */}
-            <div className="p-6 grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="p-6 grid grid-cols-2 md:grid-cols-4 gap-4">
               {[
                 { platform: "Instagram", icon: "📸", color: "#E1306C", text: "Just dropped our newest feature that's going to change how you create content forever. The future is AI-powered. ✨ #ContentCreator #AI" },
+                { platform: "Facebook", icon: "👍", color: "#1877F2", text: "We're transforming how businesses create content with AI. Reach your audience faster, smarter, and with less effort every single day." },
                 { platform: "LinkedIn", icon: "💼", color: "#0077B5", text: "Excited to share how AI is reshaping content creation. We've seen 3x engagement increases for businesses using automated social strategies..." },
                 { platform: "Twitter / X", icon: "𝕏", color: "#94a3b8", text: "hot take: manual social media posting is dead. AI-generated content that actually converts > spending 3hrs writing captions. 🧵" },
               ].map((card) => (

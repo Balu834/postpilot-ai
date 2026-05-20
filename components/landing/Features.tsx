@@ -42,7 +42,7 @@ const features = [
   {
     icon: Globe,
     title: "Multi-Platform",
-    description: "Instagram, LinkedIn, Twitter/X — each post is tailored for the platform's tone, format, and character limits.",
+    description: "Instagram, Facebook, LinkedIn, Twitter/X — each post is tailored for the platform's tone, format, and character limits.",
     tag: "Platforms",
     color: "#22d3ee",
   },
