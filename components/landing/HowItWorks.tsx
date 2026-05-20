@@ -74,10 +74,6 @@ export default function HowItWorks() {
         </motion.div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 relative">
-          {/* Connector line (desktop only) */}
-          <div className="hidden md:block absolute top-10 left-[calc(16.67%+1rem)] right-[calc(16.67%+1rem)] h-px"
-            style={{ background: "linear-gradient(90deg, rgba(247,190,77,0.3), rgba(129,140,248,0.3), rgba(52,211,153,0.3))" }}
-          />
 
           {steps.map((step, i) => (
             <motion.div
