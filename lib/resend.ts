@@ -141,3 +141,107 @@ export async function sendPublishedEmail(to: string, platform: string, content: 
 </html>`,
   })
 }
+
+export async function sendWeeklyDigestEmail(to: string, stats: {
+  generated: number
+  scheduled: number
+  published: number
+  topPlatform: string
+}) {
+  const tips = [
+    "Post consistently at the same time each day — audiences expect routine.",
+    "LinkedIn posts with 3–5 hashtags outperform those with 10+.",
+    "Start your Twitter threads with a bold claim, not a preamble.",
+    "Instagram captions under 125 characters get 56% more engagement.",
+    "The best time to post on LinkedIn is Tuesday–Thursday, 9–11 AM.",
+  ]
+  const tip = tips[Math.floor(Math.random() * tips.length)]
+
+  return resend.emails.send({
+    from: FROM,
+    to,
+    subject: "📊 Your PostPilot AI Weekly — Content Performance Digest",
+    html: `
+<!DOCTYPE html>
+<html>
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head>
+<body style="margin:0;padding:0;background:#050816;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;">
+  <table width="100%" cellpadding="0" cellspacing="0" style="background:#050816;padding:40px 20px;">
+    <tr><td align="center">
+      <table width="580" cellpadding="0" cellspacing="0" style="background:#0d1526;border-radius:16px;border:1px solid rgba(255,255,255,0.08);overflow:hidden;max-width:580px;width:100%;">
+
+        <!-- Header -->
+        <tr>
+          <td style="background:linear-gradient(135deg,rgba(247,190,77,0.12),rgba(247,190,77,0.04));padding:28px 40px;border-bottom:1px solid rgba(255,255,255,0.06);text-align:center;">
+            <div style="display:inline-flex;align-items:center;gap:10px;margin-bottom:4px;">
+              <div style="width:32px;height:32px;background:#F7BE4D;border-radius:8px;display:inline-flex;align-items:center;justify-content:center;">
+                <span style="font-size:16px;">⚡</span>
+              </div>
+              <span style="font-size:18px;font-weight:800;color:#fff;">PostPilot<span style="color:#F7BE4D;">AI</span></span>
+            </div>
+            <p style="margin:6px 0 0;color:rgba(255,255,255,0.5);font-size:13px;">Your Weekly Content Digest</p>
+          </td>
+        </tr>
+
+        <!-- Stats row -->
+        <tr>
+          <td style="padding:28px 40px 20px;">
+            <p style="margin:0 0 16px;font-size:13px;font-weight:700;color:#F7BE4D;text-transform:uppercase;letter-spacing:0.08em;">This week's performance</p>
+            <table width="100%" cellpadding="0" cellspacing="0">
+              <tr>
+                ${[
+                  { label: "Generated", value: stats.generated, color: "#818cf8" },
+                  { label: "Scheduled", value: stats.scheduled, color: "#F7BE4D" },
+                  { label: "Published",  value: stats.published,  color: "#34d399" },
+                ].map(s => `
+                <td style="width:33%;text-align:center;padding:16px 8px;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.06);border-radius:12px;margin:0 4px;">
+                  <div style="font-size:28px;font-weight:800;color:${s.color};line-height:1;">${s.value}</div>
+                  <div style="font-size:11px;color:#64748b;margin-top:4px;font-weight:600;text-transform:uppercase;letter-spacing:0.06em;">${s.label}</div>
+                </td>`).join('<td style="width:8px;"></td>')}
+              </tr>
+            </table>
+
+            ${stats.topPlatform ? `
+            <div style="margin-top:16px;padding:12px 16px;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.06);border-radius:10px;display:flex;align-items:center;gap:8px;">
+              <span style="font-size:16px;">${stats.topPlatform === "twitter" ? "𝕏" : stats.topPlatform === "linkedin" ? "💼" : stats.topPlatform === "instagram" ? "📸" : "📣"}</span>
+              <span style="font-size:13px;color:#cbd5e1;">Most active platform: <strong style="color:#fff;">${stats.topPlatform.charAt(0).toUpperCase() + stats.topPlatform.slice(1)}</strong></span>
+            </div>` : ""}
+          </td>
+        </tr>
+
+        <!-- Tip -->
+        <tr>
+          <td style="padding:0 40px 24px;">
+            <div style="padding:16px 20px;background:rgba(247,190,77,0.06);border:1px solid rgba(247,190,77,0.15);border-radius:12px;">
+              <p style="margin:0 0 6px;font-size:11px;font-weight:700;color:#F7BE4D;text-transform:uppercase;letter-spacing:0.08em;">💡 Pro tip of the week</p>
+              <p style="margin:0;font-size:13px;color:#94a3b8;line-height:1.6;">${tip}</p>
+            </div>
+          </td>
+        </tr>
+
+        <!-- CTA -->
+        <tr>
+          <td style="padding:0 40px 28px;text-align:center;">
+            <a href="${process.env.NEXT_PUBLIC_APP_URL}/generate"
+              style="display:inline-block;background:linear-gradient(135deg,#F7BE4D,#ffd166);color:#050816;font-weight:800;font-size:14px;padding:12px 28px;border-radius:10px;text-decoration:none;">
+              ⚡ Create this week's content →
+            </a>
+          </td>
+        </tr>
+
+        <tr>
+          <td style="padding:16px 40px;border-top:1px solid rgba(255,255,255,0.06);text-align:center;">
+            <p style="margin:0;color:#334155;font-size:12px;">
+              © 2026 PostPilot AI ·
+              <a href="${process.env.NEXT_PUBLIC_APP_URL}/settings" style="color:#475569;text-decoration:none;">Manage email preferences</a>
+            </p>
+          </td>
+        </tr>
+
+      </table>
+    </td></tr>
+  </table>
+</body>
+</html>`,
+  })
+}

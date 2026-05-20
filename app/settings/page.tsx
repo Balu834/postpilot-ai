@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react"
 import { motion, AnimatePresence } from "framer-motion"
-import { User, Key, Loader2, CheckCircle2, Zap, Crown, Link2, Unlink, AlertCircle } from "lucide-react"
+import { User, Key, Loader2, CheckCircle2, Zap, Crown, Link2, Unlink, AlertCircle, Bell } from "lucide-react"
 import { useSearchParams } from "next/navigation"
 import { supabase } from "@/lib/supabase"
 import UpgradeModal from "@/components/UpgradeModal"
@@ -30,6 +30,10 @@ export default function SettingsPage() {
   const [accounts,     setAccounts]     = useState<SocialAccount[]>([])
   const [connecting,   setConnecting]   = useState<string | null>(null)
   const [socialMsg,    setSocialMsg]    = useState<{ type: "success" | "error"; text: string } | null>(null)
+  const [notifyPublished, setNotifyPublished] = useState(false)
+  const [notifyDigest,    setNotifyDigest]    = useState(false)
+  const [savingNotif,     setSavingNotif]     = useState(false)
+  const [notifSaved,      setNotifSaved]      = useState(false)
 
   const FREE_LIMIT = 10
   const isPro = planName !== "free"
@@ -102,7 +106,7 @@ export default function SettingsPage() {
     if (!user) return
 
     const [profileRes, genRes] = await Promise.all([
-      supabase.from("users").select("name, email, plan_name, plan_expires_at").eq("id", user.id).single(),
+      supabase.from("users").select("name, email, plan_name, plan_expires_at, email_notify_published, email_notify_digest").eq("id", user.id).single(),
       supabase.from("generations").select("id", { count: "exact" }).eq("user_id", user.id),
     ])
 
@@ -111,11 +115,26 @@ export default function SettingsPage() {
       setEmail(profileRes.data.email || user.email || "")
       setPlanName(profileRes.data.plan_name || "free")
       setExpiresAt(profileRes.data.plan_expires_at || null)
+      setNotifyPublished(profileRes.data.email_notify_published ?? false)
+      setNotifyDigest(profileRes.data.email_notify_digest ?? false)
     } else {
       setEmail(user.email || "")
     }
     setCredits(genRes.count ?? 0)
     setLoading(false)
+  }
+
+  const handleSaveNotifications = async () => {
+    setSavingNotif(true)
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) return
+    await supabase
+      .from("users")
+      .update({ email_notify_published: notifyPublished, email_notify_digest: notifyDigest })
+      .eq("id", user.id)
+    setSavingNotif(false)
+    setNotifSaved(true)
+    setTimeout(() => setNotifSaved(false), 2500)
   }
 
   const handleSave = async () => {
@@ -341,6 +360,79 @@ export default function SettingsPage() {
               </div>
             )
           })}
+        </div>
+      </motion.div>
+
+      {/* Email Notifications */}
+      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }} className="glass rounded-2xl p-5 border border-white/6">
+        <div className="flex items-center gap-2.5 mb-5">
+          <div className="w-8 h-8 rounded-lg bg-[#F7BE4D]/15 flex items-center justify-center">
+            <Bell className="w-4 h-4 text-[#F7BE4D]" />
+          </div>
+          <div>
+            <h2 className="text-sm font-semibold text-white">Email Notifications</h2>
+            <p className="text-[11px] text-slate-500">Control which emails PostPilot sends you</p>
+          </div>
+        </div>
+
+        <div className="space-y-3">
+          {[
+            {
+              key: "published" as const,
+              label: "Post published",
+              desc: "Get an email every time a scheduled post goes live",
+              value: notifyPublished,
+              set: setNotifyPublished,
+            },
+            {
+              key: "digest" as const,
+              label: "Weekly digest",
+              desc: "A Monday morning summary of your content performance",
+              value: notifyDigest,
+              set: setNotifyDigest,
+            },
+          ].map(({ key, label, desc, value, set }) => (
+            <div key={key}
+              className="flex items-center justify-between gap-3 p-3.5 rounded-xl border border-white/6"
+              style={{ background: value ? "rgba(247,190,77,0.04)" : "rgba(255,255,255,0.02)" }}>
+              <div>
+                <p className="text-sm font-medium text-white">{label}</p>
+                <p className="text-[11px] text-slate-500 mt-0.5">{desc}</p>
+              </div>
+              {/* Toggle */}
+              <button
+                onClick={() => set(!value)}
+                className="relative flex-shrink-0 w-10 h-5.5 rounded-full transition-all duration-200"
+                style={{
+                  background: value ? "#F7BE4D" : "rgba(255,255,255,0.1)",
+                  boxShadow: value ? "0 0 12px rgba(247,190,77,0.4)" : "none",
+                  height: "22px",
+                  width: "40px",
+                }}>
+                <motion.span
+                  animate={{ x: value ? 18 : 2 }}
+                  transition={{ type: "spring", stiffness: 500, damping: 30 }}
+                  className="absolute top-[3px] w-4 h-4 rounded-full bg-white shadow-sm"
+                  style={{ display: "block" }}
+                />
+              </button>
+            </div>
+          ))}
+        </div>
+
+        <div className="flex justify-end mt-4">
+          <button
+            onClick={handleSaveNotifications}
+            disabled={savingNotif}
+            className={`flex items-center gap-2 text-sm font-semibold px-5 py-2 rounded-xl transition-all ${
+              notifSaved
+                ? "bg-emerald-500/20 text-emerald-400 border border-emerald-500/30"
+                : "bg-[#F7BE4D] text-[#050816] hover:bg-[#ffd166] glow-yellow-sm disabled:opacity-60"
+            }`}>
+            {savingNotif && <Loader2 className="w-3.5 h-3.5 animate-spin" />}
+            {notifSaved && <CheckCircle2 className="w-3.5 h-3.5" />}
+            {notifSaved ? "Saved!" : "Save Preferences"}
+          </button>
         </div>
       </motion.div>
 
