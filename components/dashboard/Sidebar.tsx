@@ -11,6 +11,7 @@ import {
 } from "lucide-react"
 import { supabase } from "@/lib/supabase"
 import UpgradeModal from "@/components/UpgradeModal"
+import { useSidebar } from "@/lib/sidebar-context"
 
 const navItems = [
   { icon: LayoutDashboard, label: "Dashboard",    href: "/dashboard" },
@@ -30,6 +31,7 @@ const FREE_LIMIT = 10
 export default function Sidebar() {
   const pathname = usePathname()
   const router   = useRouter()
+  const { open, close } = useSidebar()
   const [email,       setEmail]       = useState("")
   const [initials,    setInitials]    = useState("U")
   const [credits,     setCredits]     = useState<number | null>(null)
@@ -65,8 +67,22 @@ export default function Sidebar() {
 
   return (
     <>
+    {/* Mobile overlay */}
+    <AnimatePresence>
+      {open && (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          onClick={close}
+          className="fixed inset-0 bg-black/60 z-30 md:hidden"
+        />
+      )}
+    </AnimatePresence>
+
     <aside
-      className="fixed left-0 top-0 h-screen w-60 flex flex-col z-40"
+      className={`fixed left-0 top-0 h-screen w-60 flex flex-col z-40 transition-transform duration-300
+        ${open ? "translate-x-0" : "-translate-x-full"} md:translate-x-0`}
       style={{
         background: "rgba(8, 12, 26, 0.92)",
         borderRight: "1px solid rgba(255,255,255,0.06)",
@@ -98,7 +114,7 @@ export default function Sidebar() {
         {navItems.map((item) => {
           const isActive = pathname === item.href
           return (
-            <Link key={item.href} href={item.href}>
+            <Link key={item.href} href={item.href} onClick={close}>
               <motion.div
                 whileHover={{ x: 3 }}
                 transition={{ duration: 0.15, ease: "easeOut" }}

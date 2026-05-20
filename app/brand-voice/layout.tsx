@@ -1,6 +1,6 @@
 import AuthGuard from "@/components/AuthGuard"
 import DashboardShell from "@/components/dashboard/DashboardShell"
 
-export default function WorkspaceLayout({ children }: { children: React.ReactNode }) {
+export default function BrandVoiceLayout({ children }: { children: React.ReactNode }) {
   return <AuthGuard><DashboardShell>{children}</DashboardShell></AuthGuard>
 }
