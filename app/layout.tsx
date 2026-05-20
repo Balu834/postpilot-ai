@@ -44,12 +44,21 @@ export const metadata: Metadata = {
     siteName: "PostPilot AI",
     type: "website",
     locale: "en_IN",
+    images: [
+      {
+        url: "/opengraph-image",
+        width: 1200,
+        height: 630,
+        alt: "PostPilot AI — Turn One Idea Into 30 Days of Content",
+      },
+    ],
   },
   twitter: {
     card: "summary_large_image",
     title: "PostPilot AI — Your AI Social Media Team",
     description: "Turn one idea into 30 days of content using AI.",
     creator: "@postpilotai",
+    images: ["/opengraph-image"],
   },
   robots: {
     index: true,
