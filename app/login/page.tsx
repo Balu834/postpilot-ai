@@ -3,6 +3,7 @@
 import { useState } from "react"
 import { useRouter } from "next/navigation"
 import { motion, AnimatePresence } from "framer-motion"
+import Link from "next/link"
 import {
   Zap, Mail, Lock, Eye, EyeOff, Sparkles, ArrowRight,
   Check, Star, TrendingUp, Calendar, Users, BarChart3,
@@ -408,7 +409,15 @@ export default function LoginPage() {
             </div>
 
             <div>
-              <label className="text-xs text-slate-400 font-medium mb-1.5 block">Password</label>
+              <div className="flex items-center justify-between mb-1.5">
+                <label className="text-xs text-slate-400 font-medium">Password</label>
+                {mode === "signin" && (
+                  <Link href="/forgot-password"
+                    className="text-[11px] text-slate-500 hover:text-[#F7BE4D] transition-colors">
+                    Forgot password?
+                  </Link>
+                )}
+              </div>
               <div className="relative">
                 <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-600" />
                 <input
