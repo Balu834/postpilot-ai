@@ -214,88 +214,212 @@ function AISuggestions({ prefs }: { prefs: UserPrefs | null }) {
 
 /* ─── Hero generate ─────────────────────────────────────────────── */
 
+const PLATFORMS = [
+  { id: "instagram", icon: "📸", label: "Instagram", color: "#E1306C" },
+  { id: "linkedin",  icon: "💼", label: "LinkedIn",  color: "#0A66C2" },
+  { id: "twitter",   icon: "𝕏",  label: "Twitter/X", color: "#94a3b8" },
+  { id: "facebook",  icon: "📘", label: "Facebook",  color: "#1877F2" },
+  { id: "youtube",   icon: "▶",  label: "YouTube",   color: "#FF0000" },
+]
+
+const PARTICLES = [
+  { x: "12%",  y: "22%", color: "#F7BE4D", dur: 3.2, delay: 0    },
+  { x: "28%",  y: "65%", color: "#818cf8", dur: 4.0, delay: 0.6  },
+  { x: "48%",  y: "18%", color: "#F7BE4D", dur: 3.6, delay: 1.1  },
+  { x: "65%",  y: "72%", color: "#34d399", dur: 4.4, delay: 0.3  },
+  { x: "80%",  y: "30%", color: "#818cf8", dur: 3.0, delay: 0.9  },
+  { x: "90%",  y: "60%", color: "#F7BE4D", dur: 3.8, delay: 1.5  },
+]
+
 function HeroGenerate({ prefs }: { prefs: UserPrefs | null }) {
-  const router  = useRouter()
-  const [topic, setTopic] = useState("")
+  const router = useRouter()
+  const [topic,       setTopic]       = useState("")
+  const [focused,     setFocused]     = useState(false)
+  const [hoveredChip, setHoveredChip] = useState<string | null>(null)
 
   const placeholder = (() => {
-    if (!prefs?.niche) return "e.g. 'How AI is reshaping content marketing in 2026'…"
+    if (!prefs?.niche) return `e.g. "How AI is reshaping content marketing in 2026"…`
     const examples: Record<string, string> = {
-      tech:      "e.g. 'Why we ditched Notion for Linear and never looked back'…",
-      fitness:   "e.g. 'The 5-minute morning routine that changed my energy'…",
-      business:  "e.g. 'How I closed our first ₹10L client with cold DMs'…",
-      personal:  "e.g. 'The brutal truth about building a personal brand in 2026'…",
-      travel:    "e.g. 'How I spent a month in Japan for under ₹80K'…",
-      food:      "e.g. 'My 3-ingredient pasta that tastes like it took hours'…",
-      fashion:   "e.g. '5 outfits I wear on repeat every single week'…",
-      education: "e.g. 'The Feynman technique: why it works and how to use it'…",
+      tech:      `e.g. "Why we ditched Notion for Linear and never looked back"…`,
+      fitness:   `e.g. "The 5-minute morning routine that changed my energy"…`,
+      business:  `e.g. "How I closed our first ₹10L client with cold DMs"…`,
+      personal:  `e.g. "The brutal truth about building a personal brand in 2026"…`,
+      travel:    `e.g. "How I spent a month in Japan for under ₹80K"…`,
+      food:      `e.g. "My 3-ingredient pasta that tastes like it took hours"…`,
+      fashion:   `e.g. "5 outfits I wear on repeat every single week"…`,
+      education: `e.g. "The Feynman technique: why it works and how to use it"…`,
     }
-    return examples[prefs.niche] ?? "e.g. 'How AI is reshaping content marketing in 2026'…"
+    return examples[prefs.niche] ?? `e.g. "How AI is reshaping content marketing in 2026"…`
   })()
 
-  const activePlatforms = prefs?.platforms?.length
-    ? [
-        { id: "instagram", icon: "📸", label: "Instagram", color: "#E1306C" },
-        { id: "linkedin",  icon: "💼", label: "LinkedIn",  color: "#0077B5" },
-        { id: "twitter",   icon: "🐦", label: "Twitter/X", color: "#1DA1F2" },
-      ].filter(p => prefs.platforms.includes(p.id))
-    : [
-        { id: "instagram", icon: "📸", label: "Instagram", color: "#E1306C" },
-        { id: "linkedin",  icon: "💼", label: "LinkedIn",  color: "#0077B5" },
-        { id: "twitter",   icon: "🐦", label: "Twitter/X", color: "#94a3b8" },
-      ]
+  const canGenerate = topic.trim().length > 0
 
   return (
     <motion.div
-      initial={{ opacity: 0, y: 24 }}
+      initial={{ opacity: 0, y: 28 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.6 }}
-      className="glass-hero rounded-3xl p-8 mb-6 relative overflow-hidden"
+      transition={{ duration: 0.65, ease: [0.22, 1, 0.36, 1] }}
+      className="relative rounded-3xl overflow-hidden mb-6"
+      style={{
+        background: "linear-gradient(145deg, #0d1526 0%, #080c1a 55%, #0c1020 100%)",
+        border: "1px solid rgba(247,190,77,0.13)",
+        boxShadow: "0 0 80px rgba(247,190,77,0.04), inset 0 1px 0 rgba(255,255,255,0.04)",
+      }}
     >
-      <div className="absolute -top-20 -right-20 w-72 h-72 bg-[#F7BE4D]/[0.05] rounded-full blur-3xl pointer-events-none" />
-      <div className="absolute -bottom-16 -left-16 w-56 h-56 bg-indigo-500/[0.04] rounded-full blur-3xl pointer-events-none" />
-      <div className="grid-bg absolute inset-0 opacity-40 pointer-events-none rounded-3xl" />
+      {/* Deep layered glows */}
+      <div className="absolute -top-40 -right-40 w-[500px] h-[500px] rounded-full pointer-events-none"
+        style={{ background: "radial-gradient(circle, rgba(247,190,77,0.07) 0%, transparent 65%)", filter: "blur(50px)" }} />
+      <div className="absolute -bottom-24 -left-24 w-72 h-72 rounded-full pointer-events-none"
+        style={{ background: "radial-gradient(circle, rgba(99,102,241,0.07) 0%, transparent 65%)", filter: "blur(40px)" }} />
+      <div className="absolute top-1/2 left-1/3 -translate-x-1/2 -translate-y-1/2 w-[700px] h-[180px] pointer-events-none"
+        style={{ background: "radial-gradient(ellipse, rgba(247,190,77,0.025) 0%, transparent 70%)", filter: "blur(70px)" }} />
 
-      <div className="relative z-10">
-        <div className="inline-flex items-center gap-2 glass-sm rounded-full px-3.5 py-1.5 border border-[#F7BE4D]/20 mb-5">
-          <span className="w-1.5 h-1.5 rounded-full bg-[#F7BE4D] pulse-dot" />
-          <span className="text-[11px] text-[#F7BE4D] font-semibold tracking-wide uppercase">AI Content Engine</span>
-        </div>
+      {/* Subtle grid */}
+      <div className="absolute inset-0 pointer-events-none"
+        style={{
+          backgroundImage: "linear-gradient(rgba(255,255,255,0.018) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.018) 1px, transparent 1px)",
+          backgroundSize: "48px 48px",
+        }} />
 
-        <h1 className="text-3xl md:text-4xl font-bold text-white mb-2 leading-tight">
-          Generate <span className="gradient-text">30 Days</span> of Content
-        </h1>
-        <p className="text-slate-400 text-sm mb-6 max-w-lg">
+      {/* Floating particles */}
+      {PARTICLES.map((p, i) => (
+        <motion.div
+          key={i}
+          className="absolute w-[3px] h-[3px] rounded-full pointer-events-none"
+          style={{ background: p.color, left: p.x, top: p.y, opacity: 0.4 }}
+          animate={{ y: [-8, 8, -8], opacity: [0.2, 0.6, 0.2] }}
+          transition={{ duration: p.dur, repeat: Infinity, delay: p.delay, ease: "easeInOut" }}
+        />
+      ))}
+
+      <div className="relative z-10 p-8 md:p-10">
+        {/* Live badge */}
+        <motion.div
+          initial={{ opacity: 0, scale: 0.88 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ delay: 0.1, type: "spring", stiffness: 300 }}
+          className="inline-flex items-center gap-2 rounded-full px-4 py-1.5 mb-6"
+          style={{
+            background: "rgba(247,190,77,0.07)",
+            border: "1px solid rgba(247,190,77,0.22)",
+            backdropFilter: "blur(10px)",
+          }}
+        >
+          <span className="w-1.5 h-1.5 rounded-full bg-[#F7BE4D] animate-pulse" />
+          <span className="text-[11px] text-[#F7BE4D] font-bold tracking-widest uppercase">AI Content Engine</span>
+        </motion.div>
+
+        {/* Headline */}
+        <motion.h1
+          initial={{ opacity: 0, y: 14 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.15, duration: 0.55, ease: [0.22, 1, 0.36, 1] }}
+          className="text-[2rem] md:text-[2.6rem] font-extrabold text-white mb-3 leading-[1.08] tracking-tight"
+        >
+          Generate{" "}
+          <span style={{
+            background: "linear-gradient(135deg, #F7BE4D 0%, #ffd97d 40%, #F7BE4D 100%)",
+            WebkitBackgroundClip: "text",
+            WebkitTextFillColor: "transparent",
+            backgroundClip: "text",
+            filter: "drop-shadow(0 0 20px rgba(247,190,77,0.35))",
+          }}>
+            30 Days
+          </span>{" "}
+          of Content
+        </motion.h1>
+
+        <motion.p
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.22, duration: 0.5 }}
+          className="text-slate-400 text-[15px] mb-8 max-w-xl leading-relaxed"
+        >
           Drop a topic, blog post, or idea — get LinkedIn, Twitter, and Instagram posts in seconds.
-        </p>
+        </motion.p>
 
-        <div className="flex gap-3 max-w-2xl">
-          <input
-            value={topic}
-            onChange={e => setTopic(e.target.value)}
-            onKeyDown={e => e.key === "Enter" && topic.trim() && router.push(`/generate?topic=${encodeURIComponent(topic.trim())}`)}
-            placeholder={placeholder}
-            className="flex-1 input-premium px-4 py-3 text-sm"
-          />
-          <button
-            onClick={() => topic.trim() && router.push(`/generate?topic=${encodeURIComponent(topic.trim())}${prefs?.tone ? `&tone=${prefs.tone}` : ""}`)}
-            disabled={!topic.trim()}
-            className="btn-primary px-6 py-3 text-sm flex items-center gap-2 whitespace-nowrap"
+        {/* Input + Button row */}
+        <motion.div
+          initial={{ opacity: 0, y: 14 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.28, duration: 0.5 }}
+          className="flex flex-col sm:flex-row gap-3 max-w-2xl"
+        >
+          {/* Input */}
+          <div className="relative flex-1">
+            <input
+              value={topic}
+              onChange={e => setTopic(e.target.value)}
+              onFocus={() => setFocused(true)}
+              onBlur={() => setFocused(false)}
+              onKeyDown={e => e.key === "Enter" && canGenerate && router.push(`/generate?topic=${encodeURIComponent(topic.trim())}`)}
+              placeholder={placeholder}
+              className="w-full px-5 py-[14px] text-sm text-white rounded-2xl outline-none transition-all duration-300 placeholder:text-slate-600"
+              style={{
+                background: focused ? "rgba(255,255,255,0.07)" : "rgba(255,255,255,0.04)",
+                border: focused ? "1px solid rgba(247,190,77,0.45)" : "1px solid rgba(255,255,255,0.08)",
+                boxShadow: focused
+                  ? "0 0 0 3px rgba(247,190,77,0.09), 0 0 28px rgba(247,190,77,0.08)"
+                  : "none",
+                backdropFilter: "blur(10px)",
+              }}
+            />
+          </div>
+
+          {/* Button */}
+          <motion.button
+            onClick={() => canGenerate && router.push(`/generate?topic=${encodeURIComponent(topic.trim())}${prefs?.tone ? `&tone=${prefs.tone}` : ""}`)}
+            disabled={!canGenerate}
+            whileHover={canGenerate ? { scale: 1.04, y: -2 } : {}}
+            whileTap={canGenerate ? { scale: 0.96 } : {}}
+            transition={{ type: "spring", stiffness: 420, damping: 22 }}
+            className="flex items-center justify-center gap-2 px-7 py-[14px] text-sm font-bold rounded-2xl transition-all duration-300 whitespace-nowrap"
+            style={{
+              background: canGenerate
+                ? "linear-gradient(135deg, #F7BE4D 0%, #ffd97d 100%)"
+                : "rgba(255,255,255,0.05)",
+              color: canGenerate ? "#050816" : "#334155",
+              boxShadow: canGenerate
+                ? "0 0 30px rgba(247,190,77,0.4), 0 4px 20px rgba(247,190,77,0.25), inset 0 1px 0 rgba(255,255,255,0.25)"
+                : "none",
+              cursor: canGenerate ? "pointer" : "not-allowed",
+            }}
           >
             <Sparkles className="w-4 h-4" />
             Generate
-          </button>
-        </div>
+          </motion.button>
+        </motion.div>
 
-        <div className="flex items-center gap-2 mt-4">
-          <span className="text-[11px] text-slate-600">Generates for:</span>
-          {activePlatforms.map(p => (
-            <span key={p.id} className="flex items-center gap-1.5 text-[11px] px-2.5 py-1 rounded-full border"
-              style={{ background: `${p.color}12`, borderColor: `${p.color}25`, color: p.color }}>
-              <span>{p.icon}</span>{p.label}
-            </span>
+        {/* Platform chips */}
+        <motion.div
+          initial={{ opacity: 0, y: 6 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.38 }}
+          className="flex flex-wrap items-center gap-2 mt-5"
+        >
+          <span className="text-[11px] text-slate-600 font-medium mr-1">Generates for:</span>
+          {PLATFORMS.map((p, i) => (
+            <motion.span
+              key={p.id}
+              initial={{ opacity: 0, scale: 0.85 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ delay: 0.42 + i * 0.06, type: "spring", stiffness: 300, damping: 20 }}
+              onHoverStart={() => setHoveredChip(p.id)}
+              onHoverEnd={() => setHoveredChip(null)}
+              whileHover={{ y: -2, scale: 1.06 }}
+              className="flex items-center gap-1.5 text-[11px] px-3 py-[5px] rounded-full font-medium cursor-default select-none transition-all duration-200"
+              style={{
+                background: hoveredChip === p.id ? `${p.color}1a` : `${p.color}0d`,
+                border: hoveredChip === p.id ? `1px solid ${p.color}55` : `1px solid ${p.color}25`,
+                color: p.color,
+                boxShadow: hoveredChip === p.id ? `0 0 14px ${p.color}28, 0 0 4px ${p.color}18` : "none",
+              }}
+            >
+              <span className="text-[12px] leading-none">{p.icon}</span>
+              {p.label}
+            </motion.span>
           ))}
-        </div>
+        </motion.div>
       </div>
     </motion.div>
   )
