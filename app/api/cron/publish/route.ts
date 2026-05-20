@@ -66,8 +66,8 @@ export async function GET(req: NextRequest) {
   const { data: duePosts, error } = await supabaseAdmin
     .from("scheduled_posts")
     .select("*")
-    .eq("status", "scheduled")
-    .lte("scheduled_at", now)
+    .eq("status", "pending")
+    .lte("scheduled_time", now)
 
   if (error) {
     console.error("Cron: failed to fetch due posts", error)

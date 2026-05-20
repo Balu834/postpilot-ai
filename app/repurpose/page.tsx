@@ -8,6 +8,7 @@ import {
   Hash, ChevronRight, Zap, CheckCircle2, Clock,
   CalendarClock, Megaphone,
 } from "lucide-react"
+import { supabase } from "@/lib/supabase"
 
 // ── Types ─────────────────────────────────────────────────────────
 interface RepurposeResult {
@@ -410,6 +411,7 @@ export default function RepurposePage() {
     setResult(null)
 
     try {
+      const { data: { session } } = await supabase.auth.getSession()
       const body: Record<string, string> = { tone }
       if (refineAction && result) {
         // Build a refinement prompt from the active tab's posts
@@ -421,7 +423,10 @@ export default function RepurposePage() {
 
       const res  = await fetch("/api/repurpose", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          ...(session?.access_token ? { Authorization: `Bearer ${session.access_token}` } : {}),
+        },
         body: JSON.stringify(body),
       })
       const data = await res.json()

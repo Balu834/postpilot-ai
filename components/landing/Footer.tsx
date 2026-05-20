@@ -14,11 +14,10 @@ export default function Footer() {
         </Link>
 
         <div className="flex items-center gap-6 text-sm text-slate-500">
-          {["Privacy", "Terms", "Blog", "Twitter"].map((link) => (
-            <a key={link} href="#" className="hover:text-white transition-colors">
-              {link}
-            </a>
-          ))}
+          <Link href="/privacy" className="hover:text-white transition-colors">Privacy</Link>
+          <Link href="/terms" className="hover:text-white transition-colors">Terms</Link>
+          <a href="#" className="hover:text-white transition-colors">Blog</a>
+          <a href="https://twitter.com" className="hover:text-white transition-colors">Twitter</a>
         </div>
 
         <p className="text-xs text-slate-600">© 2026 PostPilot AI. All rights reserved.</p>

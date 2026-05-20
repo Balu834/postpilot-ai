@@ -1,8 +1,28 @@
 import { NextRequest, NextResponse } from "next/server"
+import { createClient } from "@supabase/supabase-js"
 import { openai } from "@/lib/openai"
+import { checkRateLimit } from "@/lib/rate-limit"
 
 export async function POST(req: NextRequest) {
   try {
+    const token = req.headers.get("authorization")?.replace("Bearer ", "")
+    if (!token) return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+
+    const supabase = createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+    )
+    const { data: { user } } = await supabase.auth.getUser(token)
+    if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+
+    const { limited, remaining } = await checkRateLimit(user.id)
+    if (limited) {
+      return NextResponse.json(
+        { error: "Rate limit exceeded. You can generate up to 5 times per minute. Please wait and try again." },
+        { status: 429, headers: { "Retry-After": "60", "X-RateLimit-Remaining": "0" } }
+      )
+    }
+
     const { topic, product, blogUrl, tone = "engaging", brandVoice } = await req.json()
 
     if (!topic && !blogUrl) {
