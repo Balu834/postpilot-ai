@@ -177,7 +177,7 @@ export default function AnalyticsPage() {
     { label: "Posts Generated", value: isDemoMode ? 1284 : stats.totalGenerated, icon: Sparkles,      color: "#F7BE4D", suffix: "" },
     { label: "Scheduled",       value: isDemoMode ? 214  : stats.scheduled,       icon: CalendarClock, color: "#818cf8", suffix: "" },
     { label: "Published",       value: isDemoMode ? 48   : stats.published,        icon: CheckCircle2,  color: "#34d399", suffix: "" },
-    { label: "Credits Used",    value: stats.creditsUsed,                           icon: Zap,           color: "#f472b6", suffix: " / 50" },
+    { label: "Credits Used",    value: stats.creditsUsed,                           icon: Zap,           color: "#f472b6", suffix: " / 30" },
   ]
 
   return (

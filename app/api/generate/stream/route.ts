@@ -180,6 +180,8 @@ export async function POST(req: NextRequest) {
             .update({ credits_used: (profile?.credits_used ?? 0) + 1 })
             .eq("id", user.id)
         }
+
+        void supabaseAdmin.from("activity_log").insert({ user_id: user.id, action: "Generated content pack" })
       } catch (err: unknown) {
         const msg = err instanceof Error ? err.message : "Generation failed"
         send({ event: "error", msg })

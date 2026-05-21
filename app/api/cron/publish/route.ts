@@ -147,6 +147,8 @@ export async function GET(req: NextRequest) {
         .update({ status: "published" })
         .eq("id", post.id)
 
+      void supabaseAdmin.from("activity_log").insert({ user_id: post.user_id, action: `Published ${post.platform} post`, platform: post.platform })
+
       const { data: prefs } = await supabaseAdmin
         .from("users")
         .select("email_notify_published")

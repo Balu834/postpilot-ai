@@ -40,6 +40,8 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: error.message }, { status: 500 })
   }
 
+  void supabaseAdmin.from("activity_log").insert({ user_id: user.id, action: `Scheduled ${platform} post`, platform })
+
   return NextResponse.json({ success: true, post: data })
 }
 

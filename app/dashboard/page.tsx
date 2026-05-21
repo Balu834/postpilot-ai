@@ -313,36 +313,74 @@ function GettingStartedCard({ stats, userId }: { stats: Stats; userId: string })
 /* ─── Activity Feed ──────────────────────────────────────────────── */
 
 const DEMO_ACTIVITY = [
-  { icon: "💼", action: "Generated LinkedIn campaign",      time: "2m ago",  color: "#0A66C2" },
-  { icon: "📸", action: "Scheduled Instagram carousel",    time: "18m ago", color: "#E1306C" },
-  { icon: "𝕏",  action: "Copied Twitter/X thread",         time: "1h ago",  color: "#94a3b8" },
-  { icon: "🔥", action: "Generated 5-post content pack",   time: "3h ago",  color: "#F7BE4D" },
+  { icon: "💼", action: "Generated LinkedIn campaign",    time: "2m ago",  color: "#0A66C2" },
+  { icon: "📸", action: "Scheduled Instagram carousel",  time: "18m ago", color: "#E1306C" },
+  { icon: "𝕏",  action: "Copied Twitter/X thread",       time: "1h ago",  color: "#94a3b8" },
+  { icon: "🔥", action: "Generated 5-post content pack", time: "3h ago",  color: "#F7BE4D" },
 ]
 
-function ActivityFeed({ isDemo }: { isDemo: boolean }) {
-  return (
-    <div className="space-y-2">
-      {(isDemo ? DEMO_ACTIVITY : DEMO_ACTIVITY.slice(0, 3)).map((item, i) => (
-        <motion.div
-          key={i}
-          initial={{ opacity: 0, x: -8 }}
-          animate={{ opacity: 1, x: 0 }}
-          transition={{ delay: 0.35 + i * 0.06 }}
-          className="flex items-center gap-2.5 py-1.5"
-        >
-          <div className="w-6 h-6 rounded-lg flex items-center justify-center text-xs flex-shrink-0"
-            style={{ background: `${item.color}15`, border: `1px solid ${item.color}20` }}>
-            <span className="text-[11px] leading-none">{item.icon}</span>
-          </div>
-          <p className="text-[11px] text-slate-400 flex-1 leading-relaxed">{item.action}</p>
-          <span className="text-[10px] text-slate-600 flex-shrink-0">{item.time}</span>
-        </motion.div>
-      ))}
-      {isDemo && (
+interface ActivityItem { action: string; platform: string | null; created_at: string }
+
+function timeAgo(iso: string): string {
+  const diff = Date.now() - new Date(iso).getTime()
+  const m = Math.floor(diff / 60000)
+  if (m < 1)  return "just now"
+  if (m < 60) return `${m}m ago`
+  const h = Math.floor(m / 60)
+  if (h < 24) return `${h}h ago`
+  return `${Math.floor(h / 24)}d ago`
+}
+
+const PLATFORM_ICON: Record<string, string> = {
+  instagram: "📸", linkedin: "💼", twitter: "𝕏", facebook: "📘", youtube: "▶",
+}
+const PLATFORM_COLOR: Record<string, string> = {
+  instagram: "#E1306C", linkedin: "#0A66C2", twitter: "#94a3b8", facebook: "#1877F2", youtube: "#FF0000",
+}
+
+function ActivityFeed({ items, isDemo }: { items: ActivityItem[]; isDemo: boolean }) {
+  if (isDemo) {
+    return (
+      <div className="space-y-2">
+        {DEMO_ACTIVITY.map((item, i) => (
+          <motion.div key={i} initial={{ opacity: 0, x: -8 }} animate={{ opacity: 1, x: 0 }}
+            transition={{ delay: 0.35 + i * 0.06 }} className="flex items-center gap-2.5 py-1.5">
+            <div className="w-6 h-6 rounded-lg flex items-center justify-center text-xs flex-shrink-0"
+              style={{ background: `${item.color}15`, border: `1px solid ${item.color}20` }}>
+              <span className="text-[11px] leading-none">{item.icon}</span>
+            </div>
+            <p className="text-[11px] text-slate-400 flex-1 leading-relaxed">{item.action}</p>
+            <span className="text-[10px] text-slate-600 flex-shrink-0">{item.time}</span>
+          </motion.div>
+        ))}
         <p className="text-[10px] text-slate-700 pt-1 border-t border-white/[0.04]">
           Sample activity · yours will appear here
         </p>
-      )}
+      </div>
+    )
+  }
+
+  if (items.length === 0) {
+    return <p className="text-[11px] text-slate-600 py-1">No activity yet — start generating!</p>
+  }
+
+  return (
+    <div className="space-y-2">
+      {items.map((item, i) => {
+        const color = item.platform ? (PLATFORM_COLOR[item.platform] ?? "#F7BE4D") : "#F7BE4D"
+        const icon  = item.platform ? (PLATFORM_ICON[item.platform]  ?? "📝") : "✨"
+        return (
+          <motion.div key={i} initial={{ opacity: 0, x: -8 }} animate={{ opacity: 1, x: 0 }}
+            transition={{ delay: 0.35 + i * 0.06 }} className="flex items-center gap-2.5 py-1.5">
+            <div className="w-6 h-6 rounded-lg flex items-center justify-center text-xs flex-shrink-0"
+              style={{ background: `${color}15`, border: `1px solid ${color}20` }}>
+              <span className="text-[11px] leading-none">{icon}</span>
+            </div>
+            <p className="text-[11px] text-slate-400 flex-1 leading-relaxed">{item.action}</p>
+            <span className="text-[10px] text-slate-600 flex-shrink-0">{timeAgo(item.created_at)}</span>
+          </motion.div>
+        )
+      })}
     </div>
   )
 }
@@ -829,6 +867,7 @@ const quickActions = [
 export default function DashboardPage() {
   const [stats,       setStats]       = useState<Stats>({ generated: 0, scheduled: 0, published: 0 })
   const [recentPosts, setRecentPosts] = useState<RecentPost[]>([])
+  const [activity,    setActivity]    = useState<ActivityItem[]>([])
   const [loading,     setLoading]     = useState(true)
   const [prefs,       setPrefs]       = useState<UserPrefs | null>(null)
   const [brandName,   setBrandName]   = useState<string>("")
@@ -851,13 +890,14 @@ export default function DashboardPage() {
     const cached = localStorage.getItem(`postpilot_prefs_${user.id}`)
     if (cached) { try { setPrefs(JSON.parse(cached)) } catch {} }
 
-    const [genRes, scheduledRes, publishedRes, recentRes, profileRes, brandRes] = await Promise.all([
+    const [genRes, scheduledRes, publishedRes, recentRes, profileRes, brandRes, activityRes] = await Promise.all([
       supabase.from("generations").select("id", { count: "exact" }).eq("user_id", user.id),
       supabase.from("scheduled_posts").select("id", { count: "exact" }).eq("user_id", user.id).eq("status", "pending"),
       supabase.from("scheduled_posts").select("id", { count: "exact" }).eq("user_id", user.id).eq("status", "published"),
       supabase.from("scheduled_posts").select("id,content,platform,scheduled_time,status").eq("user_id", user.id).order("created_at", { ascending: false }).limit(4),
       supabase.from("users").select("platforms,niche,tone,goal").eq("id", user.id).single(),
       supabase.from("brand_voices").select("brand_name").eq("user_id", user.id).maybeSingle(),
+      supabase.from("activity_log").select("action,platform,created_at").eq("user_id", user.id).order("created_at", { ascending: false }).limit(5),
     ])
 
     setStats({ generated: genRes.count || 0, scheduled: scheduledRes.count || 0, published: publishedRes.count || 0 })
@@ -874,6 +914,7 @@ export default function DashboardPage() {
       localStorage.setItem(`postpilot_prefs_${user.id}`, JSON.stringify(p))
     }
     if (brandRes.data?.brand_name) setBrandName(brandRes.data.brand_name)
+    setActivity((activityRes.data ?? []) as ActivityItem[])
     setLoading(false)
   }
 
@@ -1008,7 +1049,7 @@ export default function DashboardPage() {
               <Activity className="w-3.5 h-3.5 text-slate-500" />
               <h2 className="text-xs font-semibold text-slate-400 uppercase tracking-widest">Activity</h2>
             </div>
-            <ActivityFeed isDemo={isNewUser} />
+            <ActivityFeed items={activity} isDemo={isNewUser && activity.length === 0} />
           </div>
         </motion.div>
 

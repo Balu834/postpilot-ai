@@ -142,6 +142,8 @@ export async function POST(req: NextRequest) {
 
       await supabaseAdmin.from("scheduled_posts").update({ status: "published" }).eq("id", postId)
 
+      void supabaseAdmin.from("activity_log").insert({ user_id: user.id, action: `Published ${post.platform} post`, platform: post.platform })
+
       const { data: prefs } = await supabaseAdmin
         .from("users").select("email_notify_published").eq("id", user.id).single()
       if (prefs?.email_notify_published && user.email) {
