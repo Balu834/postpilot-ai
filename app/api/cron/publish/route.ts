@@ -51,8 +51,19 @@ async function postToLinkedIn(content: string, accessToken: string) {
   }
 }
 
+async function postToFacebook(content: string, accessToken: string, pageId: string) {
+  const res = await fetch(`https://graph.facebook.com/v19.0/${pageId}/feed`, {
+    method:  "POST",
+    headers: { "Content-Type": "application/json" },
+    body:    JSON.stringify({ message: content, access_token: accessToken }),
+  })
+  if (!res.ok) {
+    const err = await res.json()
+    throw new Error(err.error?.message || "Facebook publish failed")
+  }
+}
+
 export async function GET(req: NextRequest) {
-  // Verify the request comes from Vercel cron (or an authorized caller)
   const authHeader = req.headers.get("authorization")
   if (
     process.env.CRON_SECRET &&
@@ -61,7 +72,6 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
   }
 
-  // Fetch all posts that are due to be published
   const now = new Date().toISOString()
   const { data: duePosts, error } = await supabaseAdmin
     .from("scheduled_posts")
@@ -82,10 +92,9 @@ export async function GET(req: NextRequest) {
 
   for (const post of duePosts) {
     try {
-      // Get the connected social account for this user + platform
       const { data: account } = await supabaseAdmin
         .from("social_accounts")
-        .select("access_token")
+        .select("access_token, platform_user_id")
         .eq("user_id", post.user_id)
         .eq("platform", post.platform)
         .single()
@@ -98,8 +107,15 @@ export async function GET(req: NextRequest) {
         await postToTwitter(post.content, account.access_token)
       } else if (post.platform === "linkedin") {
         await postToLinkedIn(post.content, account.access_token)
+      } else if (post.platform === "facebook") {
+        if (!account.platform_user_id) throw new Error("Facebook Page ID missing — please reconnect Facebook")
+        await postToFacebook(post.content, account.access_token, account.platform_user_id)
+      } else if (post.platform === "instagram") {
+        throw new Error("Instagram posts require an image. Image publishing is coming soon.")
+      } else if (post.platform === "youtube") {
+        throw new Error("YouTube video publishing is coming soon.")
       } else {
-        throw new Error(`Auto-publish not supported for ${post.platform}`)
+        throw new Error(`Publishing not supported for ${post.platform}`)
       }
 
       await supabaseAdmin
@@ -107,7 +123,6 @@ export async function GET(req: NextRequest) {
         .update({ status: "published" })
         .eq("id", post.id)
 
-      // Fire email notification if the user has it enabled
       const { data: prefs } = await supabaseAdmin
         .from("users")
         .select("email_notify_published")

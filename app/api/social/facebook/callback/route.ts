@@ -38,7 +38,7 @@ export async function GET(req: NextRequest) {
     const tokenData = await tokenRes.json()
     if (!tokenRes.ok || tokenData.error) throw new Error(tokenData.error?.message || "Token exchange failed")
 
-    // Exchange for long-lived token (60 days)
+    // Exchange for long-lived user token (60 days)
     const longLivedRes = await fetch(
       `https://graph.facebook.com/v19.0/oauth/access_token?` +
       new URLSearchParams({
@@ -49,23 +49,39 @@ export async function GET(req: NextRequest) {
       })
     )
     const longLivedData = await longLivedRes.json()
-    const accessToken   = longLivedData.access_token || tokenData.access_token
+    const userToken     = longLivedData.access_token || tokenData.access_token
     const expiresIn     = longLivedData.expires_in ?? 5184000 // 60 days default
 
-    // Get the user's name
-    const meRes  = await fetch(`https://graph.facebook.com/v19.0/me?fields=name&access_token=${accessToken}`)
-    const meData = await meRes.json()
-    const fbName = meData.name ?? "Facebook User"
+    // Get user's Facebook pages to obtain a never-expiring page access token
+    const pagesRes  = await fetch(`https://graph.facebook.com/v19.0/me/accounts?access_token=${userToken}`)
+    const pagesData = await pagesRes.json()
+
+    let accessToken  = userToken
+    let pageId: string | null = null
+    let fbName = "Facebook User"
+
+    if (pagesData.data?.length > 0) {
+      const page  = pagesData.data[0]
+      accessToken = page.access_token // page tokens don't expire
+      pageId      = page.id
+      fbName      = page.name
+    } else {
+      // No managed pages — fall back to user token + name
+      const meRes  = await fetch(`https://graph.facebook.com/v19.0/me?fields=name&access_token=${userToken}`)
+      const meData = await meRes.json()
+      fbName = meData.name ?? "Facebook User"
+    }
 
     const expiresAt = new Date(Date.now() + expiresIn * 1000)
 
     await supabaseAdmin.from("social_accounts").upsert({
-      user_id:       userId,
-      platform:      "facebook",
-      access_token:  accessToken,
-      refresh_token: null,
-      expires_at:    expiresAt.toISOString(),
-      username:      fbName,
+      user_id:          userId,
+      platform:         "facebook",
+      access_token:     accessToken,     // page token (doesn't expire) or user token
+      platform_user_id: pageId,          // page ID needed for POST /{page-id}/feed
+      refresh_token:    null,
+      expires_at:       expiresAt.toISOString(),
+      username:         fbName,
     }, { onConflict: "user_id,platform" })
 
     const res = NextResponse.redirect(`${appUrl}/settings?social_connected=facebook`)

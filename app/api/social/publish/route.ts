@@ -29,16 +29,16 @@ async function postToLinkedIn(content: string, accessToken: string) {
   const res = await fetch("https://api.linkedin.com/v2/ugcPosts", {
     method:  "POST",
     headers: {
-      Authorization:                  `Bearer ${accessToken}`,
-      "Content-Type":                 "application/json",
-      "X-Restli-Protocol-Version":    "2.0.0",
+      Authorization:               `Bearer ${accessToken}`,
+      "Content-Type":              "application/json",
+      "X-Restli-Protocol-Version": "2.0.0",
     },
     body: JSON.stringify({
-      author:         authorUrn,
-      lifecycleState: "PUBLISHED",
+      author:          authorUrn,
+      lifecycleState:  "PUBLISHED",
       specificContent: {
         "com.linkedin.ugc.ShareContent": {
-          shareCommentary:   { text: content },
+          shareCommentary:    { text: content },
           shareMediaCategory: "NONE",
         },
       },
@@ -48,6 +48,18 @@ async function postToLinkedIn(content: string, accessToken: string) {
   if (!res.ok) {
     const err = await res.json()
     throw new Error(err.message || "LinkedIn publish failed")
+  }
+}
+
+async function postToFacebook(content: string, accessToken: string, pageId: string) {
+  const res = await fetch(`https://graph.facebook.com/v19.0/${pageId}/feed`, {
+    method:  "POST",
+    headers: { "Content-Type": "application/json" },
+    body:    JSON.stringify({ message: content, access_token: accessToken }),
+  })
+  if (!res.ok) {
+    const err = await res.json()
+    throw new Error(err.error?.message || "Facebook publish failed")
   }
 }
 
@@ -70,7 +82,12 @@ export async function POST(req: NextRequest) {
     if (!post) return NextResponse.json({ error: "Post not found" }, { status: 404 })
 
     const { data: account } = await supabaseAdmin
-      .from("social_accounts").select("*").eq("user_id", user.id).eq("platform", post.platform).single()
+      .from("social_accounts")
+      .select("access_token, platform_user_id")
+      .eq("user_id", user.id)
+      .eq("platform", post.platform)
+      .single()
+
     if (!account) {
       return NextResponse.json({
         error: `${post.platform} not connected. Go to Settings → Connected Accounts.`,
@@ -82,13 +99,21 @@ export async function POST(req: NextRequest) {
         await postToTwitter(post.content, account.access_token)
       } else if (post.platform === "linkedin") {
         await postToLinkedIn(post.content, account.access_token)
+      } else if (post.platform === "facebook") {
+        if (!account.platform_user_id) {
+          throw new Error("Facebook Page ID missing — please reconnect your Facebook account in Settings.")
+        }
+        await postToFacebook(post.content, account.access_token, account.platform_user_id)
+      } else if (post.platform === "instagram") {
+        throw new Error("Instagram posts require an image. Image publishing is coming soon.")
+      } else if (post.platform === "youtube") {
+        throw new Error("YouTube video publishing is coming soon.")
       } else {
-        throw new Error(`Direct publishing for ${post.platform} is not supported yet`)
+        throw new Error(`Publishing not supported for ${post.platform}`)
       }
 
       await supabaseAdmin.from("scheduled_posts").update({ status: "published" }).eq("id", postId)
 
-      // Send email notification if enabled
       const { data: prefs } = await supabaseAdmin
         .from("users").select("email_notify_published").eq("id", user.id).single()
       if (prefs?.email_notify_published && user.email) {
