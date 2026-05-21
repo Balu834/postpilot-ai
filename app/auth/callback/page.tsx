@@ -25,8 +25,15 @@ export default function AuthCallbackPage() {
       )
       const isNewUser = !upsertError
       analytics.identify(userId, { email: session.user.email ?? undefined })
-      if (isNewUser) analytics.signup("google")
-      else analytics.login("google")
+      if (isNewUser) {
+        analytics.signup("google")
+        fetch("/api/email/welcome", {
+          method: "POST",
+          headers: { Authorization: `Bearer ${session.access_token}` },
+        }).catch(() => {})
+      } else {
+        analytics.login("google")
+      }
 
       // Track referral if cookie is set
       const refCode = document.cookie.match(/postpilot_ref=([^;]+)/)?.[1]

@@ -76,7 +76,7 @@ const PLANS: Plan[] = [
       { text: "Priority AI speed" },
     ],
     cta:           "Start Pro — ₹799/mo",
-    ctaHref:       "/login",
+    ctaHref:       "/settings?upgrade=1",
     yearlySavings: "Save ₹1,589/year",
   },
   {

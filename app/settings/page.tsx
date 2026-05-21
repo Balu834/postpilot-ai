@@ -64,6 +64,7 @@ export default function SettingsPage() {
     const error     = searchParams.get("social_error")
     if (connected) setSocialMsg({ type: "success", text: `${connected.charAt(0).toUpperCase() + connected.slice(1)} connected successfully!` })
     if (error)     setSocialMsg({ type: "error",   text: `Failed to connect ${error.replace("_session", "").replace("_state", "")}. Please try again.` })
+    if (searchParams.get("upgrade") === "1") setUpgradeOpen(true)
     if (connected || error) {
       const url = new URL(window.location.href)
       url.searchParams.delete("social_connected")

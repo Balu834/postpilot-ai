@@ -5,6 +5,8 @@ import { checkRateLimit } from "@/lib/rate-limit"
 
 export const dynamic = "force-dynamic"
 
+const FREE_LIMIT = 30
+
 const sleep = (ms: number) => new Promise<void>(r => setTimeout(r, ms))
 
 function buildPrompt(
@@ -70,6 +72,28 @@ export async function POST(req: NextRequest) {
     )
   }
 
+  // Plan enforcement — check before starting the stream
+  const supabaseAdmin = createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!
+  )
+  const { data: profile } = await supabaseAdmin
+    .from("users")
+    .select("plan_name, credits_used")
+    .eq("id", user.id)
+    .single()
+
+  const isFree = !profile?.plan_name || profile.plan_name === "free"
+  if (isFree && (profile?.credits_used ?? 0) >= FREE_LIMIT) {
+    return new Response(
+      JSON.stringify({
+        error: `You've used all ${FREE_LIMIT} free AI generations. Upgrade to Pro for unlimited.`,
+        code:  "UPGRADE_REQUIRED",
+      }),
+      { status: 402, headers: { "Content-Type": "application/json" } }
+    )
+  }
+
   const body = await req.json()
   const { topic, product, blogUrl, tone, brandVoice } = body
 
@@ -97,7 +121,6 @@ export async function POST(req: NextRequest) {
         send({ event: "phase", msg: "Connecting to AI engine..." })
         await sleep(300)
 
-        // Call OpenAI
         const response = await openai.chat.completions.create({
           model: "gpt-4o-mini",
           messages: [{ role: "user", content: buildPrompt(topic, product, blogUrl, tone, brandVoice) }],
@@ -113,7 +136,6 @@ export async function POST(req: NextRequest) {
         if (!Array.isArray(generated.carousel)) generated.carousel = []
         if (!Array.isArray(generated.hashtags)) generated.hashtags = []
 
-        // Stream each platform progressively
         const platforms = [
           { key: "instagram", msg: "Crafting Instagram captions...",  chunkSize: 5, delay: 28 },
           { key: "linkedin",  msg: "Writing LinkedIn posts...",        chunkSize: 5, delay: 22 },
@@ -130,7 +152,6 @@ export async function POST(req: NextRequest) {
           const content = generated[key]
 
           if (chunkSize > 0 && typeof content === "string") {
-            // Stream text chunk by chunk (typing effect)
             send({ event: "tab_open", platform: key })
             for (let i = 0; i < content.length; i += chunkSize) {
               if (closed) break
@@ -138,7 +159,6 @@ export async function POST(req: NextRequest) {
               await sleep(delay)
             }
           } else {
-            // Arrays: send at once with a brief dramatic pause
             await sleep(350)
             send({ event: "tab_open", platform: key })
             await sleep(100)
@@ -152,6 +172,14 @@ export async function POST(req: NextRequest) {
         send({ event: "phase", msg: "Finalizing your content pack..." })
         await sleep(400)
         send({ event: "done", result: generated })
+
+        // Increment credits_used for free users after a successful generation
+        if (isFree) {
+          void supabaseAdmin
+            .from("users")
+            .update({ credits_used: (profile?.credits_used ?? 0) + 1 })
+            .eq("id", user.id)
+        }
       } catch (err: unknown) {
         const msg = err instanceof Error ? err.message : "Generation failed"
         send({ event: "error", msg })
@@ -167,10 +195,10 @@ export async function POST(req: NextRequest) {
 
   return new Response(stream, {
     headers: {
-      "Content-Type":    "text/event-stream",
-      "Cache-Control":   "no-cache, no-transform",
+      "Content-Type":      "text/event-stream",
+      "Cache-Control":     "no-cache, no-transform",
       "X-Accel-Buffering": "no",
-      "Connection":      "keep-alive",
+      "Connection":        "keep-alive",
     },
   })
 }

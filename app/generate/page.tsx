@@ -12,7 +12,7 @@ import { supabase } from "@/lib/supabase"
 import UpgradeModal from "@/components/UpgradeModal"
 import { analytics } from "@/lib/analytics"
 
-const FREE_LIMIT = 10
+const FREE_LIMIT = 30
 
 // ── Types ──────────────────────────────────────────────────────────
 interface FullResult {
@@ -607,12 +607,13 @@ export default function GeneratePage() {
   useEffect(() => {
     supabase.auth.getSession().then(async ({ data: { session } }) => {
       if (!session) return
-      const [genRes, planRes] = await Promise.all([
-        supabase.from("generations").select("id", { count: "exact" }).eq("user_id", session.user.id),
-        supabase.from("users").select("plan_name").eq("id", session.user.id).single(),
-      ])
-      setGenCount(genRes.count ?? 0)
-      setPlanName(planRes.data?.plan_name ?? "free")
+      const { data: planRes } = await supabase
+        .from("users")
+        .select("plan_name, credits_used")
+        .eq("id", session.user.id)
+        .single()
+      setGenCount(planRes?.credits_used ?? 0)
+      setPlanName(planRes?.plan_name ?? "free")
       const bvRes = await fetch("/api/brand-voice", { headers: { authorization: `Bearer ${session.access_token}` } })
       const bvJson = await bvRes.json()
       if (bvJson.data) setBrandVoice(bvJson.data)
@@ -664,6 +665,11 @@ export default function GeneratePage() {
 
       if (!res.ok) {
         const j = await res.json().catch(() => ({ error: "Stream failed" }))
+        if (res.status === 402 || j.code === "UPGRADE_REQUIRED") {
+          analytics.upgradeClicked("free_limit_hit")
+          setUpgradeOpen(true)
+          return
+        }
         throw new Error(j.error || `HTTP ${res.status}`)
       }
 
