@@ -4,13 +4,13 @@ import { useState, useEffect, useMemo } from "react"
 import { motion, AnimatePresence } from "framer-motion"
 import {
   ChevronLeft, ChevronRight, Plus, X, CalendarDays,
-  List, Clock, CheckCircle2, AlertCircle, Trash2, Loader2, Send,
+  List, Clock, CheckCircle2, AlertCircle, Trash2, Loader2, Send, ImageIcon,
 } from "lucide-react"
 import { supabase } from "@/lib/supabase"
 import { analytics } from "@/lib/analytics"
 
 // ── Types ────────────────────────────────────────────────────────
-type Platform = "linkedin" | "twitter" | "instagram"
+type Platform = "linkedin" | "twitter" | "instagram" | "facebook"
 type Status   = "pending" | "published" | "failed"
 type View     = "calendar" | "list"
 
@@ -20,6 +20,7 @@ interface ScheduledPost {
   platform:       Platform
   scheduled_time: string
   status:         Status
+  image_url:      string | null
 }
 
 // ── Config ───────────────────────────────────────────────────────
@@ -27,6 +28,7 @@ const PLATFORM = {
   instagram: { label: "Instagram", icon: "📸", color: "#E1306C" },
   linkedin:  { label: "LinkedIn",  icon: "💼", color: "#0077B5" },
   twitter:   { label: "Twitter/X", icon: "𝕏",  color: "#94a3b8" },
+  facebook:  { label: "Facebook",  icon: "f",   color: "#1877F2" },
 } as const
 
 const STATUS = {
@@ -61,6 +63,7 @@ function getDemoSchedulePosts(): ScheduledPost[] {
       status: "published",
       scheduled_time: at(0, 9),
       content: "AI won't replace creators. Creators using AI will replace creators who don't. Here's why every founder needs an AI content stack in 2026.",
+      image_url: null,
     },
     {
       id: "demo-s2",
@@ -68,6 +71,7 @@ function getDemoSchedulePosts(): ScheduledPost[] {
       status: "published",
       scheduled_time: at(1, 14),
       content: "Most startups don't fail because of product quality. They fail because nobody notices them. AI-powered content systems are the unfair advantage. 🚀",
+      image_url: null,
     },
     {
       id: "demo-s3",
@@ -75,6 +79,7 @@ function getDemoSchedulePosts(): ScheduledPost[] {
       status: "pending",
       scheduled_time: at(2, 10),
       content: "AI content creation in 2026: • Faster workflows • Better personalization • Multi-platform generation • Automated repurposing. Creators who adapt early win.",
+      image_url: null,
     },
     {
       id: "demo-s4",
@@ -82,6 +87,7 @@ function getDemoSchedulePosts(): ScheduledPost[] {
       status: "pending",
       scheduled_time: at(3, 9),
       content: "I tested 12 AI content tools for 30 days so you don't have to. The results were shocking. Here's my brutally honest breakdown of what actually works.",
+      image_url: null,
     },
     {
       id: "demo-s5",
@@ -89,6 +95,7 @@ function getDemoSchedulePosts(): ScheduledPost[] {
       status: "pending",
       scheduled_time: at(4, 15),
       content: "The one thing separating successful creators from struggling ones isn't talent — it's systems. Here's the content system I wish I had when I started 👇",
+      image_url: null,
     },
     {
       id: "demo-s6",
@@ -96,6 +103,7 @@ function getDemoSchedulePosts(): ScheduledPost[] {
       status: "pending",
       scheduled_time: at(7, 11),
       content: "Hot take: Consistency > creativity for building an audience. The algorithm rewards people who show up. Your average daily post beats your once-a-week masterpiece.",
+      image_url: null,
     },
     {
       id: "demo-s7",
@@ -103,6 +111,7 @@ function getDemoSchedulePosts(): ScheduledPost[] {
       status: "pending",
       scheduled_time: at(8, 8),
       content: "3 years ago I had 200 LinkedIn followers. Today: 28K. The only thing that changed? I started treating LinkedIn like a product, not a diary.",
+      image_url: null,
     },
   ]
 }
@@ -116,21 +125,43 @@ function AddPostModal({
   initialDate: string
   onSave: (post: ScheduledPost) => void
 }) {
-  const [form,   setForm]   = useState({ content: "", platform: "linkedin" as Platform, scheduled_time: initialDate })
-  const [saving, setSaving] = useState(false)
-  const [error,  setError]  = useState("")
+  const [form,      setForm]      = useState({ content: "", platform: "linkedin" as Platform, scheduled_time: initialDate })
+  const [saving,    setSaving]    = useState(false)
+  const [error,     setError]     = useState("")
+  const [imageUrl,  setImageUrl]  = useState("")
+  const [uploading, setUploading] = useState(false)
 
   useEffect(() => { setForm(f => ({ ...f, scheduled_time: initialDate })) }, [initialDate])
 
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+    setUploading(true)
+    setError("")
+    const { data: { session } } = await supabase.auth.getSession()
+    const fd = new FormData()
+    fd.append("file", file)
+    const res  = await fetch("/api/upload/image", {
+      method: "POST",
+      headers: { Authorization: `Bearer ${session?.access_token}` },
+      body: fd,
+    })
+    const data = await res.json()
+    if (!res.ok) setError(data.error || "Image upload failed")
+    else setImageUrl(data.url)
+    setUploading(false)
+  }
+
   const handleSave = async () => {
     if (!form.content.trim() || !form.scheduled_time) return
+    if (form.platform === "instagram" && !imageUrl) { setError("Instagram posts require an image"); return }
     setSaving(true); setError("")
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) return
 
     const { data, error: err } = await supabase
       .from("scheduled_posts")
-      .insert({ user_id: user.id, content: form.content, platform: form.platform, scheduled_time: new Date(form.scheduled_time).toISOString(), status: "pending" })
+      .insert({ user_id: user.id, content: form.content, platform: form.platform, scheduled_time: new Date(form.scheduled_time).toISOString(), status: "pending", image_url: imageUrl || null })
       .select().single()
 
     if (err) { setError(err.message); setSaving(false); return }
@@ -200,6 +231,39 @@ function AddPostModal({
                 />
                 <p className="text-[10px] text-slate-600 mt-1 text-right">{form.content.length} chars</p>
               </div>
+
+              {/* Image upload — Instagram only */}
+              {form.platform === "instagram" && (
+                <div>
+                  <label className="text-xs text-slate-500 mb-2 block font-medium">
+                    Image <span className="text-red-400">*</span>
+                    <span className="text-slate-600 ml-1 font-normal">(required for Instagram)</span>
+                  </label>
+                  {imageUrl ? (
+                    <div className="relative rounded-xl overflow-hidden border border-[#E1306C]/30">
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img src={imageUrl} alt="Post image" className="w-full h-32 object-cover" />
+                      <button
+                        onClick={() => setImageUrl("")}
+                        className="absolute top-2 right-2 w-6 h-6 rounded-full bg-black/70 text-white text-xs flex items-center justify-center hover:bg-black transition-all">
+                        ×
+                      </button>
+                    </div>
+                  ) : (
+                    <label className="flex flex-col items-center justify-center gap-2 w-full h-24 rounded-xl border border-dashed border-white/10 hover:border-[#E1306C]/40 cursor-pointer transition-all bg-white/[0.02] hover:bg-[#E1306C]/5">
+                      <input type="file" accept="image/jpeg,image/png,image/webp,image/gif" className="sr-only" onChange={handleImageUpload} disabled={uploading} />
+                      {uploading ? (
+                        <Loader2 className="w-5 h-5 text-slate-500 animate-spin" />
+                      ) : (
+                        <>
+                          <ImageIcon className="w-5 h-5 text-slate-600" />
+                          <span className="text-[11px] text-slate-500">Click to upload · JPEG, PNG, WebP · max 8 MB</span>
+                        </>
+                      )}
+                    </label>
+                  )}
+                </div>
+              )}
 
               {/* Date & Time */}
               <div>

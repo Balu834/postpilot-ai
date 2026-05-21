@@ -63,6 +63,28 @@ async function postToFacebook(content: string, accessToken: string, pageId: stri
   }
 }
 
+async function postToInstagram(content: string, accessToken: string, igAccountId: string, imageUrl: string) {
+  const createRes = await fetch(`https://graph.facebook.com/v19.0/${igAccountId}/media`, {
+    method:  "POST",
+    headers: { "Content-Type": "application/json" },
+    body:    JSON.stringify({ image_url: imageUrl, caption: content, access_token: accessToken }),
+  })
+  const createData = await createRes.json()
+  if (!createRes.ok || createData.error) {
+    throw new Error(createData.error?.message || "Failed to create Instagram media container")
+  }
+
+  const publishRes = await fetch(`https://graph.facebook.com/v19.0/${igAccountId}/media_publish`, {
+    method:  "POST",
+    headers: { "Content-Type": "application/json" },
+    body:    JSON.stringify({ creation_id: createData.id, access_token: accessToken }),
+  })
+  if (!publishRes.ok) {
+    const err = await publishRes.json()
+    throw new Error(err.error?.message || "Failed to publish to Instagram")
+  }
+}
+
 export async function GET(req: NextRequest) {
   const authHeader = req.headers.get("authorization")
   if (
@@ -111,7 +133,9 @@ export async function GET(req: NextRequest) {
         if (!account.platform_user_id) throw new Error("Facebook Page ID missing — please reconnect Facebook")
         await postToFacebook(post.content, account.access_token, account.platform_user_id)
       } else if (post.platform === "instagram") {
-        throw new Error("Instagram posts require an image. Image publishing is coming soon.")
+        if (!account.platform_user_id) throw new Error("Instagram Business Account not found — please reconnect Instagram")
+        if (!post.image_url) throw new Error("Instagram posts require an image. Please add an image when scheduling.")
+        await postToInstagram(post.content, account.access_token, account.platform_user_id, post.image_url)
       } else if (post.platform === "youtube") {
         throw new Error("YouTube video publishing is coming soon.")
       } else {
