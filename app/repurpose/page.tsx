@@ -278,17 +278,38 @@ function ImageCard({ text, gradientIndex, platformColor, styleIdx }: {
 
 // ── PostCard ───────────────────────────────────────────────────────────
 function PostCard({
-  text, index, color, platform, hashtags, onSelect, isSelected,
+  text, index, color, platform, hashtags, onSelect, isSelected, onRegenerate,
 }: {
   text: string; index: number; color: string; platform: TabKey
   hashtags: string[]; onSelect: (t: string) => void; isSelected: boolean
+  onRegenerate?: () => Promise<string | null>
 }) {
   const [showImage,      setShowImage]      = useState(false)
   const [isEditing,      setIsEditing]      = useState(false)
+  const [currentText,    setCurrentText]    = useState(text)   // persists edits + regenerations
   const [editText,       setEditText]       = useState(text)
   const [gradientIndex,  setGradientIndex]  = useState(index % IMAGE_GRADIENTS.length)
   const [styleIdx,       setStyleIdx]       = useState(0)
   const [downloading,    setDownloading]    = useState(false)
+  const [regenerating,   setRegenerating]   = useState(false)
+
+  const handleSave = () => {
+    setCurrentText(editText)
+    setIsEditing(false)
+    onSelect(editText)
+  }
+
+  const handleRegenerate = async () => {
+    if (!onRegenerate || regenerating) return
+    setRegenerating(true)
+    const newText = await onRegenerate()
+    if (newText) {
+      setCurrentText(newText)
+      setEditText(newText)
+      onSelect(newText)
+    }
+    setRegenerating(false)
+  }
 
   const handleDownload = () => {
     setDownloading(true)
@@ -336,7 +357,7 @@ function PostCard({
     setDownloading(false)
   }
   const badges = PLATFORM_BADGES[platform] ?? []
-  const displayText = isEditing ? editText : text
+  const displayText = isEditing ? editText : currentText
   const displayTags = hashtags.slice(0, 5)
 
   return (
@@ -402,14 +423,14 @@ function PostCard({
             <CopyBtn text={displayText} />
 
             {isEditing ? (
-              <button onClick={() => setIsEditing(false)}
+              <button onClick={handleSave}
                 className="flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg border
                   border-emerald-500/30 text-emerald-400 bg-emerald-500/10 transition-all">
                 <Check className="w-3 h-3" />
                 Save
               </button>
             ) : (
-              <button onClick={() => setIsEditing(true)}
+              <button onClick={() => { setEditText(currentText); setIsEditing(true) }}
                 className="flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg border
                   border-white/8 text-slate-400 hover:text-white bg-white/4 hover:bg-white/8 transition-all">
                 <Edit3 className="w-3 h-3" />
@@ -417,10 +438,14 @@ function PostCard({
               </button>
             )}
 
-            <button className="flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg border
-              border-white/8 text-slate-400 hover:text-white bg-white/4 hover:bg-white/8 transition-all">
-              <RefreshCw className="w-3 h-3" />
-              Regenerate
+            <button
+              onClick={handleRegenerate}
+              disabled={regenerating || !onRegenerate}
+              className="flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg border
+                border-white/8 text-slate-400 hover:text-white bg-white/4 hover:bg-white/8 transition-all
+                disabled:opacity-40">
+              <RefreshCw className={`w-3 h-3 ${regenerating ? "animate-spin" : ""}`} />
+              {regenerating ? "Writing..." : "Regenerate"}
             </button>
 
             {/* Create Image — primary gold */}
@@ -795,6 +820,24 @@ export default function RepurposePage() {
     }
   }
 
+  const handleRegeneratePost = async (platform: TabKey): Promise<string | null> => {
+    if (!content.trim()) return null
+    try {
+      const { data: { session } } = await supabase.auth.getSession()
+      const res = await fetch("/api/repurpose", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          ...(session?.access_token ? { Authorization: `Bearer ${session.access_token}` } : {}),
+        },
+        body: JSON.stringify({ content, tone }),
+      })
+      const data = await res.json()
+      if (!res.ok) return null
+      return data.data?.[platform]?.[0] ?? null
+    } catch { return null }
+  }
+
   const activeItems: string[] = result ? (result[activeTab] ?? []) : []
   const activeTabConfig = tabs.find(t => t.key === activeTab)!
   const totalPosts = result
@@ -989,7 +1032,7 @@ export default function RepurposePage() {
                       className="space-y-3">
                       {activeItems.map((text, i) => (
                         <PostCard
-                          key={i}
+                          key={`${activeTab}-${i}`}
                           text={text}
                           index={i}
                           color={activeTabConfig.color}
@@ -997,6 +1040,7 @@ export default function RepurposePage() {
                           hashtags={result!.hashtags}
                           onSelect={setSelectedText}
                           isSelected={selectedText === text}
+                          onRegenerate={() => handleRegeneratePost(activeTab)}
                         />
                       ))}
                     </motion.div>
