@@ -44,7 +44,7 @@ export async function sendWelcomeEmail(to: string) {
             <!-- What you get -->
             <div style="background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.06);border-radius:12px;padding:24px;margin-bottom:28px;">
               <p style="margin:0 0 16px;font-size:13px;font-weight:700;color:#F7BE4D;text-transform:uppercase;letter-spacing:0.08em;">What you get for free</p>
-              ${["10 AI content generations / month", "Instagram, Facebook, LinkedIn & Twitter / X posts", "Hashtag generator + Carousel ideas", "Content calendar & scheduler", "AI Brand Voice training"].map(item =>
+              ${["30 AI content generations / month", "Instagram, Facebook, LinkedIn & Twitter / X posts", "Hashtag generator + Carousel ideas", "Content calendar & scheduler", "AI Brand Voice training"].map(item =>
                 `<div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;">
                   <span style="color:#34d399;font-size:16px;">✓</span>
                   <span style="color:#cbd5e1;font-size:14px;">${item}</span>

@@ -4,7 +4,8 @@ import { useState, useEffect, useMemo } from "react"
 import { motion, AnimatePresence } from "framer-motion"
 import {
   ChevronLeft, ChevronRight, Plus, X, CalendarDays,
-  List, Clock, CheckCircle2, AlertCircle, Trash2, Loader2, Send, ImageIcon,
+  List, Clock, CheckCircle2, AlertCircle, Trash2, Loader2, Send, ImageIcon, Sparkles,
+  Wand2,
 } from "lucide-react"
 import { supabase } from "@/lib/supabase"
 import { analytics } from "@/lib/analytics"
@@ -116,6 +117,178 @@ function getDemoSchedulePosts(): ScheduledPost[] {
   ]
 }
 
+// ── AI Planner Modal ──────────────────────────────────────────────
+const PLANNER_PLATFORMS = [
+  { key: "linkedin",  label: "LinkedIn",    icon: "💼", color: "#0077B5" },
+  { key: "twitter",   label: "Twitter / X", icon: "𝕏",  color: "#94a3b8" },
+  { key: "instagram", label: "Instagram",   icon: "📸", color: "#E1306C" },
+  { key: "facebook",  label: "Facebook",    icon: "f",  color: "#1877F2" },
+] as const
+
+const POSTS_PER_WEEK_OPTIONS = [3, 5, 7]
+
+function AIPlannerModal({ open, onClose, onDone }: {
+  open: boolean
+  onClose: () => void
+  onDone: (count: number) => void
+}) {
+  const [topics,       setTopics]       = useState("")
+  const [platforms,    setPlatforms]    = useState<string[]>(["linkedin", "twitter", "instagram"])
+  const [postsPerWeek, setPostsPerWeek] = useState(5)
+  const [loading,      setLoading]      = useState(false)
+  const [error,        setError]        = useState("")
+  const [success,      setSuccess]      = useState(0)
+
+  const togglePlatform = (key: string) =>
+    setPlatforms(prev =>
+      prev.includes(key) ? prev.filter(p => p !== key) : [...prev, key]
+    )
+
+  const estimatedPosts = Math.min(Math.round((postsPerWeek / 7) * 25), 25)
+
+  const handleGenerate = async () => {
+    const topicList = topics.split("\n").map(t => t.trim()).filter(Boolean)
+    if (topicList.length === 0) { setError("Add at least one topic"); return }
+    if (platforms.length === 0) { setError("Select at least one platform"); return }
+    setLoading(true); setError("")
+    const { data: { session } } = await supabase.auth.getSession()
+    const res = await fetch("/api/generate/calendar", {
+      method: "POST",
+      headers: { Authorization: `Bearer ${session?.access_token}`, "Content-Type": "application/json" },
+      body: JSON.stringify({ topics: topicList, platforms, postsPerWeek }),
+    })
+    const data = await res.json()
+    if (!res.ok) { setError(data.error || "Generation failed"); setLoading(false); return }
+    setSuccess(data.created)
+    setLoading(false)
+    setTimeout(() => { onDone(data.created); onClose(); setSuccess(0); setTopics(""); setPlatforms(["linkedin","twitter","instagram"]); setPostsPerWeek(5) }, 1800)
+  }
+
+  return (
+    <AnimatePresence>
+      {open && (
+        <motion.div
+          initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+          className="fixed inset-0 z-50 flex items-center justify-center p-4"
+          style={{ background: "rgba(5,8,22,0.88)", backdropFilter: "blur(14px)" }}
+          onClick={e => e.target === e.currentTarget && onClose()}
+        >
+          <motion.div
+            initial={{ scale: 0.93, y: 24, opacity: 0 }}
+            animate={{ scale: 1, y: 0, opacity: 1 }}
+            exit={{ scale: 0.95, opacity: 0 }}
+            transition={{ type: "spring", stiffness: 320, damping: 28 }}
+            className="w-full max-w-lg rounded-2xl overflow-hidden"
+            style={{ background: "rgba(10,14,30,0.98)", border: "1px solid rgba(247,190,77,0.15)", boxShadow: "0 32px 80px rgba(0,0,0,0.7), 0 0 80px rgba(247,190,77,0.04)" }}
+          >
+            {/* Header */}
+            <div className="flex items-center justify-between px-6 py-5 border-b border-white/[0.06]"
+              style={{ background: "linear-gradient(135deg, rgba(247,190,77,0.06) 0%, transparent 100%)" }}>
+              <div className="flex items-center gap-3">
+                <div className="w-9 h-9 rounded-xl bg-[#F7BE4D]/15 border border-[#F7BE4D]/25 flex items-center justify-center">
+                  <Wand2 className="w-4.5 h-4.5 text-[#F7BE4D]" />
+                </div>
+                <div>
+                  <h3 className="text-sm font-bold text-white">AI Month Planner</h3>
+                  <p className="text-[11px] text-slate-500 mt-0.5">Generate a full month of posts from your topics</p>
+                </div>
+              </div>
+              <button onClick={onClose} className="p-1.5 rounded-lg text-slate-500 hover:text-white hover:bg-white/[0.06] transition-all">
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            <div className="p-6 space-y-5">
+              {/* Topics */}
+              <div>
+                <label className="text-xs text-slate-400 font-semibold mb-2 block">
+                  Your Topics <span className="text-slate-600 font-normal">(one per line)</span>
+                </label>
+                <textarea
+                  value={topics}
+                  onChange={e => setTopics(e.target.value)}
+                  placeholder={"AI trends in 2026\nFounder lessons from year 1\nHow to grow on LinkedIn\nProductivity hacks for creators"}
+                  rows={4}
+                  className="w-full bg-white/[0.04] border border-white/[0.08] rounded-xl px-4 py-3 text-sm text-slate-200 placeholder-slate-600 focus:outline-none focus:border-[#F7BE4D]/40 resize-none transition-all"
+                />
+              </div>
+
+              {/* Platforms */}
+              <div>
+                <label className="text-xs text-slate-400 font-semibold mb-2 block">Platforms</label>
+                <div className="flex gap-2 flex-wrap">
+                  {PLANNER_PLATFORMS.map(p => {
+                    const active = platforms.includes(p.key)
+                    return (
+                      <button key={p.key} onClick={() => togglePlatform(p.key)}
+                        className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold transition-all"
+                        style={{
+                          background: active ? `${p.color}18` : "rgba(255,255,255,0.03)",
+                          border:     active ? `1px solid ${p.color}40` : "1px solid rgba(255,255,255,0.07)",
+                          color:      active ? p.color : "rgba(255,255,255,0.3)",
+                        }}>
+                        <span>{p.icon}</span>{p.label}
+                      </button>
+                    )
+                  })}
+                </div>
+              </div>
+
+              {/* Posts per week */}
+              <div>
+                <label className="text-xs text-slate-400 font-semibold mb-2 block">Posts per week</label>
+                <div className="flex gap-2">
+                  {POSTS_PER_WEEK_OPTIONS.map(n => (
+                    <button key={n} onClick={() => setPostsPerWeek(n)}
+                      className="flex-1 py-2.5 rounded-xl text-xs font-bold transition-all"
+                      style={{
+                        background: postsPerWeek === n ? "rgba(247,190,77,0.12)" : "rgba(255,255,255,0.03)",
+                        border:     postsPerWeek === n ? "1px solid rgba(247,190,77,0.35)" : "1px solid rgba(255,255,255,0.07)",
+                        color:      postsPerWeek === n ? "#F7BE4D" : "rgba(255,255,255,0.3)",
+                      }}>
+                      {n}×/week
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Estimate */}
+              <div className="flex items-center gap-2.5 px-4 py-3 rounded-xl"
+                style={{ background: "rgba(247,190,77,0.05)", border: "1px solid rgba(247,190,77,0.12)" }}>
+                <Sparkles className="w-3.5 h-3.5 text-[#F7BE4D] flex-shrink-0" />
+                <p className="text-[11px] text-slate-400">
+                  AI will generate <span className="text-[#F7BE4D] font-bold">~{estimatedPosts} posts</span> spread across Mon–Fri for the next 4 weeks
+                </p>
+              </div>
+
+              {error && <p className="text-red-400 text-xs">{error}</p>}
+
+              {/* CTA */}
+              {success > 0 ? (
+                <div className="w-full py-3.5 rounded-xl text-sm font-bold flex items-center justify-center gap-2"
+                  style={{ background: "rgba(52,211,153,0.12)", border: "1px solid rgba(52,211,153,0.25)", color: "#34d399" }}>
+                  <CheckCircle2 className="w-4 h-4" />
+                  {success} posts added to your calendar!
+                </div>
+              ) : (
+                <button onClick={handleGenerate} disabled={loading}
+                  className="w-full py-3.5 rounded-xl text-sm font-bold flex items-center justify-center gap-2.5 transition-all disabled:opacity-60"
+                  style={{ background: "linear-gradient(135deg, #F7BE4D, #ffd166)", color: "#050816", boxShadow: "0 4px 24px rgba(247,190,77,0.3)" }}>
+                  {loading
+                    ? <><Loader2 className="w-4 h-4 animate-spin" />Generating your content plan…</>
+                    : <><Wand2 className="w-4 h-4" />Generate My Month</>
+                  }
+                </button>
+              )}
+              <p className="text-center text-[10px] text-slate-600">Uses 1 AI credit · Posts land Mon–Fri at optimal times per platform</p>
+            </div>
+          </motion.div>
+        </motion.div>
+      )}
+    </AnimatePresence>
+  )
+}
+
 // ── Add Post Modal ────────────────────────────────────────────────
 function AddPostModal({
   open, onClose, initialDate, onSave,
@@ -128,10 +301,26 @@ function AddPostModal({
   const [form,      setForm]      = useState({ content: "", platform: "linkedin" as Platform, scheduled_time: initialDate })
   const [saving,    setSaving]    = useState(false)
   const [error,     setError]     = useState("")
-  const [imageUrl,  setImageUrl]  = useState("")
-  const [uploading, setUploading] = useState(false)
+  const [imageUrl,    setImageUrl]    = useState("")
+  const [uploading,   setUploading]   = useState(false)
+  const [genningImage, setGenningImage] = useState(false)
 
   useEffect(() => { setForm(f => ({ ...f, scheduled_time: initialDate })) }, [initialDate])
+
+  const handleGenerateImage = async () => {
+    if (!form.content.trim()) { setError("Add post content first to generate a matching image"); return }
+    setGenningImage(true); setError("")
+    const { data: { session } } = await supabase.auth.getSession()
+    const res  = await fetch("/api/generate/image", {
+      method: "POST",
+      headers: { Authorization: `Bearer ${session?.access_token}`, "Content-Type": "application/json" },
+      body: JSON.stringify({ caption: form.content }),
+    })
+    const data = await res.json()
+    if (!res.ok) setError(data.error || "Image generation failed")
+    else setImageUrl(data.url)
+    setGenningImage(false)
+  }
 
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
@@ -250,17 +439,26 @@ function AddPostModal({
                       </button>
                     </div>
                   ) : (
-                    <label className="flex flex-col items-center justify-center gap-2 w-full h-24 rounded-xl border border-dashed border-white/10 hover:border-[#E1306C]/40 cursor-pointer transition-all bg-white/[0.02] hover:bg-[#E1306C]/5">
-                      <input type="file" accept="image/jpeg,image/png,image/webp,image/gif" className="sr-only" onChange={handleImageUpload} disabled={uploading} />
-                      {uploading ? (
-                        <Loader2 className="w-5 h-5 text-slate-500 animate-spin" />
-                      ) : (
-                        <>
-                          <ImageIcon className="w-5 h-5 text-slate-600" />
-                          <span className="text-[11px] text-slate-500">Click to upload · JPEG, PNG, WebP · max 8 MB</span>
-                        </>
-                      )}
-                    </label>
+                    <div className="space-y-2">
+                      <div className="flex gap-2">
+                        <button
+                          type="button"
+                          onClick={handleGenerateImage}
+                          disabled={genningImage || uploading}
+                          className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl text-xs font-semibold transition-all disabled:opacity-50"
+                          style={{ background: "rgba(247,190,77,0.08)", border: "1px solid rgba(247,190,77,0.25)", color: "#F7BE4D" }}>
+                          {genningImage ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Sparkles className="w-3.5 h-3.5" />}
+                          {genningImage ? "Generating…" : "Generate with AI"}
+                        </button>
+                        <label className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl text-xs font-semibold transition-all cursor-pointer"
+                          style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.08)", color: "rgba(255,255,255,0.4)" }}>
+                          <input type="file" accept="image/jpeg,image/png,image/webp,image/gif" className="sr-only" onChange={handleImageUpload} disabled={uploading || genningImage} />
+                          {uploading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <ImageIcon className="w-3.5 h-3.5" />}
+                          {uploading ? "Uploading…" : "Upload"}
+                        </label>
+                      </div>
+                      <p className="text-[10px] text-slate-600 text-center">AI generates a matching visual · or upload your own JPEG/PNG (max 8 MB)</p>
+                    </div>
                   )}
                 </div>
               )}
@@ -410,10 +608,12 @@ export default function SchedulePage() {
   const [loading,    setLoading]    = useState(true)
   const [curYear,    setCurYear]    = useState(today.getFullYear())
   const [curMonth,   setCurMonth]   = useState(today.getMonth())
-  const [addOpen,    setAddOpen]    = useState(false)
-  const [addDate,    setAddDate]    = useState("")
-  const [detail,     setDetail]     = useState<ScheduledPost | null>(null)
-  const [listFilter, setListFilter] = useState<"all" | Status>("all")
+  const [addOpen,      setAddOpen]      = useState(false)
+  const [addDate,      setAddDate]      = useState("")
+  const [detail,       setDetail]       = useState<ScheduledPost | null>(null)
+  const [listFilter,   setListFilter]   = useState<"all" | Status>("all")
+  const [plannerOpen,  setPlannerOpen]  = useState(false)
+  const [plannerToast, setPlannerToast] = useState("")
 
   useEffect(() => { fetchPosts() }, [])
 
@@ -481,12 +681,36 @@ export default function SchedulePage() {
 
   return (
     <>
+      <AIPlannerModal
+        open={plannerOpen}
+        onClose={() => setPlannerOpen(false)}
+        onDone={count => {
+          setPlannerToast(`${count} posts scheduled! Calendar refreshed.`)
+          setTimeout(() => setPlannerToast(""), 3500)
+          fetchPosts()
+        }}
+      />
       <AddPostModal
         open={addOpen} onClose={() => setAddOpen(false)}
         initialDate={addDate}
         onSave={post => setPosts(ps => [...ps, post])}
       />
       <PostDetail post={detail} onClose={() => setDetail(null)} onDelete={handleDelete} onStatusChange={handleStatusChange} />
+
+      {/* Planner toast */}
+      <AnimatePresence>
+        {plannerToast && (
+          <motion.div
+            initial={{ opacity: 0, y: 16, x: "-50%" }}
+            animate={{ opacity: 1, y: 0, x: "-50%" }}
+            exit={{ opacity: 0, y: 8, x: "-50%" }}
+            className="fixed bottom-6 left-1/2 z-[60] flex items-center gap-2 px-4 py-2.5 rounded-xl border text-sm text-white"
+            style={{ background: "rgba(10,14,30,0.95)", border: "1px solid rgba(52,211,153,0.25)", boxShadow: "0 8px 32px rgba(0,0,0,0.5)" }}>
+            <CheckCircle2 className="w-4 h-4 text-emerald-400" />
+            {plannerToast}
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       <div className="max-w-5xl space-y-5">
 
@@ -523,6 +747,12 @@ export default function SchedulePage() {
                 </button>
               ))}
             </div>
+            <button onClick={() => setPlannerOpen(true)}
+              className="flex items-center gap-1.5 text-xs font-semibold px-3.5 py-2 rounded-xl transition-all"
+              style={{ background: "rgba(247,190,77,0.10)", border: "1px solid rgba(247,190,77,0.25)", color: "#F7BE4D" }}>
+              <Wand2 className="w-3.5 h-3.5" />
+              Plan My Month
+            </button>
             <button onClick={() => openAdd()}
               className="flex items-center gap-1.5 text-xs font-bold px-3.5 py-2 rounded-xl transition-all"
               style={{ background: "linear-gradient(135deg, #F7BE4D, #ffd166)", color: "#050816", boxShadow: "0 4px 16px rgba(247,190,77,0.3)" }}>

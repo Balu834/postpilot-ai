@@ -51,7 +51,7 @@ export default function SettingsPage() {
   const [deleteInput,       setDeleteInput]       = useState("")
   const [deleting,          setDeleting]          = useState(false)
 
-  const FREE_LIMIT = 10
+  const FREE_LIMIT = 30
   const isPro = planName !== "free"
 
   const loadAccounts = useCallback(async () => {
@@ -269,7 +269,7 @@ export default function SettingsPage() {
             <p className="text-[11px] text-slate-500">
               {isPro
                 ? `${planName.charAt(0).toUpperCase()}${planName.slice(1)} Plan`
-                : "Free Plan · 10 generations / month"
+                : "Free Plan · 30 generations / month"
               }
             </p>
           </div>
