@@ -189,11 +189,27 @@ function StreamingLoader({ completedKeys }: { completedKeys: string[] }) {
   )
 }
 
+// ── gradient stops for canvas download ────────────────────────────────
+const GRADIENT_STOPS: Array<[string, number][]> = [
+  [["#1a1a3e", 0], ["#0d0d2b", 1]],
+  [["#0f2027", 0], ["#203a43", 0.5], ["#2c5364", 1]],
+  [["#200122", 0], ["#6f0000", 1]],
+  [["#0f0c29", 0], ["#302b63", 0.5], ["#24243e", 1]],
+  [["#134e5e", 0], ["#265e40", 1]],
+]
+
+// style 0 = grid+circles, style 1 = diagonal lines, style 2 = hexagons, style 3 = dots
+const STYLE_PATTERNS = [0, 1, 2, 3]
+
 // ── ImageCard ──────────────────────────────────────────────────────────
-function ImageCard({ text, index, platformColor }: { text: string; index: number; platformColor: string }) {
-  const gradient = IMAGE_GRADIENTS[index % IMAGE_GRADIENTS.length]
+function ImageCard({ text, gradientIndex, platformColor, styleIdx }: {
+  text: string; gradientIndex: number; platformColor: string; styleIdx: number
+}) {
+  const gradient = IMAGE_GRADIENTS[gradientIndex % IMAGE_GRADIENTS.length]
   const words = text.replace(/#\w+/g, "").trim().split(/\s+/)
   const title = words.slice(0, 7).join(" ") + (words.length > 7 ? "..." : "")
+
+  const pattern = styleIdx % 4
 
   return (
     <div className="relative rounded-xl overflow-hidden" style={{ background: gradient, minHeight: 188 }}>
@@ -201,14 +217,43 @@ function ImageCard({ text, index, platformColor }: { text: string; index: number
       <div className="absolute inset-0 pointer-events-none" style={{
         background: `radial-gradient(circle at 25% 25%, ${platformColor}25 0%, transparent 55%), radial-gradient(circle at 75% 75%, rgba(255,255,255,0.04) 0%, transparent 55%)`,
       }} />
-      {/* Decorative grid lines */}
-      <svg className="absolute inset-0 w-full h-full opacity-[0.08]" viewBox="0 0 200 190" preserveAspectRatio="none">
-        <line x1="0" y1="47" x2="200" y2="47" stroke="white" strokeWidth="0.5" />
-        <line x1="0" y1="95" x2="200" y2="95" stroke="white" strokeWidth="0.5" />
-        <line x1="0" y1="143" x2="200" y2="143" stroke="white" strokeWidth="0.5" />
-        <circle cx="160" cy="36" r="36" fill="none" stroke="white" strokeWidth="0.5" />
-        <circle cx="160" cy="36" r="20" fill="none" stroke="white" strokeWidth="0.5" />
-      </svg>
+      {/* Pattern overlay */}
+      {pattern === 0 && (
+        <svg className="absolute inset-0 w-full h-full opacity-[0.08]" viewBox="0 0 200 190" preserveAspectRatio="none">
+          <line x1="0" y1="47" x2="200" y2="47" stroke="white" strokeWidth="0.5" />
+          <line x1="0" y1="95" x2="200" y2="95" stroke="white" strokeWidth="0.5" />
+          <line x1="0" y1="143" x2="200" y2="143" stroke="white" strokeWidth="0.5" />
+          <circle cx="160" cy="36" r="36" fill="none" stroke="white" strokeWidth="0.5" />
+          <circle cx="160" cy="36" r="20" fill="none" stroke="white" strokeWidth="0.5" />
+        </svg>
+      )}
+      {pattern === 1 && (
+        <svg className="absolute inset-0 w-full h-full opacity-[0.07]" viewBox="0 0 200 190" preserveAspectRatio="none">
+          {[-40, -20, 0, 20, 40, 60, 80, 100, 120, 140, 160, 180, 200, 220].map((x, i) => (
+            <line key={i} x1={x} y1="0" x2={x + 80} y2="190" stroke="white" strokeWidth="0.5" />
+          ))}
+        </svg>
+      )}
+      {pattern === 2 && (
+        <svg className="absolute inset-0 w-full h-full opacity-[0.07]" viewBox="0 0 200 190" preserveAspectRatio="none">
+          {[0, 1, 2, 3, 4, 5, 6].map((row) =>
+            [0, 1, 2, 3, 4].map((col) => {
+              const cx = col * 48 + (row % 2 === 0 ? 0 : 24)
+              const cy = row * 36
+              return <polygon key={`${row}-${col}`} points={`${cx},${cy-18} ${cx+16},${cy-9} ${cx+16},${cy+9} ${cx},${cy+18} ${cx-16},${cy+9} ${cx-16},${cy-9}`} fill="none" stroke="white" strokeWidth="0.5" />
+            })
+          )}
+        </svg>
+      )}
+      {pattern === 3 && (
+        <svg className="absolute inset-0 w-full h-full opacity-[0.12]" viewBox="0 0 200 190" preserveAspectRatio="none">
+          {[16, 48, 80, 112, 144, 176].map((x) =>
+            [16, 48, 80, 112, 144, 176].map((y) => (
+              <circle key={`${x}-${y}`} cx={x} cy={y} r="1.5" fill="white" />
+            ))
+          )}
+        </svg>
+      )}
       {/* Accent shape */}
       <div className="absolute top-4 right-4 w-14 h-14 rounded-full opacity-20"
         style={{ background: platformColor, filter: "blur(16px)" }} />
@@ -238,9 +283,58 @@ function PostCard({
   text: string; index: number; color: string; platform: TabKey
   hashtags: string[]; onSelect: (t: string) => void; isSelected: boolean
 }) {
-  const [showImage, setShowImage] = useState(false)
-  const [isEditing, setIsEditing] = useState(false)
-  const [editText,  setEditText]  = useState(text)
+  const [showImage,      setShowImage]      = useState(false)
+  const [isEditing,      setIsEditing]      = useState(false)
+  const [editText,       setEditText]       = useState(text)
+  const [gradientIndex,  setGradientIndex]  = useState(index % IMAGE_GRADIENTS.length)
+  const [styleIdx,       setStyleIdx]       = useState(0)
+  const [downloading,    setDownloading]    = useState(false)
+
+  const handleDownload = () => {
+    setDownloading(true)
+    const size = 800
+    const canvas = document.createElement("canvas")
+    canvas.width = size
+    canvas.height = size
+    const ctx = canvas.getContext("2d")!
+
+    // gradient background
+    const grd = ctx.createLinearGradient(0, 0, size, size)
+    GRADIENT_STOPS[gradientIndex % GRADIENT_STOPS.length].forEach(([c, p]) => grd.addColorStop(p, c))
+    ctx.fillStyle = grd
+    ctx.fillRect(0, 0, size, size)
+
+    // title text
+    const words = displayText.replace(/#\w+/g, "").trim().split(/\s+/)
+    const title = words.slice(0, 7).join(" ") + (words.length > 7 ? "..." : "")
+    ctx.fillStyle = "rgba(255,255,255,0.95)"
+    ctx.font = `bold 52px -apple-system, system-ui, sans-serif`
+    ctx.textAlign = "center"
+    ctx.textBaseline = "middle"
+    const maxW = size - 120
+    const lineH = 68
+    const chunks: string[] = []
+    let cur = ""
+    for (const w of title.split(" ")) {
+      const test = cur ? `${cur} ${w}` : w
+      if (ctx.measureText(test).width > maxW && cur) { chunks.push(cur); cur = w } else { cur = test }
+    }
+    if (cur) chunks.push(cur)
+    const totalH = chunks.length * lineH
+    chunks.forEach((line, i) => ctx.fillText(line, size / 2, size / 2 - totalH / 2 + i * lineH + lineH / 2))
+
+    // brand footer
+    ctx.fillStyle = "rgba(247,190,77,0.7)"
+    ctx.font = "bold 28px -apple-system, system-ui, sans-serif"
+    ctx.textAlign = "left"
+    ctx.fillText("✦ PostPilot AI", 50, size - 50)
+
+    const link = document.createElement("a")
+    link.download = `postpilot-post-${index + 1}.png`
+    link.href = canvas.toDataURL("image/png")
+    link.click()
+    setDownloading(false)
+  }
   const badges = PLATFORM_BADGES[platform] ?? []
   const displayText = isEditing ? editText : text
   const displayTags = hashtags.slice(0, 5)
@@ -360,23 +454,30 @@ function PostCard({
               style={{ borderLeft: "1px solid rgba(255,255,255,0.05)" }}
             >
               <div className="p-3 h-full flex flex-col gap-2.5" onClick={e => e.stopPropagation()}>
-                <ImageCard text={displayText} index={index} platformColor={color} />
+                <ImageCard text={displayText} gradientIndex={gradientIndex} platformColor={color} styleIdx={styleIdx} />
                 {/* Image actions */}
                 <div className="flex items-center gap-1.5 flex-wrap">
-                  <button className="flex items-center gap-1 text-[10px] px-2 py-1.5 rounded-lg
-                    border border-white/8 text-slate-400 hover:text-white hover:bg-white/5 transition-all">
+                  <button
+                    onClick={handleDownload}
+                    disabled={downloading}
+                    className="flex items-center gap-1 text-[10px] px-2 py-1.5 rounded-lg
+                      border border-white/8 text-slate-400 hover:text-white hover:bg-white/5 transition-all disabled:opacity-50">
                     <Download className="w-3 h-3" />
-                    Download
+                    {downloading ? "..." : "Download"}
                   </button>
-                  <button className="flex items-center gap-1 text-[10px] px-2 py-1.5 rounded-lg
-                    border border-white/8 text-slate-400 hover:text-white hover:bg-white/5 transition-all">
+                  <button
+                    onClick={() => setGradientIndex(v => (v + 1) % IMAGE_GRADIENTS.length)}
+                    className="flex items-center gap-1 text-[10px] px-2 py-1.5 rounded-lg
+                      border border-white/8 text-slate-400 hover:text-white hover:bg-white/5 transition-all">
                     <RefreshCw className="w-3 h-3" />
-                    Regenerate Image
+                    Regenerate
                   </button>
-                  <button className="flex items-center gap-1 text-[10px] px-2 py-1.5 rounded-lg
-                    border border-white/8 text-slate-400 hover:text-white hover:bg-white/5 transition-all">
+                  <button
+                    onClick={() => setStyleIdx(v => (v + 1) % 4)}
+                    className="flex items-center gap-1 text-[10px] px-2 py-1.5 rounded-lg
+                      border border-white/8 text-slate-400 hover:text-white hover:bg-white/5 transition-all">
                     <Palette className="w-3 h-3" />
-                    Change Style
+                    Style
                   </button>
                 </div>
               </div>
