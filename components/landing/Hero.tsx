@@ -3,6 +3,7 @@
 import { motion } from "framer-motion"
 import Link from "next/link"
 import { ArrowRight, Sparkles } from "lucide-react"
+import { analytics } from "@/lib/analytics"
 
 const PARTICLES = Array.from({ length: 24 }, (_, i) => ({
   id: i,
@@ -22,9 +23,9 @@ const AVATARS = [
 ]
 
 const STATS = [
-  { value: "2M+",  label: "Posts generated" },
-  { value: "12h",  label: "Saved per week" },
-  { value: "3.4×", label: "Engagement lift" },
+  { value: "50K+", label: "Posts generated" },
+  { value: "10h",  label: "Saved per week" },
+  { value: "3×",   label: "Engagement lift" },
 ]
 
 const PLATFORMS = [
@@ -150,9 +151,9 @@ export default function Hero() {
           transition={{ duration: 0.5, delay: 0.3 }}
           className="text-lg md:text-xl text-slate-400 max-w-2xl mx-auto mb-10 leading-relaxed font-light"
         >
-          Generate captions, threads, hashtags, and social campaigns
+          Paste any idea or blog URL. Get LinkedIn, Twitter, Instagram posts,
           <br className="hidden md:block" />
-          in seconds using AI — across every platform.
+          hashtags, and carousel slides — live-streamed in under 60 seconds.
         </motion.p>
 
         {/* ── CTAs ── */}
@@ -163,7 +164,7 @@ export default function Hero() {
           className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-10"
         >
           {/* Primary */}
-          <Link href="/login">
+          <Link href="/login" onClick={() => analytics.upgradeClicked("hero_cta", "signup")}>
             <motion.div
               whileHover={{ scale: 1.05, y: -3 }}
               whileTap={{ scale: 0.97 }}

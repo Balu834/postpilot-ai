@@ -1,0 +1,787 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PostPilotAI — Dashboard Mockup</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:      #050816;
+  --gold:    #F7BE4D;
+  --indigo:  #818cf8;
+  --li-blue: #0077B5;
+  --emerald: #34d399;
+  --pink:    #f472b6;
+  --muted:   #64748b;
+  --border:  rgba(255,255,255,0.06);
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{width:100%;height:100%;overflow:hidden;font-family:'Inter',-apple-system,sans-serif;background:var(--bg);color:#e2e8f0}
+
+/* ── Ambient layer ── */
+#amb1{position:fixed;top:-160px;left:60px;width:750px;height:750px;border-radius:50%;
+  background:radial-gradient(circle,rgba(247,190,77,.07) 0%,transparent 65%);filter:blur(90px);pointer-events:none;z-index:0}
+#amb2{position:fixed;bottom:-100px;right:40px;width:650px;height:650px;border-radius:50%;
+  background:radial-gradient(circle,rgba(129,140,248,.08) 0%,transparent 65%);filter:blur(80px);pointer-events:none;z-index:0}
+#amb3{position:fixed;top:30%;left:40%;width:500px;height:400px;border-radius:50%;
+  background:radial-gradient(circle,rgba(0,119,181,.04) 0%,transparent 65%);filter:blur(80px);pointer-events:none;z-index:0}
+.grid-bg{position:fixed;inset:0;
+  background-image:linear-gradient(rgba(255,255,255,.018) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.018) 1px,transparent 1px);
+  background-size:44px 44px;pointer-events:none;z-index:0}
+
+/* ── Shell ── */
+.shell{position:relative;z-index:1;display:flex;height:100vh;width:100vw}
+
+/* ════════════════════════════════════════════
+   SIDEBAR
+════════════════════════════════════════════ */
+.sidebar{
+  width:240px;flex-shrink:0;height:100vh;display:flex;flex-direction:column;
+  background:rgba(5,8,22,.95);border-right:1px solid var(--border);
+  backdrop-filter:blur(24px);position:relative;overflow:hidden;z-index:20}
+/* Glowing edge line */
+.sidebar::after{content:'';position:absolute;top:0;right:0;width:1px;height:100%;
+  background:linear-gradient(180deg,transparent 0%,rgba(247,190,77,.2) 35%,rgba(129,140,248,.15) 70%,transparent 100%)}
+
+/* Logo */
+.logo-area{padding:18px 14px 14px;border-bottom:1px solid rgba(255,255,255,.04)}
+.logo{display:flex;align-items:center;gap:9px}
+.logo-icon{width:34px;height:34px;border-radius:10px;flex-shrink:0;
+  background:linear-gradient(135deg,var(--gold) 0%,#f0a800 100%);
+  display:flex;align-items:center;justify-content:center;
+  box-shadow:0 0 18px rgba(247,190,77,.4)}
+.logo-name{font-size:14px;font-weight:800;color:#fff;letter-spacing:-.01em}
+.logo-sub{font-size:10px;color:var(--muted);margin-top:1px}
+
+/* Nav */
+.nav{flex:1;padding:10px 8px;overflow-y:auto;scrollbar-width:none}
+.nav-item{display:flex;align-items:center;gap:9px;padding:8px 10px;border-radius:10px;
+  color:#64748b;font-size:13px;font-weight:500;cursor:pointer;margin-bottom:2px;
+  position:relative;transition:all .15s;user-select:none}
+.nav-item:hover{color:#94a3b8;background:rgba(255,255,255,.03)}
+.nav-item.active{
+  color:var(--gold);background:rgba(247,190,77,.08);
+  border:1px solid rgba(247,190,77,.14);
+  box-shadow:0 0 20px rgba(247,190,77,.06) inset}
+.nav-item.active .ni{color:var(--gold)}
+.ni{width:15px;height:15px;flex-shrink:0}
+.nl{flex:1}
+.badge{font-size:9px;font-weight:800;padding:2px 6px;border-radius:6px;letter-spacing:.04em}
+.badge-new{background:rgba(129,140,248,.18);color:var(--indigo);border:1px solid rgba(129,140,248,.28)}
+.badge-hot{background:rgba(247,190,77,.18);color:var(--gold);border:1px solid rgba(247,190,77,.28)}
+
+/* Credits */
+.credits-wrap{padding:10px 12px 6px;border-top:1px solid rgba(255,255,255,.04)}
+.credits-row{display:flex;justify-content:space-between;font-size:11px;margin-bottom:5px}
+.credits-row span:first-child{color:var(--muted)}
+.credits-row span:last-child{color:var(--gold);font-weight:700}
+.cbar-bg{height:4px;background:rgba(255,255,255,.06);border-radius:4px;overflow:hidden;margin-bottom:5px}
+.cbar-fill{height:100%;width:50%;background:linear-gradient(90deg,var(--gold),#ffd166);border-radius:4px;
+  box-shadow:0 0 8px rgba(247,190,77,.45)}
+.credits-sub{font-size:10px;color:#475569;text-align:center}
+
+/* Upgrade card */
+.up-card{margin:8px;padding:14px;border-radius:14px;
+  background:linear-gradient(135deg,rgba(247,190,77,.07) 0%,rgba(129,140,248,.05) 100%);
+  border:1px solid rgba(247,190,77,.16);position:relative;overflow:hidden;margin-bottom:10px}
+.up-card::before{content:'';position:absolute;top:-24px;right:-24px;width:90px;height:90px;border-radius:50%;
+  background:radial-gradient(circle,rgba(247,190,77,.18),transparent 70%)}
+.up-title{font-size:12px;font-weight:700;color:var(--gold);display:flex;align-items:center;gap:5px;margin-bottom:4px}
+.up-desc{font-size:10px;color:#64748b;margin-bottom:10px;line-height:1.45}
+.up-btn{width:100%;padding:8px;border-radius:9px;
+  background:linear-gradient(135deg,var(--gold) 0%,#f0a800 100%);
+  color:#050816;font-size:11px;font-weight:800;border:none;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;gap:4px;
+  box-shadow:0 0 16px rgba(247,190,77,.3)}
+
+/* User row */
+.user-row{padding:8px 12px 12px;display:flex;align-items:center;gap:8px;border-top:1px solid rgba(255,255,255,.04)}
+.uavatar{width:30px;height:30px;border-radius:50%;background:linear-gradient(135deg,var(--gold),#f0a800);
+  display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:800;color:#050816;flex-shrink:0}
+.uplan{font-size:11px;font-weight:600;color:#94a3b8}
+.uemail{font-size:10px;color:#475569;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+
+/* ════════════════════════════════════════════
+   MAIN WRAPPER
+════════════════════════════════════════════ */
+.main-wrap{flex:1;min-width:0;display:flex;flex-direction:column;height:100vh;overflow:hidden}
+
+/* Header */
+.hdr{flex-shrink:0;padding:13px 20px;display:flex;align-items:center;justify-content:space-between;
+  border-bottom:1px solid rgba(255,255,255,.05);
+  background:rgba(8,12,26,.88);backdrop-filter:blur(20px);z-index:10}
+.hdr-title{font-size:15px;font-weight:800;color:#fff;letter-spacing:-.01em}
+.hdr-sub{font-size:11px;color:#475569;margin-top:2px}
+.hdr-r{display:flex;align-items:center;gap:8px}
+.search{display:flex;align-items:center;gap:7px;padding:7px 13px;border-radius:11px;
+  background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.07);
+  color:var(--muted);font-size:12px;width:196px;white-space:nowrap}
+.bell{width:33px;height:33px;border-radius:10px;background:rgba(255,255,255,.04);
+  border:1px solid rgba(255,255,255,.07);display:flex;align-items:center;justify-content:center;
+  position:relative;cursor:pointer}
+.bell-dot{position:absolute;top:7px;right:7px;width:6px;height:6px;border-radius:50%;background:var(--gold);
+  box-shadow:0 0 6px var(--gold)}
+
+/* Content + right */
+.cr{flex:1;display:flex;overflow:hidden}
+
+/* Main content area */
+.content{flex:1;min-width:0;overflow-y:auto;padding:18px 20px;scrollbar-width:none}
+
+/* Stats bar */
+.stats-bar{display:flex;align-items:center;justify-content:space-between;padding:11px 16px;
+  border-radius:13px;background:rgba(255,255,255,.025);border:1px solid var(--border);
+  backdrop-filter:blur(12px);margin-bottom:14px;
+  position:relative;overflow:hidden}
+.stats-bar::before{content:'';position:absolute;inset:0;
+  background:linear-gradient(90deg,transparent 0%,rgba(255,255,255,.02) 50%,transparent 100%);
+  animation:shim 3s infinite}
+@keyframes shim{0%{transform:translateX(-100%)}100%{transform:translateX(100%)}}
+.stats-l{display:flex;align-items:center;gap:11px}
+.ldot{width:8px;height:8px;border-radius:50%;background:var(--emerald);
+  box-shadow:0 0 10px var(--emerald);animation:pulse 2s infinite}
+@keyframes pulse{0%,100%{box-shadow:0 0 8px var(--emerald)}50%{box-shadow:0 0 18px var(--emerald)}}
+.stats-t{font-size:14px;font-weight:700;color:#fff}
+.stats-s{font-size:12px;color:#475569}
+.stats-r{display:flex;gap:7px}
+.gbtn{display:flex;align-items:center;gap:5px;padding:7px 13px;border-radius:9px;
+  background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.08);
+  color:#94a3b8;font-size:12px;font-weight:500;cursor:pointer}
+.gbtn:hover{color:#fff;background:rgba(255,255,255,.08)}
+
+/* Tabs container */
+.tabs-wrap{border-radius:16px;background:rgba(255,255,255,.022);border:1px solid var(--border);
+  overflow:hidden;backdrop-filter:blur(12px)}
+.tabs{display:flex;border-bottom:1px solid rgba(255,255,255,.05);overflow-x:auto;scrollbar-width:none}
+.tab{display:flex;align-items:center;gap:6px;padding:11px 15px;font-size:12px;font-weight:600;
+  color:var(--muted);cursor:pointer;white-space:nowrap;position:relative;flex-shrink:0;transition:color .15s}
+.tab:hover{color:#94a3b8}
+.tab.act{color:var(--li-blue)}
+.tab.act::after{content:'';position:absolute;bottom:0;left:0;right:0;height:2px;background:var(--li-blue);border-radius:2px 2px 0 0}
+.tcnt{font-size:10px;padding:1px 6px;border-radius:6px}
+.tab.act .tcnt{background:rgba(0,119,181,.2);color:var(--li-blue)}
+.tab:not(.act) .tcnt{background:rgba(255,255,255,.05);color:#475569}
+
+/* Post cards */
+.posts{padding:14px;display:flex;flex-direction:column;gap:12px}
+
+.pcard{border-radius:13px;border:1px solid rgba(255,255,255,.07);
+  background:rgba(255,255,255,.018);overflow:hidden;display:flex;
+  transition:border-color .2s,box-shadow .2s}
+.pcard:hover{border-color:rgba(255,255,255,.12);box-shadow:0 8px 30px rgba(0,0,0,.3)}
+.pcard.sel{border-color:rgba(247,190,77,.3);box-shadow:0 0 0 1px rgba(247,190,77,.1),0 8px 30px rgba(0,0,0,.3)}
+
+/* Card left */
+.pleft{flex:1;min-width:0;padding:14px}
+.prow{display:flex;align-items:flex-start;gap:10px}
+.pnum{width:23px;height:23px;border-radius:50%;background:rgba(0,119,181,.2);color:var(--li-blue);
+  font-size:11px;font-weight:800;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px}
+.ptxt{font-size:12.5px;color:#cbd5e1;line-height:1.62;flex:1}
+.phash{padding-left:33px;margin-top:8px;font-size:11.5px;color:var(--li-blue);font-weight:500;line-height:1.5}
+.pbadges{display:flex;gap:5px;padding-left:33px;margin-top:9px;flex-wrap:wrap}
+.tbadge{font-size:10px;padding:2.5px 7px;border-radius:5px;
+  background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.07);color:var(--muted)}
+.pactions{display:flex;gap:6px;padding-left:33px;margin-top:12px;flex-wrap:wrap}
+.abtn{display:flex;align-items:center;gap:4px;padding:5.5px 11px;border-radius:7px;
+  font-size:11px;font-weight:500;cursor:pointer;
+  background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);color:#94a3b8;transition:all .15s}
+.abtn:hover{color:#fff;background:rgba(255,255,255,.08)}
+.abtn.prim{background:linear-gradient(135deg,var(--gold) 0%,#f0a800 100%);
+  color:#050816;font-weight:700;border:none;box-shadow:0 0 14px rgba(247,190,77,.3)}
+.abtn.prim:hover{box-shadow:0 0 24px rgba(247,190,77,.5)}
+
+/* Card right (image panel) */
+.pright{width:216px;flex-shrink:0;padding:12px 12px 12px 0;
+  display:flex;flex-direction:column;gap:8px;
+  border-left:1px solid rgba(255,255,255,.05)}
+.pimg{border-radius:11px;height:164px;position:relative;overflow:hidden;flex-shrink:0}
+
+/* Gradient themes */
+.g1{background:linear-gradient(135deg,#12123a 0%,#080820 100%)}
+.g2{background:linear-gradient(135deg,#0d2233 0%,#1a3a4a 50%,#1e3a52 100%)}
+.g3{background:linear-gradient(135deg,#0a2a1e 0%,#0d3a2a 100%)}
+
+.pimg-glow1{position:absolute;top:-10px;right:-10px;width:80px;height:80px;border-radius:50%;
+  background:rgba(129,140,248,.35);filter:blur(22px);z-index:1}
+.pimg-glow2{position:absolute;bottom:-5px;left:5px;width:60px;height:60px;border-radius:50%;
+  background:rgba(247,190,77,.18);filter:blur(18px);z-index:1}
+.pimg-glow3{position:absolute;top:20px;right:20px;width:60px;height:60px;border-radius:50%;
+  background:rgba(56,189,248,.25);filter:blur(18px);z-index:1}
+
+.pimg-content{position:relative;z-index:10;height:100%;padding:12px;display:flex;flex-direction:column;justify-content:space-between}
+.img-title{font-size:11.5px;font-weight:800;color:#fff;line-height:1.3;text-shadow:0 0 20px rgba(255,255,255,.4)}
+.img-accent{font-size:17px;font-weight:900;line-height:1}
+.img-brand{display:flex;align-items:center;gap:5px;font-size:9px;color:rgba(255,255,255,.45)}
+.img-brand-icon{width:15px;height:15px;border-radius:4px;
+  background:rgba(247,190,77,.2);border:1px solid rgba(247,190,77,.3);
+  display:flex;align-items:center;justify-content:center}
+
+/* Image decoration SVGs */
+.pimg-deco{position:absolute;inset:0;z-index:2;pointer-events:none}
+
+/* Image action buttons */
+.imgacts{display:flex;gap:4px;flex-wrap:wrap}
+.imgbtn{display:flex;align-items:center;gap:3px;padding:4.5px 7px;border-radius:6px;
+  font-size:10px;color:var(--muted);background:rgba(255,255,255,.04);
+  border:1px solid rgba(255,255,255,.07);cursor:pointer;transition:all .15s}
+.imgbtn:hover{color:#fff;background:rgba(255,255,255,.08)}
+
+/* Hashtag section */
+.hashtag-sec{padding:12px 14px 14px;border-top:1px solid rgba(255,255,255,.04)}
+.hash-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:9px}
+.hash-title{display:flex;align-items:center;gap:6px;font-size:12px;font-weight:600;color:#fff}
+.hash-cnt{font-size:10px;color:#475569;font-weight:400}
+.hash-chips{display:flex;flex-wrap:wrap;gap:5px}
+.chip{font-size:11px;padding:3.5px 9px;border-radius:7px;cursor:pointer;transition:all .15s;
+  background:rgba(247,190,77,.08);border:1px solid rgba(247,190,77,.15);color:var(--gold)}
+.chip:hover{background:rgba(247,190,77,.15);transform:scale(1.05)}
+
+/* ════════════════════════════════════════════
+   RIGHT PANEL
+════════════════════════════════════════════ */
+.rpanel{width:296px;flex-shrink:0;height:100%;overflow-y:auto;scrollbar-width:none;
+  padding:18px 14px;display:flex;flex-direction:column;gap:12px;
+  border-left:1px solid rgba(255,255,255,.05);background:rgba(5,8,22,.5)}
+
+.rcard{border-radius:16px;background:rgba(255,255,255,.024);border:1px solid var(--border);
+  padding:17px;backdrop-filter:blur(12px)}
+
+.rcard-title{display:flex;align-items:center;gap:8px;margin-bottom:16px}
+.rcard-icon{width:27px;height:27px;border-radius:8px;
+  background:rgba(247,190,77,.15);border:1px solid rgba(247,190,77,.2);
+  display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.rcard-name{font-size:13px;font-weight:700;color:#fff}
+
+/* Form */
+.fg{margin-bottom:12px}
+.flabel{font-size:10px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:5px;display:block}
+.fsel{width:100%;padding:9px 12px;border-radius:9px;
+  background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);
+  color:#fff;font-size:12.5px;display:flex;align-items:center;justify-content:space-between;cursor:pointer}
+.fsel-inner{display:flex;align-items:center;gap:6px}
+.platform-icon{font-size:15px;line-height:1}
+
+.sched-btn{width:100%;padding:12px;border-radius:11px;margin-top:14px;
+  background:linear-gradient(135deg,var(--gold) 0%,#f0a800 100%);
+  color:#050816;font-size:14px;font-weight:800;border:none;cursor:pointer;
+  box-shadow:0 0 26px rgba(247,190,77,.32);transition:all .2s;letter-spacing:.01em}
+.sched-btn:hover{box-shadow:0 0 42px rgba(247,190,77,.52);transform:translateY(-1px)}
+.sched-note{text-align:center;font-size:10px;color:#475569;margin-top:7px}
+
+/* Preview */
+.li-preview{border-radius:11px;border:1px solid rgba(255,255,255,.07);background:rgba(255,255,255,.02);padding:11px}
+.prev-top{display:flex;align-items:center;gap:7px;margin-bottom:9px}
+.prev-av{width:31px;height:31px;border-radius:50%;background:var(--li-blue);
+  display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:800;color:#fff;flex-shrink:0}
+.prev-name{font-size:12px;font-weight:600;color:#fff}
+.prev-meta{font-size:10px;color:#475569}
+.prev-text{font-size:11px;color:#94a3b8;line-height:1.62}
+.prev-tags{margin-top:5px;font-size:11px;color:var(--li-blue);line-height:1.5}
+.prev-acts{display:flex;gap:10px;margin-top:9px;padding-top:9px;border-top:1px solid rgba(255,255,255,.05)}
+.prev-act{display:flex;align-items:center;gap:3px;font-size:10px;color:#475569;cursor:pointer}
+
+/* ── Particles ── */
+.pt{position:fixed;border-radius:50%;pointer-events:none;z-index:0;animation:floatUp linear infinite;opacity:0}
+@keyframes floatUp{
+  0%{transform:translateY(0);opacity:0}
+  8%{opacity:.7}
+  88%{opacity:.35}
+  100%{transform:translateY(-110vh);opacity:0}
+}
+</style>
+</head>
+<body>
+
+<!-- Ambient glows -->
+<div id="amb1"></div><div id="amb2"></div><div id="amb3"></div>
+<div class="grid-bg"></div>
+
+<div class="shell">
+
+<!-- ═══════════════ SIDEBAR ═══════════════ -->
+<aside class="sidebar">
+
+  <!-- Logo -->
+  <div class="logo-area">
+    <div class="logo">
+      <div class="logo-icon">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#050816" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>
+        </svg>
+      </div>
+      <div>
+        <div class="logo-name">PostPilotAI</div>
+        <div class="logo-sub">AI Content OS</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Nav -->
+  <nav class="nav">
+    <!-- Dashboard -->
+    <div class="nav-item">
+      <svg class="ni" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7">
+        <rect x="3" y="3" width="7" height="7" rx="1.2"/><rect x="14" y="3" width="7" height="7" rx="1.2"/>
+        <rect x="14" y="14" width="7" height="7" rx="1.2"/><rect x="3" y="14" width="7" height="7" rx="1.2"/>
+      </svg>
+      <span class="nl">Dashboard</span>
+    </div>
+    <!-- Generate -->
+    <div class="nav-item">
+      <svg class="ni" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7">
+        <path d="M12 3v2M18.364 5.636l-1.414 1.414M21 12h-2M18.364 18.364l-1.414-1.414M12 19v2M5.636 18.364l1.414-1.414M3 12h2M5.636 5.636l1.414 1.414"/><circle cx="12" cy="12" r="4"/>
+      </svg>
+      <span class="nl">Generate</span>
+    </div>
+    <!-- Brand Voice NEW -->
+    <div class="nav-item">
+      <svg class="ni" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7">
+        <path d="M12 2a3 3 0 013 3v7a3 3 0 01-6 0V5a3 3 0 013-3z"/><path d="M19 10v2a7 7 0 01-14 0v-2"/><line x1="12" y1="19" x2="12" y2="22"/><line x1="8" y1="22" x2="16" y2="22"/>
+      </svg>
+      <span class="nl">Brand Voice</span>
+      <span class="badge badge-new">NEW</span>
+    </div>
+    <!-- Blog → Posts ACTIVE HOT -->
+    <div class="nav-item active">
+      <svg class="ni" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7">
+        <path d="M17 1l4 4-4 4"/><path d="M3 11V9a4 4 0 014-4h14"/><path d="M7 23l-4-4 4-4"/><path d="M21 13v2a4 4 0 01-4 4H3"/>
+      </svg>
+      <span class="nl">Blog → Posts</span>
+      <span class="badge badge-hot">HOT</span>
+    </div>
+    <!-- Templates -->
+    <div class="nav-item">
+      <svg class="ni" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7">
+        <rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/>
+      </svg>
+      <span class="nl">Templates</span>
+    </div>
+    <!-- Workspace -->
+    <div class="nav-item">
+      <svg class="ni" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7">
+        <path d="M22 19a2 2 0 01-2 2H4a2 2 0 01-2-2V5a2 2 0 012-2h5l2 3h9a2 2 0 012 2z"/>
+      </svg>
+      <span class="nl">Workspace</span>
+    </div>
+    <!-- Schedule -->
+    <div class="nav-item">
+      <svg class="ni" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7">
+        <rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/>
+      </svg>
+      <span class="nl">Schedule</span>
+    </div>
+    <!-- Analytics -->
+    <div class="nav-item">
+      <svg class="ni" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7">
+        <line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/>
+      </svg>
+      <span class="nl">Analytics</span>
+    </div>
+    <!-- History -->
+    <div class="nav-item">
+      <svg class="ni" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7">
+        <polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 102.13-9.36L1 10"/><polyline points="12 7 12 12 16 14"/>
+      </svg>
+      <span class="nl">History</span>
+    </div>
+  </nav>
+
+  <!-- Credits bar -->
+  <div class="credits-wrap">
+    <div class="credits-row"><span>Free Credits</span><span>5 / 10</span></div>
+    <div class="cbar-bg"><div class="cbar-fill"></div></div>
+    <div class="credits-sub">5 generations remaining</div>
+  </div>
+
+  <!-- Upgrade card -->
+  <div class="up-card">
+    <div class="up-title">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="#F7BE4D"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+      Upgrade to Pro
+    </div>
+    <div class="up-desc">Unlimited generations, workspace &amp; analytics.</div>
+    <button class="up-btn">
+      <svg width="11" height="11" viewBox="0 0 24 24" fill="#050816"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+      Upgrade →
+    </button>
+  </div>
+
+  <!-- User -->
+  <div class="user-row">
+    <div class="uavatar">B</div>
+    <div style="flex:1;min-width:0">
+      <div class="uplan">Free Plan</div>
+      <div class="uemail">balushanu1997@gmail.com</div>
+    </div>
+  </div>
+
+</aside>
+
+<!-- ═══════════════ MAIN WRAPPER ═══════════════ -->
+<div class="main-wrap">
+
+  <!-- Header -->
+  <header class="hdr">
+    <div>
+      <div class="hdr-title">Blog → 24 Posts</div>
+      <div class="hdr-sub">Posts ready to share — get a full cross-platform pack</div>
+    </div>
+    <div class="hdr-r">
+      <div class="search">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
+        Search posts, generations...
+      </div>
+      <div class="bell">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#64748b" stroke-width="2">
+          <path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9M13.73 21a2 2 0 01-3.46 0"/>
+        </svg>
+        <div class="bell-dot"></div>
+      </div>
+    </div>
+  </header>
+
+  <!-- Content + Right -->
+  <div class="cr">
+
+    <!-- Main content -->
+    <main class="content">
+
+      <!-- Stats bar -->
+      <div class="stats-bar">
+        <div class="stats-l">
+          <div class="ldot"></div>
+          <span class="stats-t">24 posts ready</span>
+          <span class="stats-s">· 15 hashtags</span>
+        </div>
+        <div class="stats-r">
+          <button class="gbtn">
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
+            Copy All
+          </button>
+          <button class="gbtn">
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 4v6h-6M1 20v-6h6"/><path d="M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15"/></svg>
+            Regenerate All
+          </button>
+        </div>
+      </div>
+
+      <!-- Tabs + Cards -->
+      <div class="tabs-wrap">
+
+        <!-- Platform Tabs -->
+        <div class="tabs">
+          <div class="tab act">💼 LinkedIn <span class="tcnt">5</span></div>
+          <div class="tab">𝕏 Twitter / X <span class="tcnt">5</span></div>
+          <div class="tab">📸 Instagram <span class="tcnt">5</span></div>
+          <div class="tab">🎨 Carousels <span class="tcnt">3</span></div>
+          <div class="tab">🎬 Reels Hooks <span class="tcnt">3</span></div>
+          <div class="tab">📣 CTAs <span class="tcnt">3</span></div>
+        </div>
+
+        <!-- Post Cards -->
+        <div class="posts">
+
+          <!-- ── Card 1 (selected, with image) ── -->
+          <div class="pcard sel">
+            <div class="pleft">
+              <div class="prow">
+                <div class="pnum">1</div>
+                <div class="ptxt">Excited to share how we're scaling Intellixy using the power of AI! With PostPilotAI, we're generating engaging content that's driving daily follower growth. By integrating AI tools like our AI PDF Reader, we're not just learning faster but growing faster too!</div>
+              </div>
+              <div class="phash">#AI &nbsp;#Growth &nbsp;#Innovation &nbsp;#Intellixy &nbsp;#PostPilotAI</div>
+              <div class="pbadges">
+                <span class="tbadge">⚡ Engaging</span>
+                <span class="tbadge">💼 Professional</span>
+                <span class="tbadge">📈 Growth Focused</span>
+              </div>
+              <div class="pactions">
+                <button class="abtn">
+                  <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
+                  Copy
+                </button>
+                <button class="abtn">
+                  <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                  Edit
+                </button>
+                <button class="abtn">
+                  <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 4v6h-6M1 20v-6h6"/><path d="M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15"/></svg>
+                  Regenerate
+                </button>
+                <button class="abtn prim">✦ Create Image</button>
+              </div>
+            </div>
+
+            <!-- Image: Neural net / deep space -->
+            <div class="pright">
+              <div class="pimg g1">
+                <!-- Glows -->
+                <div class="pimg-glow1"></div>
+                <div class="pimg-glow2"></div>
+                <!-- Neural network SVG -->
+                <svg class="pimg-deco" viewBox="0 0 216 164">
+                  <!-- Connection lines -->
+                  <line x1="40" y1="44" x2="108" y2="82" stroke="#818cf8" stroke-width=".8" opacity=".4"/>
+                  <line x1="108" y1="82" x2="176" y2="44" stroke="#818cf8" stroke-width=".8" opacity=".4"/>
+                  <line x1="108" y1="82" x2="160" y2="140" stroke="#818cf8" stroke-width=".8" opacity=".4"/>
+                  <line x1="40" y1="44" x2="70" y2="130" stroke="#818cf8" stroke-width=".8" opacity=".35"/>
+                  <line x1="176" y1="44" x2="160" y2="140" stroke="#818cf8" stroke-width=".8" opacity=".3"/>
+                  <!-- Nodes -->
+                  <circle cx="40"  cy="44"  r="4.5" fill="#818cf8" opacity=".7"/>
+                  <circle cx="176" cy="44"  r="4.5" fill="#818cf8" opacity=".7"/>
+                  <circle cx="70"  cy="130" r="4.5" fill="#818cf8" opacity=".7"/>
+                  <circle cx="160" cy="140" r="4.5" fill="#818cf8" opacity=".7"/>
+                  <!-- Central node - glowing gold -->
+                  <circle cx="108" cy="82"  r="8" fill="rgba(247,190,77,.5)"/>
+                  <circle cx="108" cy="82"  r="5" fill="#F7BE4D"/>
+                  <!-- Brain outline hint -->
+                  <ellipse cx="108" cy="72" rx="32" ry="26" fill="none" stroke="rgba(129,140,248,.18)" stroke-width="1"/>
+                  <!-- Growth arrow -->
+                  <polyline points="130,130 155,100 170,110 190,75" fill="none" stroke="rgba(52,211,153,.5)" stroke-width="1.5" stroke-linecap="round"/>
+                  <polygon points="190,72 186,80 194,80" fill="rgba(52,211,153,.5)"/>
+                </svg>
+                <div class="pimg-content">
+                  <div class="img-title">
+                    Scaling Intellixy<br>with the Power of<br>
+                    <span class="img-accent" style="color:#818cf8;text-shadow:0 0 12px rgba(129,140,248,.8)">AI</span>
+                  </div>
+                  <div>
+                    <div style="font-size:9px;color:rgba(255,255,255,.35);margin-bottom:3px">Smarter Content. Stronger Growth.</div>
+                    <div class="img-brand">
+                      <div class="img-brand-icon"><svg width="9" height="9" viewBox="0 0 24 24" fill="#F7BE4D"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg></div>
+                      Intellixy
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div class="imgacts">
+                <button class="imgbtn">
+                  <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                  Download
+                </button>
+                <button class="imgbtn">
+                  <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 4v6h-6M1 20v-6h6"/><path d="M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15"/></svg>
+                  Regenerate Image
+                </button>
+                <button class="imgbtn">
+                  <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93A10 10 0 1120 12"/></svg>
+                  Change Style
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- ── Card 2 ── -->
+          <div class="pcard">
+            <div class="pleft">
+              <div class="prow">
+                <div class="pnum">2</div>
+                <div class="ptxt">At Intellixy, we believe in the synergy of AI. By leveraging PostPilotAI, our AI content OS, we're crafting tailored posts that resonate with our audience. It's a game-changer for engagement and growth. Here's how we're doing it!</div>
+              </div>
+              <div class="phash">#Intellixy &nbsp;#PostPilotAI &nbsp;#AI &nbsp;#ContentStrategy &nbsp;#Engagement</div>
+              <div class="pbadges">
+                <span class="tbadge">⚡ Engaging</span>
+                <span class="tbadge">💼 Professional</span>
+                <span class="tbadge">📈 Growth Focused</span>
+              </div>
+              <div class="pactions">
+                <button class="abtn"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>Copy</button>
+                <button class="abtn"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>Edit</button>
+                <button class="abtn"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 4v6h-6M1 20v-6h6"/><path d="M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15"/></svg>Regenerate</button>
+                <button class="abtn prim">✦ Create Image</button>
+              </div>
+            </div>
+
+            <!-- Image: Ocean / Robot analytics -->
+            <div class="pright">
+              <div class="pimg g2">
+                <div class="pimg-glow3"></div>
+                <div style="position:absolute;bottom:-5px;left:5px;width:50px;height:50px;border-radius:50%;background:rgba(129,140,248,.2);filter:blur(15px);z-index:1"></div>
+                <!-- Robot/analytics SVG -->
+                <svg class="pimg-deco" viewBox="0 0 216 164">
+                  <!-- Analytics bars -->
+                  <rect x="28" y="105" width="12" height="45" rx="2" fill="rgba(56,189,248,.25)"/>
+                  <rect x="44" y="85"  width="12" height="65" rx="2" fill="rgba(56,189,248,.35)"/>
+                  <rect x="60" y="95"  width="12" height="55" rx="2" fill="rgba(56,189,248,.25)"/>
+                  <!-- Robot body -->
+                  <rect x="125" y="60"  width="50" height="60" rx="6" fill="none" stroke="rgba(56,189,248,.45)" stroke-width="1.5"/>
+                  <rect x="130" y="50"  width="40" height="16" rx="4" fill="none" stroke="rgba(56,189,248,.45)" stroke-width="1.5"/>
+                  <!-- Robot eyes -->
+                  <circle cx="140" cy="58" r="3" fill="rgba(56,189,248,.7)"/>
+                  <circle cx="160" cy="58" r="3" fill="rgba(56,189,248,.7)"/>
+                  <!-- Robot arms -->
+                  <line x1="125" y1="80" x2="108" y2="90" stroke="rgba(56,189,248,.4)" stroke-width="1.5"/>
+                  <line x1="175" y1="80" x2="192" y2="90" stroke="rgba(56,189,248,.4)" stroke-width="1.5"/>
+                  <!-- Robot legs -->
+                  <line x1="140" y1="120" x2="135" y2="145" stroke="rgba(56,189,248,.4)" stroke-width="1.5"/>
+                  <line x1="160" y1="120" x2="165" y2="145" stroke="rgba(56,189,248,.4)" stroke-width="1.5"/>
+                  <!-- Chart line -->
+                  <polyline points="15,140 45,120 75,130 105,95 135,100 165,70 195,55" fill="none" stroke="rgba(52,211,153,.45)" stroke-width="1.5" stroke-linecap="round"/>
+                </svg>
+                <div class="pimg-content">
+                  <div class="img-title">
+                    AI + Strategy =<br>Unstoppable<br>
+                    <span class="img-accent" style="color:#38bdf8;text-shadow:0 0 12px rgba(56,189,248,.8)">Growth</span>
+                  </div>
+                  <div class="img-brand">
+                    <div class="img-brand-icon"><svg width="9" height="9" viewBox="0 0 24 24" fill="#F7BE4D"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg></div>
+                    Intellixy
+                  </div>
+                </div>
+              </div>
+              <div class="imgacts">
+                <button class="imgbtn"><svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>Download</button>
+                <button class="imgbtn"><svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 4v6h-6M1 20v-6h6"/><path d="M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15"/></svg>Regenerate Image</button>
+                <button class="imgbtn"><svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93A10 10 0 1120 12"/></svg>Change Style</button>
+              </div>
+            </div>
+          </div>
+
+        </div><!-- /posts -->
+
+        <!-- Hashtags -->
+        <div class="hashtag-sec">
+          <div class="hash-hdr">
+            <div class="hash-title">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#F7BE4D" stroke-width="2.2"><line x1="4" y1="9" x2="20" y2="9"/><line x1="4" y1="15" x2="20" y2="15"/><line x1="10" y1="3" x2="8" y2="21"/><line x1="16" y1="3" x2="14" y2="21"/></svg>
+              Hashtags <span class="hash-cnt">15 tags</span>
+            </div>
+            <button class="gbtn" style="padding:5px 10px;font-size:11px">Copy All</button>
+          </div>
+          <div class="hash-chips">
+            <span class="chip">#AI</span><span class="chip">#Growth</span><span class="chip">#Innovation</span>
+            <span class="chip">#Intellixy</span><span class="chip">#PostPilotAI</span><span class="chip">#ContentMarketing</span>
+            <span class="chip">#AIMarketing</span><span class="chip">#ContentStrategy</span><span class="chip">#DigitalMarketing</span>
+            <span class="chip">#SocialMedia</span><span class="chip">#StartupGrowth</span><span class="chip">#FutureOfWork</span>
+            <span class="chip">#B2B</span><span class="chip">#Engagement</span><span class="chip">#Viral</span>
+          </div>
+        </div>
+
+      </div><!-- /tabs-wrap -->
+
+    </main>
+
+    <!-- ═══════════════ RIGHT PANEL ═══════════════ -->
+    <aside class="rpanel">
+
+      <!-- Schedule Post -->
+      <div class="rcard">
+        <div class="rcard-title">
+          <div class="rcard-icon">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#F7BE4D" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
+          </div>
+          <span class="rcard-name">Schedule Post</span>
+        </div>
+
+        <div class="fg">
+          <label class="flabel">Platform</label>
+          <div class="fsel">
+            <div class="fsel-inner"><span class="platform-icon">💼</span> LinkedIn</div>
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#64748b" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+          </div>
+        </div>
+
+        <div class="fg">
+          <label class="flabel">Date</label>
+          <div class="fsel">
+            <div class="fsel-inner">
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#64748b" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
+              May 28, 2025
+            </div>
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#64748b" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+          </div>
+        </div>
+
+        <div class="fg">
+          <label class="flabel">Time</label>
+          <div class="fsel">
+            <div class="fsel-inner">
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#64748b" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+              10:00 AM
+            </div>
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#64748b" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+          </div>
+        </div>
+
+        <div class="fg" style="margin-bottom:0">
+          <label class="flabel">Timezone</label>
+          <div class="fsel" style="font-size:11.5px">
+            <div class="fsel-inner">(GMT+05:30) Asia/Kolkata</div>
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#64748b" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+          </div>
+        </div>
+
+        <button class="sched-btn">Schedule</button>
+        <div class="sched-note">This post will be scheduled</div>
+      </div>
+
+      <!-- Post Preview -->
+      <div class="rcard">
+        <div class="rcard-title">
+          <span style="font-size:17px;line-height:1">💼</span>
+          <span class="rcard-name">Post Preview</span>
+        </div>
+        <div class="li-preview">
+          <div class="prev-top">
+            <div class="prev-av">Y</div>
+            <div>
+              <div class="prev-name">Your Company</div>
+              <div class="prev-meta">Now · 🌐</div>
+            </div>
+            <span style="margin-left:auto;color:#475569;font-size:16px;line-height:1">···</span>
+          </div>
+          <div class="prev-text">
+            Excited to share how we're scaling Intellixy using the power of AI! With PostPilotAI, we're generating engaging content that's driving daily follower growth. By integrating AI tools like our AI PDF Reader, we're not just learning faster but growing faster too!
+          </div>
+          <div class="prev-tags">#AI #Growth #Innovation #Intellixy #PostPilotAI</div>
+          <div class="prev-acts">
+            <div class="prev-act">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M14 9V5a3 3 0 00-3-3l-4 9v11h11.28a2 2 0 002-1.7l1.38-9a2 2 0 00-2-2.3z"/></svg>
+              Like
+            </div>
+            <div class="prev-act">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
+              Comment
+            </div>
+            <div class="prev-act">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M17 1l4 4-4 4M3 11V9a4 4 0 014-4h14"/></svg>
+              Repost
+            </div>
+            <div class="prev-act">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+              Send
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </aside>
+
+  </div><!-- /cr -->
+
+</div><!-- /main-wrap -->
+
+</div><!-- /shell -->
+
+<script>
+// Floating particles
+const COLORS = ['#F7BE4D','#818cf8','#34d399','#38bdf8'];
+for(let i=0;i<28;i++){
+  const p=document.createElement('div');
+  const s=Math.random()*2+.6;
+  p.className='pt';
+  p.style.cssText=`
+    left:${Math.random()*100}%;
+    top:${90+Math.random()*20}%;
+    width:${s}px;height:${s}px;
+    background:${COLORS[Math.floor(Math.random()*COLORS.length)]};
+    animation-duration:${12+Math.random()*16}s;
+    animation-delay:${Math.random()*14}s;
+    box-shadow:0 0 ${s*3}px ${COLORS[Math.floor(Math.random()*COLORS.length)]}
+  `;
+  document.body.appendChild(p);
+}
+</script>
+</body>
+</html>

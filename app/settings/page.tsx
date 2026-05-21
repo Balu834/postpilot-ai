@@ -38,7 +38,11 @@ export default function SettingsPage() {
   const [referralCode,    setReferralCode]    = useState("")
   const [referralCount,   setReferralCount]   = useState(0)
   const [referralCredits, setReferralCredits] = useState(0)
-  const [copiedRef,       setCopiedRef]       = useState(false)
+  const [copiedRef,         setCopiedRef]         = useState(false)
+  const [paymentId,         setPaymentId]         = useState<string | null>(null)
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
+  const [deleteInput,       setDeleteInput]       = useState("")
+  const [deleting,          setDeleting]          = useState(false)
 
   const FREE_LIMIT = 10
   const isPro = planName !== "free"
@@ -111,7 +115,7 @@ export default function SettingsPage() {
     if (!user) return
 
     const [profileRes, genRes, refRes] = await Promise.all([
-      supabase.from("users").select("name, email, plan_name, plan_expires_at, email_notify_published, email_notify_digest, referral_code, referral_credits").eq("id", user.id).single(),
+      supabase.from("users").select("name, email, plan_name, plan_expires_at, email_notify_published, email_notify_digest, referral_code, referral_credits, razorpay_payment_id").eq("id", user.id).single(),
       supabase.from("generations").select("id", { count: "exact" }).eq("user_id", user.id),
       supabase.from("referrals").select("id", { count: "exact" }).eq("referrer_id", user.id),
     ])
@@ -126,6 +130,7 @@ export default function SettingsPage() {
       setReferralCode(profileRes.data.referral_code ?? "")
       setReferralCredits(profileRes.data.referral_credits ?? 0)
       setReferralCount(refRes.count ?? 0)
+      setPaymentId(profileRes.data.razorpay_payment_id ?? null)
     } else {
       setEmail(user.email || "")
     }
@@ -144,6 +149,23 @@ export default function SettingsPage() {
     setSavingNotif(false)
     setNotifSaved(true)
     setTimeout(() => setNotifSaved(false), 2500)
+  }
+
+  const handleDeleteAccount = async () => {
+    setDeleting(true)
+    const { data: { session } } = await supabase.auth.getSession()
+    if (!session) return
+    try {
+      await fetch("/api/account/delete", {
+        method: "DELETE",
+        headers: { Authorization: `Bearer ${session.access_token}` },
+      })
+      await supabase.auth.signOut()
+      window.location.href = "/"
+    } catch {
+      setDeleting(false)
+      setShowDeleteConfirm(false)
+    }
   }
 
   const handleSave = async () => {
@@ -238,7 +260,7 @@ export default function SettingsPage() {
             <h2 className="text-sm font-semibold text-white">Billing & Plan</h2>
             <p className="text-[11px] text-slate-500">
               {isPro
-                ? `${planName.charAt(0).toUpperCase()}${planName.slice(1)} Plan${expiresAt ? ` · renews ${new Date(expiresAt).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })}` : ""}`
+                ? `${planName.charAt(0).toUpperCase()}${planName.slice(1)} Plan`
                 : "Free Plan · 10 generations / month"
               }
             </p>
@@ -278,12 +300,50 @@ export default function SettingsPage() {
           </div>
         )}
 
-        {isPro && (
-          <div className="flex items-center gap-2 text-[11px] text-slate-500 bg-white/[0.03] border border-white/[0.06] rounded-xl px-4 py-3">
-            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 flex-shrink-0" />
-            Unlimited AI generations · All platforms · Priority support
-          </div>
-        )}
+        {isPro && (() => {
+          const expiry     = expiresAt ? new Date(expiresAt) : null
+          const daysLeft   = expiry ? Math.ceil((expiry.getTime() - Date.now()) / 86400000) : null
+          const isExpiring = daysLeft !== null && daysLeft <= 7
+          const isExpired  = daysLeft !== null && daysLeft <= 0
+          return (
+            <div className="space-y-3">
+              <div className="flex items-center gap-2 text-[11px] text-slate-500 bg-white/[0.03] border border-white/[0.06] rounded-xl px-4 py-3">
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 flex-shrink-0" />
+                Unlimited AI generations · All platforms · Priority support
+              </div>
+
+              {/* Expiry row */}
+              {expiry && (
+                <div className={`flex items-center justify-between px-4 py-3 rounded-xl border text-[11px] ${
+                  isExpired  ? "bg-red-500/8 border-red-500/20 text-red-400" :
+                  isExpiring ? "bg-amber-500/8 border-amber-500/20 text-amber-400" :
+                               "bg-white/[0.02] border-white/[0.06] text-slate-500"
+                }`}>
+                  <span>
+                    {isExpired  ? "Plan expired" :
+                     isExpiring ? `Expires in ${daysLeft} day${daysLeft === 1 ? "" : "s"}` :
+                                  `Active until ${expiry.toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })}`}
+                  </span>
+                  {(isExpiring || isExpired) && (
+                    <button
+                      onClick={() => { analytics.upgradeClicked("settings_renew"); setUpgradeOpen(true) }}
+                      className="font-semibold text-[#F7BE4D] hover:text-[#ffd166] transition-colors">
+                      Renew now →
+                    </button>
+                  )}
+                </div>
+              )}
+
+              {/* Payment reference */}
+              {paymentId && (
+                <div className="flex items-center justify-between px-4 py-3 rounded-xl border border-white/[0.06] bg-white/[0.02] text-[11px]">
+                  <span className="text-slate-500">Payment ID</span>
+                  <span className="font-mono text-slate-400 text-[10px]">{paymentId}</span>
+                </div>
+              )}
+            </div>
+          )
+        })()}
       </motion.div>
 
       {/* Connected Accounts */}
@@ -526,6 +586,55 @@ export default function SettingsPage() {
           {saved ? "Saved!" : "Save Changes"}
         </button>
       </div>
+
+      {/* Danger Zone */}
+      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.6 }}
+        className="rounded-2xl p-5 border border-red-500/20"
+        style={{ background: "rgba(239,68,68,0.04)" }}>
+        <h2 className="text-sm font-semibold text-red-400 mb-1">Danger Zone</h2>
+        <p className="text-xs text-slate-500 mb-4">These actions are permanent and cannot be undone.</p>
+
+        {!showDeleteConfirm ? (
+          <button
+            onClick={() => setShowDeleteConfirm(true)}
+            className="text-xs font-semibold text-red-400 border border-red-500/25 px-4 py-2 rounded-xl hover:bg-red-500/10 transition-all">
+            Delete my account
+          </button>
+        ) : (
+          <AnimatePresence>
+            <motion.div
+              initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }}
+              className="space-y-3 p-4 rounded-xl border border-red-500/20 bg-red-500/5">
+              <p className="text-xs text-red-300 font-medium">
+                This will permanently delete your account, all generated content, and cancel any active subscription.
+              </p>
+              <p className="text-xs text-slate-400">
+                Type <span className="font-mono text-red-400 select-none">DELETE</span> to confirm:
+              </p>
+              <input
+                value={deleteInput}
+                onChange={e => setDeleteInput(e.target.value)}
+                placeholder="Type DELETE to confirm"
+                className="w-full bg-white/5 border border-red-500/30 rounded-xl px-4 py-2.5 text-sm text-slate-200 placeholder-slate-600 focus:outline-none focus:border-red-500/60 transition-all"
+              />
+              <div className="flex gap-2">
+                <button
+                  onClick={() => { setShowDeleteConfirm(false); setDeleteInput("") }}
+                  className="text-xs px-4 py-2 rounded-xl border border-white/10 text-slate-400 hover:text-white transition-all">
+                  Cancel
+                </button>
+                <button
+                  onClick={handleDeleteAccount}
+                  disabled={deleteInput !== "DELETE" || deleting}
+                  className="text-xs font-semibold px-4 py-2 rounded-xl bg-red-500/20 text-red-400 border border-red-500/30 hover:bg-red-500/30 transition-all disabled:opacity-40 disabled:cursor-not-allowed flex items-center gap-2">
+                  {deleting && <Loader2 className="w-3 h-3 animate-spin" />}
+                  Delete my account permanently
+                </button>
+              </div>
+            </motion.div>
+          </AnimatePresence>
+        )}
+      </motion.div>
     </div>
     </>
   )

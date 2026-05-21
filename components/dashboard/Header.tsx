@@ -9,7 +9,7 @@ import { useState, useEffect, useRef, useCallback } from "react"
 const pageMeta: Record<string, { title: string; subtitle: string }> = {
   "/dashboard":  { title: "Dashboard",        subtitle: "Welcome back — let's create something great"         },
   "/generate":   { title: "Generate",         subtitle: "Turn your ideas into platform-ready posts"            },
-  "/repurpose":  { title: "Blog → 24 Posts",  subtitle: "Paste any content — get a full cross-platform pack"  },
+  "/repurpose":  { title: "Blog → 24 Posts",  subtitle: "Posts ready to share — get a full cross-platform pack" },
   "/templates":  { title: "Templates",        subtitle: "12 proven content frameworks — click and generate"    },
   "/workspace":  { title: "Workspace",        subtitle: "Organize your content into campaigns"                 },
   "/schedule":   { title: "Schedule",         subtitle: "Plan and manage your content calendar"                },

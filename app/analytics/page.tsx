@@ -121,6 +121,7 @@ export default function AnalyticsPage() {
   const fetchData = async () => {
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) return
+    localStorage.setItem(`postpilot_analytics_visited_${user.id}`, '1')
 
     const [genRes, scheduledRes, publishedRes, recentGenRes, platformRes] = await Promise.all([
       supabase.from("generations").select("id, created_at", { count: "exact" }).eq("user_id", user.id),

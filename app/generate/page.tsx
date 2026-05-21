@@ -595,6 +595,15 @@ export default function GeneratePage() {
     if (tn) setTone(tn)
   }, [searchParams])
 
+  // Warn before unloading if streaming or content is ready
+  useEffect(() => {
+    const handler = (e: BeforeUnloadEvent) => {
+      if (isStreaming || finalResult) { e.preventDefault(); e.returnValue = "" }
+    }
+    window.addEventListener("beforeunload", handler)
+    return () => window.removeEventListener("beforeunload", handler)
+  }, [isStreaming, finalResult])
+
   useEffect(() => {
     supabase.auth.getSession().then(async ({ data: { session } }) => {
       if (!session) return
@@ -623,6 +632,7 @@ export default function GeneratePage() {
     abortRef.current?.abort()
     const abort = new AbortController()
     abortRef.current = abort
+    const timeout = setTimeout(() => abort.abort(), 90_000)
 
     setIsStreaming(true)
     setError("")
@@ -738,11 +748,17 @@ export default function GeneratePage() {
         }
       }
     } catch (e: unknown) {
-      if ((e as Error).name === "AbortError") return
+      if ((e as Error).name === "AbortError") {
+        setError("Generation timed out. Please try again.")
+        setIsStreaming(false)
+        return
+      }
       const msg = e instanceof Error ? e.message : "Something went wrong"
       analytics.generationFailed(msg)
       setError(msg)
       setIsStreaming(false)
+    } finally {
+      clearTimeout(timeout)
     }
   }, [topic, product, blogUrl, tone, brandVoice, planName, genCount])
 
@@ -926,7 +942,9 @@ export default function GeneratePage() {
                     initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }}>
                     <Sparkles className="w-4 h-4" />
                     Generate Content
-                    <span className="text-[10px] opacity-50 hidden sm:block">⌘ Enter</span>
+                    <span className="text-[10px] opacity-50 hidden sm:block">
+                      {typeof navigator !== "undefined" && /Mac/.test(navigator.platform) ? "⌘" : "Ctrl"} Enter
+                    </span>
                   </motion.span>
                 )}
               </AnimatePresence>

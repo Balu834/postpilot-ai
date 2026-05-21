@@ -249,6 +249,7 @@ export default function WorkspacePage() {
   const [generations, setGenerations]     = useState<Generation[]>([])
   const [loadingGens, setLoadingGens]     = useState(true)
   const [activeCampaign, setActiveCampaign] = useState<string | null>(null)
+  const [userId, setUserId]               = useState<string | null>(null)
   const [showNewModal, setShowNewModal]   = useState(false)
   const [newCampaignName, setNewCampaignName] = useState("")
   const [editingId, setEditingId]         = useState<string | null>(null)
@@ -262,6 +263,7 @@ export default function WorkspacePage() {
     setLoadingGens(true)
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) { setLoadingGens(false); return }
+    setUserId(user.id)
 
     const { data } = await supabase
       .from("generations")
@@ -323,6 +325,10 @@ export default function WorkspacePage() {
     )
     setCampaigns(updated)
     saveCampaigns(updated)
+    // Mark Step 2 of Getting Started complete (only for real generations, not demo)
+    if (userId && !genId.startsWith("demo-")) {
+      localStorage.setItem(`postpilot_workspace_saved_${userId}`, '1')
+    }
   }
 
   const currentCampaign = campaigns.find(c => c.id === activeCampaign)
