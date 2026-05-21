@@ -10,6 +10,7 @@ import {
 } from "lucide-react"
 import { supabase } from "@/lib/supabase"
 import { analytics } from "@/lib/analytics"
+import UpgradeModal from "@/components/UpgradeModal"
 
 // ── Types ──────────────────────────────────────────────────────────────
 interface RepurposeResult {
@@ -868,9 +869,10 @@ function EmptyState() {
 export default function RepurposePage() {
   const [content,  setContent]  = useState("")
   const [tone,     setTone]     = useState("engaging")
-  const [loading,  setLoading]  = useState(false)
-  const [result,   setResult]   = useState<RepurposeResult | null>(null)
-  const [error,    setError]    = useState("")
+  const [loading,      setLoading]      = useState(false)
+  const [result,       setResult]       = useState<RepurposeResult | null>(null)
+  const [error,        setError]        = useState("")
+  const [upgradeOpen,  setUpgradeOpen]  = useState(false)
   const [activeTab, setActiveTab] = useState<TabKey>("linkedin")
   const [streamDone, setStreamDone] = useState<string[]>([])
   const [selectedText, setSelectedText] = useState("")
@@ -907,6 +909,11 @@ export default function RepurposePage() {
         body: JSON.stringify({ content, tone }),
       })
       const data = await res.json()
+      if (res.status === 402 || data.code === "UPGRADE_REQUIRED") {
+        analytics.upgradeClicked("free_limit_hit")
+        setUpgradeOpen(true)
+        return
+      }
       if (!res.ok) throw new Error(data.error || "Generation failed")
       setResult(data.data)
       setActiveTab("linkedin")
@@ -946,6 +953,7 @@ export default function RepurposePage() {
 
   return (
     <div className="space-y-5 relative">
+      <UpgradeModal open={upgradeOpen} onClose={() => setUpgradeOpen(false)} />
       {/* Ambient glows */}
       <div className="fixed top-0 left-60 right-0 h-screen pointer-events-none -z-10 overflow-hidden">
         <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[600px] h-[400px]"

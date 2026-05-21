@@ -10,6 +10,11 @@ import { analytics } from "@/lib/analytics"
 
 interface SocialAccount { platform: string; username: string | null; expires_at: string | null }
 
+function isExpiringSoon(expiresAt: string | null): boolean {
+  if (!expiresAt) return false
+  return new Date(expiresAt).getTime() - Date.now() < 7 * 24 * 60 * 60 * 1000
+}
+
 const SOCIAL_PLATFORMS = [
   { key: "twitter",   label: "Twitter / X",  icon: "𝕏",  color: "#94a3b8", bg: "rgba(148,163,184,0.12)" },
   { key: "linkedin",  label: "LinkedIn",     icon: "in", color: "#0077B5", bg: "rgba(0,119,181,0.12)"   },
@@ -384,22 +389,31 @@ export default function SettingsPage() {
 
         <div className="space-y-3">
           {SOCIAL_PLATFORMS.map(platform => {
-            const account  = accounts.find(a => a.platform === platform.key)
+            const account   = accounts.find(a => a.platform === platform.key)
             const isLoading = connecting === platform.key
+            const expiring  = account ? isExpiringSoon(account.expires_at) : false
             return (
               <div key={platform.key}
                 className="flex items-center gap-3 p-3.5 rounded-xl border transition-all"
                 style={{
                   background:   account ? platform.bg : "rgba(255,255,255,0.02)",
-                  borderColor:  account ? `${platform.color}30` : "rgba(255,255,255,0.06)",
+                  borderColor:  expiring ? "rgba(251,146,60,0.35)" : account ? `${platform.color}30` : "rgba(255,255,255,0.06)",
                 }}>
                 <div className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0 font-bold text-sm"
                   style={{ background: platform.bg, color: platform.color }}>
                   {platform.icon}
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm font-semibold text-white">{platform.label}</p>
-                  <p className="text-[11px] truncate" style={{ color: account ? platform.color : "#475569" }}>
+                  <div className="flex items-center gap-2">
+                    <p className="text-sm font-semibold text-white">{platform.label}</p>
+                    {expiring && (
+                      <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-full"
+                        style={{ background: "rgba(251,146,60,0.15)", color: "#fb923c", border: "1px solid rgba(251,146,60,0.3)" }}>
+                        Expiring soon
+                      </span>
+                    )}
+                  </div>
+                  <p className="text-[11px] truncate" style={{ color: expiring ? "#fb923c" : account ? platform.color : "#475569" }}>
                     {account
                       ? account.username ? `@${account.username}` : "Connected"
                       : "Not connected"
@@ -407,13 +421,25 @@ export default function SettingsPage() {
                   </p>
                 </div>
                 {account ? (
-                  <button
-                    onClick={() => disconnectPlatform(platform.key)}
-                    disabled={isLoading}
-                    className="flex items-center gap-1.5 text-[11px] font-medium px-3 py-1.5 rounded-lg border border-red-500/20 text-red-400 hover:bg-red-500/10 transition-all disabled:opacity-50">
-                    {isLoading ? <Loader2 className="w-3 h-3 animate-spin" /> : <Unlink className="w-3 h-3" />}
-                    Disconnect
-                  </button>
+                  <div className="flex items-center gap-2">
+                    {expiring && (
+                      <button
+                        onClick={() => connectPlatform(platform.key)}
+                        disabled={isLoading}
+                        className="flex items-center gap-1.5 text-[11px] font-semibold px-3 py-1.5 rounded-lg transition-all disabled:opacity-50"
+                        style={{ background: "rgba(251,146,60,0.15)", color: "#fb923c", border: "1px solid rgba(251,146,60,0.3)" }}>
+                        {isLoading ? <Loader2 className="w-3 h-3 animate-spin" /> : <Link2 className="w-3 h-3" />}
+                        Reconnect
+                      </button>
+                    )}
+                    <button
+                      onClick={() => disconnectPlatform(platform.key)}
+                      disabled={isLoading}
+                      className="flex items-center gap-1.5 text-[11px] font-medium px-3 py-1.5 rounded-lg border border-red-500/20 text-red-400 hover:bg-red-500/10 transition-all disabled:opacity-50">
+                      {isLoading ? <Loader2 className="w-3 h-3 animate-spin" /> : <Unlink className="w-3 h-3" />}
+                      Disconnect
+                    </button>
+                  </div>
                 ) : (
                   <button
                     onClick={() => connectPlatform(platform.key)}
