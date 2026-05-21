@@ -13,12 +13,12 @@ export async function POST(req: NextRequest) {
   const { data: { user }, error: authError } = await supabaseAdmin.auth.getUser(token)
   if (authError || !user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
 
-  let body: { platform?: string; content?: string; scheduled_at?: string }
+  let body: { platform?: string; content?: string; scheduled_at?: string; image_url?: string }
   try { body = await req.json() } catch {
     return NextResponse.json({ error: "Invalid JSON" }, { status: 400 })
   }
 
-  const { platform, content, scheduled_at } = body
+  const { platform, content, scheduled_at, image_url } = body
   if (!platform || !content || !scheduled_at) {
     return NextResponse.json({ error: "platform, content, and scheduled_at are required" }, { status: 400 })
   }
@@ -31,6 +31,7 @@ export async function POST(req: NextRequest) {
       content,
       scheduled_time: scheduled_at,
       status:         "pending",
+      ...(image_url ? { image_url } : {}),
     })
     .select()
     .single()

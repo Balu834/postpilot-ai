@@ -7,7 +7,7 @@ import {
   Wand2, Sparkles, Copy, CheckCheck, RefreshCw,
   LinkIcon, Package, CalendarClock, Zap, Check,
   ClipboardList, TrendingUp, Flame, BookmarkPlus,
-  X, Loader2,
+  X, Loader2, ImageIcon, Upload,
 } from "lucide-react"
 import { supabase } from "@/lib/supabase"
 import UpgradeModal from "@/components/UpgradeModal"
@@ -574,18 +574,51 @@ function QuickScheduleModal({
   const tomorrow = new Date(); tomorrow.setDate(tomorrow.getDate() + 1)
   const defaultDate = tomorrow.toISOString().split("T")[0]
 
-  const [text,   setText]   = useState(content)
-  const [date,   setDate]   = useState(defaultDate)
-  const [time,   setTime]   = useState("09:00")
-  const [saving, setSaving] = useState(false)
-  const [err,    setErr]    = useState("")
+  const [text,         setText]         = useState(content)
+  const [date,         setDate]         = useState(defaultDate)
+  const [time,         setTime]         = useState("09:00")
+  const [saving,       setSaving]       = useState(false)
+  const [err,          setErr]          = useState("")
+  const [imageUrl,     setImageUrl]     = useState("")
+  const [genningImage, setGenningImage] = useState(false)
 
-  useEffect(() => { if (open) { setText(content); setErr("") } }, [open, content])
+  useEffect(() => { if (open) { setText(content); setErr(""); setImageUrl("") } }, [open, content])
 
   const meta = SCHEDULE_PLATFORM_META[platform] ?? { icon: "📝", color: "#F7BE4D", label: platform }
+  const isInstagram = platform === "instagram"
+
+  const handleGenerateImage = async () => {
+    setGenningImage(true); setErr("")
+    const { data: { session } } = await supabase.auth.getSession()
+    if (!session) { setErr("Not logged in"); setGenningImage(false); return }
+    const res = await fetch("/api/generate/image", {
+      method:  "POST",
+      headers: { "Content-Type": "application/json", Authorization: `Bearer ${session.access_token}` },
+      body:    JSON.stringify({ caption: text }),
+    })
+    setGenningImage(false)
+    if (!res.ok) { const j = await res.json().catch(() => ({})); setErr(j.error || "Image generation failed"); return }
+    const { url } = await res.json()
+    setImageUrl(url)
+  }
+
+  const handleUploadImage = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+    const { data: { session } } = await supabase.auth.getSession()
+    if (!session) return
+    const fd = new FormData(); fd.append("file", file)
+    const res = await fetch("/api/upload/image", {
+      method: "POST",
+      headers: { Authorization: `Bearer ${session.access_token}` },
+      body: fd,
+    })
+    if (res.ok) { const { url } = await res.json(); setImageUrl(url) }
+  }
 
   const handleSchedule = async () => {
     if (!text.trim()) { setErr("Content cannot be empty"); return }
+    if (isInstagram && !imageUrl) { setErr("Instagram posts require an image — generate one or upload."); return }
     setSaving(true); setErr("")
     const { data: { session } } = await supabase.auth.getSession()
     if (!session) { setErr("Not logged in"); setSaving(false); return }
@@ -593,7 +626,7 @@ function QuickScheduleModal({
     const res = await fetch("/api/schedule", {
       method:  "POST",
       headers: { "Content-Type": "application/json", Authorization: `Bearer ${session.access_token}` },
-      body:    JSON.stringify({ platform, content: text, scheduled_at }),
+      body:    JSON.stringify({ platform, content: text, scheduled_at, ...(imageUrl ? { image_url: imageUrl } : {}) }),
     })
     setSaving(false)
     if (!res.ok) { const j = await res.json().catch(() => ({})); setErr(j.error || "Failed to schedule"); return }
@@ -630,10 +663,52 @@ function QuickScheduleModal({
         {/* Content */}
         <div>
           <label className="text-[11px] text-slate-500 font-medium mb-1.5 block">Content</label>
-          <textarea value={text} onChange={e => setText(e.target.value)} rows={5}
+          <textarea value={text} onChange={e => setText(e.target.value)} rows={4}
             className="w-full text-xs text-slate-300 rounded-xl px-3 py-2.5 outline-none resize-none"
             style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)" }} />
         </div>
+
+        {/* Instagram image */}
+        {isInstagram && (
+          <div>
+            <label className="text-[11px] text-slate-500 font-medium mb-1.5 block">
+              Image <span className="text-red-400">*</span>
+            </label>
+            {imageUrl ? (
+              <div className="relative rounded-xl overflow-hidden" style={{ aspectRatio: "1/1", maxHeight: 180 }}>
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src={imageUrl} alt="Post image" className="w-full h-full object-cover" />
+                <button
+                  onClick={() => setImageUrl("")}
+                  className="absolute top-2 right-2 w-6 h-6 rounded-full bg-black/60 flex items-center justify-center text-white hover:bg-black/80 transition-colors"
+                >
+                  <X className="w-3 h-3" />
+                </button>
+              </div>
+            ) : (
+              <div className="flex gap-2">
+                <motion.button
+                  onClick={handleGenerateImage}
+                  disabled={genningImage}
+                  whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}
+                  className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl text-xs font-semibold transition-all"
+                  style={{ background: "rgba(247,190,77,0.1)", border: "1px solid rgba(247,190,77,0.25)", color: "#F7BE4D" }}
+                >
+                  {genningImage
+                    ? <><Loader2 className="w-3.5 h-3.5 animate-spin" /> Generating…</>
+                    : <><Sparkles className="w-3.5 h-3.5" /> Generate with AI</>
+                  }
+                </motion.button>
+                <label className="flex items-center justify-center gap-1.5 px-3 py-2.5 rounded-xl text-xs font-semibold cursor-pointer transition-all"
+                  style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)", color: "#94a3b8" }}>
+                  <Upload className="w-3.5 h-3.5" />
+                  Upload
+                  <input type="file" accept="image/*" className="hidden" onChange={handleUploadImage} />
+                </label>
+              </div>
+            )}
+          </div>
+        )}
 
         {/* Date + Time */}
         <div className="grid grid-cols-2 gap-3">
