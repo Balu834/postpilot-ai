@@ -253,6 +253,20 @@ body {
   color: #F7BE4D;
 }
 
+/* ─── Testimonial marquee ──────────────────────────────── */
+@keyframes marquee-left {
+  from { transform: translateX(0); }
+  to   { transform: translateX(-50%); }
+}
+@keyframes marquee-right {
+  from { transform: translateX(-50%); }
+  to   { transform: translateX(0); }
+}
+.marquee-left  { animation: marquee-left  40s linear infinite; }
+.marquee-right { animation: marquee-right 38s linear infinite; }
+.marquee-left:hover,
+.marquee-right:hover { animation-play-state: paused; }
+
 /* ─── Stat card accent line ──────────────────────────── */
 .card-accent-top {
   position: relative;
