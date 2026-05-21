@@ -21,6 +21,9 @@ const APP_URL = process.env.NEXT_PUBLIC_APP_URL ?? "https://postpilotai.com"
 
 export const metadata: Metadata = {
   metadataBase: new URL(APP_URL),
+  verification: {
+    google: "5UXfJDF98klFpIZyWT2ypsN6t8VLUfVLd4wI3CJMPFY",
+  },
   title: {
     default: "PostPilot AI — Your AI Social Media Team",
     template: "%s | PostPilot AI",
