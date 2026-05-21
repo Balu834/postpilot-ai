@@ -589,6 +589,68 @@ function PostPreview({ text, platform, hashtags }: { text: string; platform: Tab
   )
 }
 
+// ── DarkSelect ─────────────────────────────────────────────────────────
+function DarkSelect({ value, onChange, options, renderLabel }: {
+  value: string
+  onChange: (v: string) => void
+  options: { value: string; label: string; icon?: string }[]
+  renderLabel?: (opt: { value: string; label: string; icon?: string }) => React.ReactNode
+}) {
+  const [open, setOpen] = useState(false)
+  const ref = useRef<HTMLDivElement>(null)
+  const current = options.find(o => o.value === value) ?? options[0]
+
+  useEffect(() => {
+    function handle(e: MouseEvent) {
+      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false)
+    }
+    document.addEventListener("mousedown", handle)
+    return () => document.removeEventListener("mousedown", handle)
+  }, [])
+
+  return (
+    <div ref={ref} className="relative">
+      <button
+        onClick={() => setOpen(v => !v)}
+        className="w-full flex items-center justify-between gap-2 px-3 py-2.5 rounded-xl text-sm text-white
+          cursor-pointer transition-all"
+        style={{
+          background: "rgba(255,255,255,0.05)",
+          border: open ? "1px solid rgba(247,190,77,0.3)" : "1px solid rgba(255,255,255,0.10)",
+        }}>
+        <span className="flex items-center gap-2 truncate">
+          {current.icon && <span>{current.icon}</span>}
+          {renderLabel ? renderLabel(current) : current.label}
+        </span>
+        <ChevronDown className={`w-3.5 h-3.5 text-slate-400 flex-shrink-0 transition-transform ${open ? "rotate-180" : ""}`} />
+      </button>
+
+      {open && (
+        <div
+          className="absolute left-0 right-0 top-full mt-1.5 rounded-xl overflow-hidden z-50 shadow-2xl"
+          style={{ background: "#0d1526", border: "1px solid rgba(255,255,255,0.10)" }}>
+          {options.map(opt => (
+            <button
+              key={opt.value}
+              onClick={() => { onChange(opt.value); setOpen(false) }}
+              className="w-full flex items-center gap-2.5 px-3 py-2.5 text-sm text-left transition-colors"
+              style={{
+                color: opt.value === value ? "#F7BE4D" : "#cbd5e1",
+                background: opt.value === value ? "rgba(247,190,77,0.08)" : "transparent",
+              }}
+              onMouseEnter={e => { if (opt.value !== value) (e.currentTarget as HTMLElement).style.background = "rgba(255,255,255,0.04)" }}
+              onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = opt.value === value ? "rgba(247,190,77,0.08)" : "transparent" }}>
+              {opt.icon && <span>{opt.icon}</span>}
+              <span className="truncate">{renderLabel ? renderLabel(opt) : opt.label}</span>
+              {opt.value === value && <Check className="w-3.5 h-3.5 ml-auto flex-shrink-0" />}
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  )
+}
+
 // ── ScheduleSidebar ────────────────────────────────────────────────────
 function ScheduleSidebar({ selectedText, platform, hashtags }: {
   selectedText: string; platform: TabKey; hashtags: string[]
@@ -639,19 +701,11 @@ function ScheduleSidebar({ selectedText, platform, hashtags }: {
           {/* Platform */}
           <div>
             <label className="text-[10px] text-slate-500 font-semibold uppercase tracking-wide mb-1.5 block">Platform</label>
-            <div className="relative">
-              <select
-                value={schedPlatform}
-                onChange={e => setSchedPlatform(e.target.value as TabKey)}
-                className="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2.5 text-sm
-                  text-white appearance-none outline-none focus:border-[#F7BE4D]/30 cursor-pointer">
-                {tabs.map(t => <option key={t.key} value={t.key}>{t.label}</option>)}
-              </select>
-              <div className="absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none text-sm">
-                {currentTab.icon}
-              </div>
-              <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-slate-500 pointer-events-none" />
-            </div>
+            <DarkSelect
+              value={schedPlatform}
+              onChange={v => setSchedPlatform(v as TabKey)}
+              options={tabs.map(t => ({ value: t.key, label: t.label, icon: t.icon }))}
+            />
           </div>
 
           {/* Date */}
@@ -673,14 +727,11 @@ function ScheduleSidebar({ selectedText, platform, hashtags }: {
           {/* Timezone */}
           <div>
             <label className="text-[10px] text-slate-500 font-semibold uppercase tracking-wide mb-1.5 block">Timezone</label>
-            <div className="relative">
-              <select value={timezone} onChange={e => setTimezone(e.target.value)}
-                className="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2.5 text-sm
-                  text-white appearance-none outline-none focus:border-[#F7BE4D]/30 cursor-pointer">
-                {TIMEZONES.map(tz => <option key={tz} value={tz}>{tz}</option>)}
-              </select>
-              <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-slate-500 pointer-events-none" />
-            </div>
+            <DarkSelect
+              value={timezone}
+              onChange={setTimezone}
+              options={TIMEZONES.map(tz => ({ value: tz, label: tz }))}
+            />
           </div>
         </div>
 
