@@ -186,7 +186,7 @@ export default function Testimonials() {
                 <Star key={i} className="w-3.5 h-3.5 fill-[#F7BE4D] text-[#F7BE4D]" />
               ))}
             </div>
-            <span className="text-[#F7BE4D] text-xs font-bold">4.9 / 5</span>
+            <span className="text-[#F7BE4D] text-xs font-bold">5 / 5</span>
             <span className="text-slate-500 text-xs">· 500+ creators</span>
           </div>
 
