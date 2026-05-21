@@ -27,6 +27,8 @@ export default function AuthCallbackPage() {
       analytics.identify(userId, { email: session.user.email ?? undefined })
       if (isNewUser) {
         analytics.signup("google")
+        // Meta Pixel: new signup = Lead
+        ;(window as any).fbq?.("track", "Lead")
         fetch("/api/email/welcome", {
           method: "POST",
           headers: { Authorization: `Bearer ${session.access_token}` },

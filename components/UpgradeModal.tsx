@@ -154,6 +154,12 @@ export default function UpgradeModal({ open, onClose, onSuccess }: Props) {
           const verifyData = await verifyRes.json()
           if (!verifyRes.ok) throw new Error(verifyData.error)
 
+          // Meta Pixel: completed purchase
+          ;(window as any).fbq?.("track", "Purchase", {
+            value:    price,
+            currency: "INR",
+          })
+
           setSuccess(true)
           setLoading(false)
           onSuccess?.(verifyData.plan)

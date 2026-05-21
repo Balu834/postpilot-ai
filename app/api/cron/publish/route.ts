@@ -23,7 +23,9 @@ async function postToLinkedIn(content: string, accessToken: string) {
   const profileRes = await fetch("https://api.linkedin.com/v2/userinfo", {
     headers: { Authorization: `Bearer ${accessToken}` },
   })
-  const profile   = await profileRes.json()
+  if (!profileRes.ok) throw new Error("LinkedIn auth failed — please reconnect LinkedIn in Settings.")
+  const profile = await profileRes.json()
+  if (!profile?.sub) throw new Error("Failed to get LinkedIn profile — please reconnect LinkedIn in Settings.")
   const authorUrn = `urn:li:person:${profile.sub}`
 
   const res = await fetch("https://api.linkedin.com/v2/ugcPosts", {
