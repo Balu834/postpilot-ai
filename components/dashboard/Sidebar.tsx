@@ -89,26 +89,6 @@ export default function Sidebar() {
         backdropFilter: "blur(24px)",
       }}
     >
-      {/* Logo */}
-      <div className="px-5 py-5 border-b border-white/[0.06]">
-        <Link href="/" className="flex items-center gap-3 group">
-          <div className="relative flex-shrink-0">
-            <div className="w-9 h-9 rounded-xl bg-[#F7BE4D] flex items-center justify-center glow-logo">
-              <Zap className="w-5 h-5 text-[#050816]" fill="currentColor" strokeWidth={0} />
-            </div>
-            <span className="absolute -top-0.5 -right-0.5 w-2 h-2 rounded-full bg-emerald-400
-              border-2 border-[#080c1a]" />
-          </div>
-          <div className="leading-none">
-            <div className="text-sm font-bold tracking-tight">
-              <span className="text-white">PostPilot</span>
-              <span className="text-[#F7BE4D]">AI</span>
-            </div>
-            <div className="text-[10px] text-slate-600 mt-0.5 font-medium">AI Content OS</div>
-          </div>
-        </Link>
-      </div>
-
       {/* Nav */}
       <nav className="flex-1 px-3 py-3 space-y-0.5 overflow-y-auto">
         {navItems.map((item) => {
