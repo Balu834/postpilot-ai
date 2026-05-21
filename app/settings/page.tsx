@@ -12,8 +12,10 @@ interface SocialAccount { platform: string; username: string | null; expires_at:
 
 const SOCIAL_PLATFORMS = [
   { key: "twitter",   label: "Twitter / X",  icon: "𝕏",  color: "#94a3b8", bg: "rgba(148,163,184,0.12)" },
-  { key: "linkedin",  label: "LinkedIn",     icon: "💼", color: "#0077B5", bg: "rgba(0,119,181,0.12)"   },
-  { key: "instagram", label: "Instagram",    icon: "📸", color: "#E1306C", bg: "rgba(225,48,108,0.12)",  comingSoon: true },
+  { key: "linkedin",  label: "LinkedIn",     icon: "in", color: "#0077B5", bg: "rgba(0,119,181,0.12)"   },
+  { key: "instagram", label: "Instagram",    icon: "IG", color: "#E1306C", bg: "rgba(225,48,108,0.12)"  },
+  { key: "facebook",  label: "Facebook",     icon: "f",  color: "#1877F2", bg: "rgba(24,119,242,0.12)"  },
+  { key: "youtube",   label: "YouTube",      icon: "▶",  color: "#FF0000", bg: "rgba(255,0,0,0.10)"     },
 ] as const
 
 export default function SettingsPage() {
@@ -390,8 +392,8 @@ export default function SettingsPage() {
                   background:   account ? platform.bg : "rgba(255,255,255,0.02)",
                   borderColor:  account ? `${platform.color}30` : "rgba(255,255,255,0.06)",
                 }}>
-                <div className="w-9 h-9 rounded-xl flex items-center justify-center text-base flex-shrink-0"
-                  style={{ background: platform.bg }}>
+                <div className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0 font-bold text-sm"
+                  style={{ background: platform.bg, color: platform.color }}>
                   {platform.icon}
                 </div>
                 <div className="flex-1 min-w-0">
@@ -399,32 +401,27 @@ export default function SettingsPage() {
                   <p className="text-[11px] truncate" style={{ color: account ? platform.color : "#475569" }}>
                     {account
                       ? account.username ? `@${account.username}` : "Connected"
-                      : (platform as { comingSoon?: boolean }).comingSoon ? "Coming soon" : "Not connected"
+                      : "Not connected"
                     }
                   </p>
                 </div>
-                {!(platform as { comingSoon?: boolean }).comingSoon && (
-                  account ? (
-                    <button
-                      onClick={() => disconnectPlatform(platform.key)}
-                      disabled={isLoading}
-                      className="flex items-center gap-1.5 text-[11px] font-medium px-3 py-1.5 rounded-lg border border-red-500/20 text-red-400 hover:bg-red-500/10 transition-all disabled:opacity-50">
-                      {isLoading ? <Loader2 className="w-3 h-3 animate-spin" /> : <Unlink className="w-3 h-3" />}
-                      Disconnect
-                    </button>
-                  ) : (
-                    <button
-                      onClick={() => connectPlatform(platform.key)}
-                      disabled={isLoading}
-                      className="flex items-center gap-1.5 text-[11px] font-semibold px-3 py-1.5 rounded-lg transition-all disabled:opacity-50"
-                      style={{ background: `${platform.color}20`, color: platform.color, border: `1px solid ${platform.color}30` }}>
-                      {isLoading ? <Loader2 className="w-3 h-3 animate-spin" /> : <Link2 className="w-3 h-3" />}
-                      Connect
-                    </button>
-                  )
-                )}
-                {(platform as { comingSoon?: boolean }).comingSoon && (
-                  <span className="text-[10px] px-2.5 py-1 rounded-full bg-white/5 text-slate-600 border border-white/8">Soon</span>
+                {account ? (
+                  <button
+                    onClick={() => disconnectPlatform(platform.key)}
+                    disabled={isLoading}
+                    className="flex items-center gap-1.5 text-[11px] font-medium px-3 py-1.5 rounded-lg border border-red-500/20 text-red-400 hover:bg-red-500/10 transition-all disabled:opacity-50">
+                    {isLoading ? <Loader2 className="w-3 h-3 animate-spin" /> : <Unlink className="w-3 h-3" />}
+                    Disconnect
+                  </button>
+                ) : (
+                  <button
+                    onClick={() => connectPlatform(platform.key)}
+                    disabled={isLoading}
+                    className="flex items-center gap-1.5 text-[11px] font-semibold px-3 py-1.5 rounded-lg transition-all disabled:opacity-50"
+                    style={{ background: `${platform.color}20`, color: platform.color, border: `1px solid ${platform.color}30` }}>
+                    {isLoading ? <Loader2 className="w-3 h-3 animate-spin" /> : <Link2 className="w-3 h-3" />}
+                    Connect
+                  </button>
                 )}
               </div>
             )

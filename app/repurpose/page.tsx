@@ -51,6 +51,23 @@ const tabs = [
   { key: "cta"       as const, label: "CTAs",        icon: "📣", color: "#34d399" },
 ]
 
+const SCHEDULE_PLATFORMS = [
+  { key: "linkedin",  label: "LinkedIn",    icon: "in", color: "#0077B5" },
+  { key: "twitter",   label: "Twitter / X", icon: "𝕏",  color: "#94a3b8" },
+  { key: "instagram", label: "Instagram",   icon: "IG", color: "#E1306C" },
+  { key: "facebook",  label: "Facebook",    icon: "f",  color: "#1877F2" },
+  { key: "youtube",   label: "YouTube",     icon: "▶",  color: "#FF0000"  },
+]
+
+const TAB_TO_PLATFORM: Record<string, string> = {
+  linkedin:  "linkedin",
+  twitter:   "twitter",
+  instagram: "instagram",
+  carousels: "instagram",
+  reels:     "instagram",
+  cta:       "instagram",
+}
+
 const PLATFORM_BADGES: Record<string, string[]> = {
   linkedin:  ["Engaging", "Professional", "Growth Focused"],
   twitter:   ["Punchy",   "Engaging",     "Viral-ready"   ],
@@ -515,9 +532,7 @@ function PostCard({
 }
 
 // ── PostPreview ────────────────────────────────────────────────────────
-function PostPreview({ text, platform, hashtags }: { text: string; platform: TabKey; hashtags: string[] }) {
-  const tab = tabs.find(t => t.key === platform)!
-
+function PostPreview({ text, platform, hashtags }: { text: string; platform: string; hashtags: string[] }) {
   if (platform === "twitter") {
     return (
       <div className="rounded-xl border border-white/8 bg-white/[0.02] p-3">
@@ -543,7 +558,7 @@ function PostPreview({ text, platform, hashtags }: { text: string; platform: Tab
     )
   }
 
-  if (platform === "instagram" || platform === "reels") {
+  if (platform === "instagram" || platform === "reels" || platform === "facebook") {
     return (
       <div className="rounded-xl border border-white/8 bg-white/[0.02] p-3">
         <div className="flex items-center gap-2 mb-2">
@@ -564,7 +579,7 @@ function PostPreview({ text, platform, hashtags }: { text: string; platform: Tab
     )
   }
 
-  // LinkedIn / Carousels / CTAs
+  // LinkedIn / Carousels / CTAs / YouTube / fallback
   return (
     <div className="rounded-xl border border-white/8 bg-white/[0.02] p-3">
       <div className="flex items-center gap-2 mb-2.5">
@@ -655,7 +670,7 @@ function DarkSelect({ value, onChange, options, renderLabel }: {
 function ScheduleSidebar({ selectedText, platform, hashtags }: {
   selectedText: string; platform: TabKey; hashtags: string[]
 }) {
-  const [schedPlatform, setSchedPlatform] = useState<TabKey>(platform)
+  const [schedPlatform, setSchedPlatform] = useState(TAB_TO_PLATFORM[platform] ?? "linkedin")
   const [date,     setDate]     = useState(getTodayStr())
   const [time,     setTime]     = useState("10:00")
   const [timezone, setTimezone] = useState("(GMT+05:30) Asia/Kolkata")
@@ -671,12 +686,11 @@ function ScheduleSidebar({ selectedText, platform, hashtags }: {
     })
   }, [])
 
-  const isConnected = connectedPlatforms.includes(schedPlatform) ||
-    !["twitter", "linkedin"].includes(schedPlatform)
+  const isConnected = connectedPlatforms.includes(schedPlatform)
 
-  useEffect(() => { setSchedPlatform(platform) }, [platform])
+  useEffect(() => { setSchedPlatform(TAB_TO_PLATFORM[platform] ?? "linkedin") }, [platform])
 
-  const currentTab = tabs.find(t => t.key === schedPlatform)!
+  const currentPlatform = SCHEDULE_PLATFORMS.find(p => p.key === schedPlatform) ?? SCHEDULE_PLATFORMS[0]
 
   const handleSchedule = async () => {
     if (!selectedText || loading) return
@@ -715,8 +729,8 @@ function ScheduleSidebar({ selectedText, platform, hashtags }: {
             <label className="text-[10px] text-slate-500 font-semibold uppercase tracking-wide mb-1.5 block">Platform</label>
             <DarkSelect
               value={schedPlatform}
-              onChange={v => setSchedPlatform(v as TabKey)}
-              options={tabs.map(t => ({ value: t.key, label: t.label, icon: t.icon }))}
+              onChange={v => setSchedPlatform(v)}
+              options={SCHEDULE_PLATFORMS.map(p => ({ value: p.key, label: p.label, icon: p.icon }))}
             />
           </div>
 
@@ -755,7 +769,7 @@ function ScheduleSidebar({ selectedText, platform, hashtags }: {
             <div className="min-w-0">
               <p className="text-xs text-[#F7BE4D] font-semibold">Account not connected</p>
               <p className="text-[10px] text-slate-400 mt-0.5 leading-relaxed">
-                Connect your {currentTab.label} account to auto-publish scheduled posts.
+                Connect your {currentPlatform.label} account to auto-publish scheduled posts.
               </p>
               <a href="/settings#social"
                 className="inline-flex items-center gap-1 text-[11px] font-semibold text-[#F7BE4D] mt-2 hover:underline">
@@ -795,7 +809,7 @@ function ScheduleSidebar({ selectedText, platform, hashtags }: {
       {/* Post preview */}
       <div className="glass-card rounded-2xl p-5 border border-white/[0.06]">
         <div className="flex items-center gap-2 mb-4">
-          <span className="text-base">{currentTab.icon}</span>
+          <span className="text-sm font-bold" style={{ color: currentPlatform.color }}>{currentPlatform.icon}</span>
           <h3 className="text-sm font-bold text-white">Post Preview</h3>
         </div>
         {selectedText ? (
