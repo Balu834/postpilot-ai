@@ -7,6 +7,7 @@ import {
   Wand2, Sparkles, Copy, CheckCheck, RefreshCw,
   LinkIcon, Package, CalendarClock, Zap, Check,
   ClipboardList, TrendingUp, Flame, BookmarkPlus,
+  X, Loader2,
 } from "lucide-react"
 import { supabase } from "@/lib/supabase"
 import UpgradeModal from "@/components/UpgradeModal"
@@ -557,6 +558,122 @@ function CopyAllBtn({ result }: { result: FullResult }) {
   )
 }
 
+// ── Quick Schedule Modal ───────────────────────────────────────────
+const SCHEDULE_PLATFORM_META: Record<string, { icon: string; color: string; label: string }> = {
+  instagram: { icon: "📸", color: "#E1306C", label: "Instagram"   },
+  linkedin:  { icon: "💼", color: "#0A66C2", label: "LinkedIn"    },
+  twitter:   { icon: "𝕏",  color: "#94a3b8", label: "Twitter / X" },
+}
+
+function QuickScheduleModal({
+  open, onClose, platform, content, onScheduled,
+}: {
+  open: boolean; onClose: () => void; platform: string
+  content: string; onScheduled: () => void
+}) {
+  const tomorrow = new Date(); tomorrow.setDate(tomorrow.getDate() + 1)
+  const defaultDate = tomorrow.toISOString().split("T")[0]
+
+  const [text,   setText]   = useState(content)
+  const [date,   setDate]   = useState(defaultDate)
+  const [time,   setTime]   = useState("09:00")
+  const [saving, setSaving] = useState(false)
+  const [err,    setErr]    = useState("")
+
+  useEffect(() => { if (open) { setText(content); setErr("") } }, [open, content])
+
+  const meta = SCHEDULE_PLATFORM_META[platform] ?? { icon: "📝", color: "#F7BE4D", label: platform }
+
+  const handleSchedule = async () => {
+    if (!text.trim()) { setErr("Content cannot be empty"); return }
+    setSaving(true); setErr("")
+    const { data: { session } } = await supabase.auth.getSession()
+    if (!session) { setErr("Not logged in"); setSaving(false); return }
+    const scheduled_at = new Date(`${date}T${time}:00`).toISOString()
+    const res = await fetch("/api/schedule", {
+      method:  "POST",
+      headers: { "Content-Type": "application/json", Authorization: `Bearer ${session.access_token}` },
+      body:    JSON.stringify({ platform, content: text, scheduled_at }),
+    })
+    setSaving(false)
+    if (!res.ok) { const j = await res.json().catch(() => ({})); setErr(j.error || "Failed to schedule"); return }
+    onScheduled(); onClose()
+  }
+
+  if (!open) return null
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+      <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={onClose} />
+      <motion.div
+        initial={{ opacity: 0, scale: 0.95, y: 8 }}
+        animate={{ opacity: 1, scale: 1, y: 0 }}
+        className="relative w-full max-w-md rounded-2xl p-6 space-y-4"
+        style={{ background: "#0d1526", border: "1px solid rgba(255,255,255,0.1)", boxShadow: "0 25px 60px rgba(0,0,0,0.6)" }}
+      >
+        {/* Header */}
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2.5">
+            <div className="w-8 h-8 rounded-xl flex items-center justify-center text-sm" style={{ background: `${meta.color}18` }}>
+              {meta.icon}
+            </div>
+            <div>
+              <p className="text-sm font-semibold text-white">Schedule Post</p>
+              <p className="text-[11px] text-slate-500">{meta.label}</p>
+            </div>
+          </div>
+          <button onClick={onClose} className="text-slate-600 hover:text-slate-400 transition-colors p-1">
+            <X className="w-4 h-4" />
+          </button>
+        </div>
+
+        {/* Content */}
+        <div>
+          <label className="text-[11px] text-slate-500 font-medium mb-1.5 block">Content</label>
+          <textarea value={text} onChange={e => setText(e.target.value)} rows={5}
+            className="w-full text-xs text-slate-300 rounded-xl px-3 py-2.5 outline-none resize-none"
+            style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)" }} />
+        </div>
+
+        {/* Date + Time */}
+        <div className="grid grid-cols-2 gap-3">
+          <div>
+            <label className="text-[11px] text-slate-500 font-medium mb-1.5 block">Date</label>
+            <input type="date" value={date} min={new Date().toISOString().split("T")[0]}
+              onChange={e => setDate(e.target.value)}
+              className="w-full text-xs text-slate-300 rounded-xl px-3 py-2.5 outline-none"
+              style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)", colorScheme: "dark" }} />
+          </div>
+          <div>
+            <label className="text-[11px] text-slate-500 font-medium mb-1.5 block">Time</label>
+            <input type="time" value={time} onChange={e => setTime(e.target.value)}
+              className="w-full text-xs text-slate-300 rounded-xl px-3 py-2.5 outline-none"
+              style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)", colorScheme: "dark" }} />
+          </div>
+        </div>
+
+        {err && <p className="text-xs text-red-400">{err}</p>}
+
+        {/* Actions */}
+        <div className="flex gap-2 pt-1">
+          <button onClick={onClose}
+            className="flex-1 text-xs font-medium py-2.5 rounded-xl text-slate-500 hover:text-slate-300 transition-all"
+            style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.07)" }}>
+            Cancel
+          </button>
+          <motion.button onClick={handleSchedule} disabled={saving}
+            whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}
+            className="flex-1 flex items-center justify-center gap-2 text-xs font-bold py-2.5 rounded-xl"
+            style={{ background: "linear-gradient(135deg, #F7BE4D, #ffd97d)", color: "#050816" }}>
+            {saving ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <CalendarClock className="w-3.5 h-3.5" />}
+            {saving ? "Scheduling…" : "Schedule"}
+          </motion.button>
+        </div>
+      </motion.div>
+    </div>
+  )
+}
+
 // ── Main Page ──────────────────────────────────────────────────────
 export default function GeneratePage() {
   const searchParams = useSearchParams()
@@ -586,6 +703,12 @@ export default function GeneratePage() {
   const [genCount,     setGenCount]     = useState(0)
   const [upgradeOpen,  setUpgradeOpen]  = useState(false)
   const [reacted,      setReacted]      = useState<"up" | "down" | null>(null)
+
+  // Schedule modal
+  const [scheduleOpen,     setScheduleOpen]     = useState(false)
+  const [scheduleContent,  setScheduleContent]  = useState("")
+  const [schedulePlatform, setSchedulePlatform] = useState("instagram")
+  const [scheduledToast,   setScheduledToast]   = useState(false)
 
   const abortRef = useRef<AbortController | null>(null)
 
@@ -796,6 +919,33 @@ export default function GeneratePage() {
       <UpgradeModal open={upgradeOpen} onClose={() => setUpgradeOpen(false)}
         onSuccess={(plan) => { setPlanName(plan); setGenCount(0) }} />
       <SuccessToast show={showSuccess} />
+
+      <QuickScheduleModal
+        open={scheduleOpen}
+        onClose={() => setScheduleOpen(false)}
+        platform={schedulePlatform}
+        content={scheduleContent}
+        onScheduled={() => {
+          setScheduledToast(true)
+          setTimeout(() => setScheduledToast(false), 3000)
+        }}
+      />
+
+      {/* Scheduled toast */}
+      <AnimatePresence>
+        {scheduledToast && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 20 }}
+            className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 flex items-center gap-2.5 px-5 py-3 rounded-2xl text-sm font-semibold text-white"
+            style={{ background: "linear-gradient(135deg, #1a2a1a, #0d1a0d)", border: "1px solid rgba(52,211,153,0.3)", boxShadow: "0 8px 32px rgba(0,0,0,0.5)" }}
+          >
+            <Check className="w-4 h-4 text-emerald-400" />
+            Post scheduled! <a href="/schedule" className="text-[#F7BE4D] hover:underline ml-1">View calendar →</a>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       <div className="max-w-5xl space-y-5 relative">
 
@@ -1082,7 +1232,11 @@ export default function GeneratePage() {
                         text={(getTabContent(activeTab) as string) || ""}
                         color={activeTabConfig.color}
                         charLimit={activeTabConfig.charLimit!}
-                        onSchedule={() => router.push("/schedule")}
+                        onSchedule={() => {
+                          setScheduleContent((getTabContent(activeTab) as string) || "")
+                          setSchedulePlatform(activeTab)
+                          setScheduleOpen(true)
+                        }}
                         isStreamingThis={isStreaming && !completedPlatforms.has(activeTab)}
                       />
                     )}
