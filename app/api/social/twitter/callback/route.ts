@@ -23,19 +23,29 @@ export async function GET(req: NextRequest) {
   }
 
   try {
+    const clientId     = process.env.TWITTER_CLIENT_ID!
+    const clientSecret = process.env.TWITTER_CLIENT_SECRET!
+    const basicAuth    = Buffer.from(`${clientId}:${clientSecret}`).toString("base64")
+
     const tokenRes = await fetch("https://api.twitter.com/2/oauth2/token", {
       method:  "POST",
-      headers: { "Content-Type": "application/x-www-form-urlencoded" },
+      headers: {
+        "Content-Type":  "application/x-www-form-urlencoded",
+        "Authorization": `Basic ${basicAuth}`,
+      },
       body: new URLSearchParams({
         code,
         grant_type:    "authorization_code",
-        client_id:     process.env.TWITTER_CLIENT_ID!,
+        client_id:     clientId,
         redirect_uri:  `${appUrl}/api/social/twitter/callback`,
         code_verifier: codeVerifier,
       }),
     })
     const tokenData = await tokenRes.json()
-    if (!tokenRes.ok) throw new Error(tokenData.error_description || "Token exchange failed")
+    if (!tokenRes.ok) {
+      console.error("Twitter token exchange failed:", JSON.stringify(tokenData))
+      throw new Error(tokenData.error_description || tokenData.error || "Token exchange failed")
+    }
 
     const userRes = await fetch("https://api.twitter.com/2/users/me", {
       headers: { Authorization: `Bearer ${tokenData.access_token}` },
