@@ -661,6 +661,18 @@ function ScheduleSidebar({ selectedText, platform, hashtags }: {
   const [timezone, setTimezone] = useState("(GMT+05:30) Asia/Kolkata")
   const [loading,  setLoading]  = useState(false)
   const [scheduled, setScheduled] = useState(false)
+  const [connectedPlatforms, setConnectedPlatforms] = useState<string[]>([])
+
+  useEffect(() => {
+    supabase.auth.getUser().then(({ data: { user } }) => {
+      if (!user) return
+      supabase.from("social_accounts").select("platform").eq("user_id", user.id)
+        .then(({ data }) => setConnectedPlatforms((data ?? []).map((r: { platform: string }) => r.platform)))
+    })
+  }, [])
+
+  const isConnected = connectedPlatforms.includes(schedPlatform) ||
+    !["twitter", "linkedin"].includes(schedPlatform)
 
   useEffect(() => { setSchedPlatform(platform) }, [platform])
 
@@ -735,11 +747,29 @@ function ScheduleSidebar({ selectedText, platform, hashtags }: {
           </div>
         </div>
 
+        {/* Connect account warning */}
+        {!isConnected && (
+          <div className="mt-4 flex items-start gap-2.5 px-3.5 py-3 rounded-xl"
+            style={{ background: "rgba(247,190,77,0.08)", border: "1px solid rgba(247,190,77,0.2)" }}>
+            <span className="text-[#F7BE4D] mt-0.5 flex-shrink-0">⚠</span>
+            <div className="min-w-0">
+              <p className="text-xs text-[#F7BE4D] font-semibold">Account not connected</p>
+              <p className="text-[10px] text-slate-400 mt-0.5 leading-relaxed">
+                Connect your {currentTab.label} account to auto-publish scheduled posts.
+              </p>
+              <a href="/settings#social"
+                className="inline-flex items-center gap-1 text-[11px] font-semibold text-[#F7BE4D] mt-2 hover:underline">
+                Connect in Settings →
+              </a>
+            </div>
+          </div>
+        )}
+
         {/* Schedule button */}
         <button
           onClick={handleSchedule}
           disabled={!selectedText || loading || scheduled}
-          className="w-full mt-5 py-3 rounded-xl font-bold text-sm transition-all disabled:opacity-60 flex items-center justify-center gap-2"
+          className="w-full mt-4 py-3 rounded-xl font-bold text-sm transition-all disabled:opacity-60 flex items-center justify-center gap-2"
           style={{
             background: scheduled
               ? "linear-gradient(135deg, #34d399 0%, #059669 100%)"
@@ -751,10 +781,14 @@ function ScheduleSidebar({ selectedText, platform, hashtags }: {
             <><RefreshCw className="w-4 h-4 animate-spin" /> Scheduling...</>
           ) : scheduled ? (
             <><CheckCircle2 className="w-4 h-4" /> Scheduled!</>
-          ) : "Schedule"}
+          ) : isConnected ? "Schedule" : "Schedule Anyway"}
         </button>
         <p className="text-center text-[10px] text-slate-600 mt-2">
-          {scheduled ? "Post added to your calendar." : "This post will be scheduled"}
+          {scheduled
+            ? "Post added to your calendar."
+            : isConnected
+              ? "Post will auto-publish at the selected time."
+              : "Post will be saved but not auto-published."}
         </p>
       </div>
 
