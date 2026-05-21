@@ -12,18 +12,21 @@ values ('post-images', 'post-images', true)
 on conflict (id) do nothing;
 
 -- Allow authenticated users to upload
-create policy if not exists "Authenticated users can upload post images"
+drop policy if exists "Authenticated users can upload post images" on storage.objects;
+create policy "Authenticated users can upload post images"
   on storage.objects for insert
   to authenticated
   with check (bucket_id = 'post-images');
 
 -- Allow public read access (needed for Instagram API to fetch the image)
-create policy if not exists "Post images are publicly readable"
+drop policy if exists "Post images are publicly readable" on storage.objects;
+create policy "Post images are publicly readable"
   on storage.objects for select
   using (bucket_id = 'post-images');
 
 -- Allow users to delete their own images
-create policy if not exists "Users can delete their own post images"
+drop policy if exists "Users can delete their own post images" on storage.objects;
+create policy "Users can delete their own post images"
   on storage.objects for delete
   to authenticated
   using (bucket_id = 'post-images' and auth.uid()::text = (storage.foldername(name))[1]);
