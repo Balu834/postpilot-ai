@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <rect width="512" height="512" rx="112" fill="#050816"/>
+  <rect width="512" height="512" rx="112" fill="url(#bg)"/>
+  <defs>
+    <radialGradient id="bg" cx="50%" cy="30%" r="70%">
+      <stop offset="0%" stop-color="#1a2540"/>
+      <stop offset="100%" stop-color="#050816"/>
+    </radialGradient>
+  </defs>
+  <!-- Zap icon centered -->
+  <polygon
+    points="288,80 176,272 248,272 224,432 336,240 264,240"
+    fill="#F7BE4D"
+    filter="url(#glow)"
+  />
+  <defs>
+    <filter id="glow" x="-30%" y="-30%" width="160%" height="160%">
+      <feGaussianBlur stdDeviation="8" result="blur"/>
+      <feMerge>
+        <feMergeNode in="blur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+</svg>

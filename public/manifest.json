@@ -1,0 +1,53 @@
+{
+  "name": "PostPilot AI",
+  "short_name": "PostPilot",
+  "description": "Turn one idea into 30 days of social media content using AI.",
+  "start_url": "/dashboard",
+  "display": "standalone",
+  "background_color": "#050816",
+  "theme_color": "#050816",
+  "orientation": "portrait-primary",
+  "categories": ["productivity", "social"],
+  "icons": [
+    {
+      "src": "/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    },
+    {
+      "src": "/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "maskable"
+    },
+    {
+      "src": "/favicon.ico",
+      "sizes": "48x48",
+      "type": "image/x-icon"
+    }
+  ],
+  "screenshots": [
+    {
+      "src": "/opengraph-image",
+      "sizes": "1200x630",
+      "type": "image/png",
+      "form_factor": "wide",
+      "label": "PostPilot AI Dashboard"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Generate Content",
+      "short_name": "Generate",
+      "url": "/generate",
+      "icons": [{ "src": "/icon.svg", "sizes": "any" }]
+    },
+    {
+      "name": "Schedule Posts",
+      "short_name": "Schedule",
+      "url": "/schedule",
+      "icons": [{ "src": "/icon.svg", "sizes": "any" }]
+    }
+  ]
+}

@@ -16,6 +16,23 @@ export async function POST(req: NextRequest) {
   const { caption } = await req.json()
   if (!caption?.trim()) return NextResponse.json({ error: "Caption required" }, { status: 400 })
 
+  // Enforce free tier limit (same as text generation)
+  const FREE_LIMIT = 30
+  const supabaseAdmin = createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!
+  )
+  const { data: profile } = await supabaseAdmin
+    .from("users")
+    .select("plan_name, credits_used")
+    .eq("id", user.id)
+    .single()
+
+  const isFree = !profile?.plan_name || profile.plan_name === "free"
+  if (isFree && (profile?.credits_used ?? 0) >= FREE_LIMIT) {
+    return NextResponse.json({ error: "Free limit reached. Upgrade to Pro for unlimited generations.", code: "UPGRADE_REQUIRED" }, { status: 402 })
+  }
+
   const prompt = [
     "Create a visually stunning, professional Instagram photo.",
     "No text, words, or captions in the image.",
@@ -37,10 +54,13 @@ export async function POST(req: NextRequest) {
   // Fetch and upload to Supabase Storage so URL is permanent
   const imageBuffer = await fetch(imageUrl).then(r => r.arrayBuffer())
 
-  const supabaseAdmin = createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!
-  )
+  // Deduct credit for free users after successful generation
+  if (isFree) {
+    void supabaseAdmin
+      .from("users")
+      .update({ credits_used: (profile?.credits_used ?? 0) + 1 })
+      .eq("id", user.id)
+  }
 
   const path = `${user.id}/${Date.now()}-ai.png`
   const { error: uploadError } = await supabaseAdmin.storage

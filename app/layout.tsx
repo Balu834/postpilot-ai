@@ -70,6 +70,19 @@ export const metadata: Metadata = {
     follow: true,
     googleBot: { index: true, follow: true },
   },
+  manifest: "/manifest.json",
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "black-translucent",
+    title: "PostPilot AI",
+  },
+  icons: {
+    icon: [
+      { url: "/favicon.ico", sizes: "48x48" },
+      { url: "/icon.svg",    sizes: "any",  type: "image/svg+xml" },
+    ],
+    apple: "/icon.svg",
+  },
 }
 
 export const viewport: Viewport = {
