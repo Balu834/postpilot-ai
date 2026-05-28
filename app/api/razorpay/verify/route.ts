@@ -2,7 +2,6 @@ import { NextRequest, NextResponse } from "next/server"
 import crypto from "crypto"
 import { createClient } from "@supabase/supabase-js"
 
-// Server-side Supabase client with service role to bypass RLS
 const supabaseAdmin = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
   process.env.SUPABASE_SERVICE_ROLE_KEY!
@@ -10,7 +9,15 @@ const supabaseAdmin = createClient(
 
 export async function POST(req: NextRequest) {
   try {
-    const { razorpay_order_id, razorpay_payment_id, razorpay_signature, userId, plan } = await req.json()
+    // Verify caller identity from JWT — do not trust userId from body
+    const token = req.headers.get("authorization")?.replace("Bearer ", "")
+    if (!token) return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+    const anon = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!)
+    const { data: { user: caller } } = await anon.auth.getUser(token)
+    if (!caller) return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+
+    const { razorpay_order_id, razorpay_payment_id, razorpay_signature, plan } = await req.json()
+    const userId = caller.id
 
     // Verify signature
     const body     = `${razorpay_order_id}|${razorpay_payment_id}`
@@ -33,7 +40,6 @@ export async function POST(req: NextRequest) {
     const { error } = await supabaseAdmin
       .from("users")
       .update({
-        plan,
         plan_name:          planName,
         plan_expires_at:    expiresAt.toISOString(),
         razorpay_payment_id,

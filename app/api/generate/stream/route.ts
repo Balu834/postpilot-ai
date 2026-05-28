@@ -40,6 +40,9 @@ Generate platform-optimized content. Return ONLY valid JSON:
   "instagram": "Instagram caption (150-300 chars, emojis, storytelling)",
   "linkedin": "LinkedIn post (200-450 chars, professional, insight-led)",
   "twitter": "Twitter/X post (under 280 chars, punchy, opinionated)",
+  "threads": "Threads post (under 500 chars, conversational, relatable — like a casual Twitter but warmer)",
+  "bluesky": "Bluesky post (under 300 chars, thoughtful, community-driven, no corporate tone — feels like early Twitter)",
+  "pinterest": "Pinterest pin description (under 500 chars, inspiring, keyword-rich, visual-forward — helps with discoverability)",
   "hashtags": ["tag1","tag2","tag3","tag4","tag5","tag6","tag7","tag8","tag9","tag10"],
   "carousel": [
     "Slide 1: Hook — opening line",
@@ -140,6 +143,9 @@ export async function POST(req: NextRequest) {
           { key: "instagram", msg: "Crafting Instagram captions...",  chunkSize: 5, delay: 28 },
           { key: "linkedin",  msg: "Writing LinkedIn posts...",        chunkSize: 5, delay: 22 },
           { key: "twitter",   msg: "Building Twitter threads...",      chunkSize: 4, delay: 32 },
+          { key: "threads",   msg: "Writing Threads post...",          chunkSize: 4, delay: 30 },
+          { key: "bluesky",   msg: "Crafting Bluesky post...",         chunkSize: 4, delay: 30 },
+          { key: "pinterest", msg: "Writing Pinterest description...", chunkSize: 4, delay: 28 },
           { key: "hashtags",  msg: "Generating hashtag sets...",       chunkSize: 0, delay: 0  },
           { key: "carousel",  msg: "Crafting carousel scripts...",     chunkSize: 0, delay: 0  },
         ]

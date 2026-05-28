@@ -20,6 +20,9 @@ interface FullResult {
   instagram: string
   linkedin:  string
   twitter:   string
+  threads:   string
+  bluesky:   string
+  pinterest: string
   hashtags:  string[]
   carousel:  string[]
 }
@@ -38,6 +41,9 @@ const TABS = [
   { key: "instagram" as const, label: "Instagram",   icon: "📸", color: "#E1306C", charLimit: 2200 },
   { key: "linkedin"  as const, label: "LinkedIn",    icon: "💼", color: "#0A66C2", charLimit: 3000 },
   { key: "twitter"   as const, label: "Twitter / X", icon: "𝕏",  color: "#94a3b8", charLimit: 280  },
+  { key: "threads"   as const, label: "Threads",     icon: "🧵", color: "#e2e8f0", charLimit: 500  },
+  { key: "bluesky"   as const, label: "Bluesky",     icon: "🦋", color: "#0085ff", charLimit: 300  },
+  { key: "pinterest" as const, label: "Pinterest",   icon: "📌", color: "#E60023", charLimit: 500  },
   { key: "hashtags"  as const, label: "Hashtags",    icon: "#️⃣", color: "#F7BE4D", charLimit: null },
   { key: "carousel"  as const, label: "Carousel",    icon: "🎨", color: "#818cf8", charLimit: null },
 ]
@@ -298,14 +304,21 @@ function StreamingLoader({
 
 // ── PostCard ───────────────────────────────────────────────────────
 function PostCard({
-  text, color, charLimit, onSchedule, isStreamingThis,
+  text, color, charLimit, onSchedule, onSaveDraft, isStreamingThis,
 }: {
   text: string; color: string; charLimit: number
-  onSchedule: () => void; isStreamingThis?: boolean
+  onSchedule: () => void; onSaveDraft: () => void; isStreamingThis?: boolean
 }) {
-  const [hovered, setHovered] = useState(false)
+  const [hovered,  setHovered]  = useState(false)
+  const [saved,    setSaved]    = useState(false)
   const pct  = Math.min((text.length / charLimit) * 100, 100)
   const over = text.length > charLimit
+
+  const handleSave = async () => {
+    await onSaveDraft()
+    setSaved(true)
+    setTimeout(() => setSaved(false), 2500)
+  }
 
   return (
     <div className="space-y-3">
@@ -324,6 +337,18 @@ function PostCard({
         </div>
         <div className="flex items-center gap-2">
           {!isStreamingThis && <CopyBtn text={text} variant="solid" />}
+          {!isStreamingThis && (
+            <motion.button onClick={handleSave} whileHover={{ scale: 1.04 }} whileTap={{ scale: 0.96 }}
+              className={`flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg font-medium transition-all ${
+                saved
+                  ? "bg-emerald-500/15 border border-emerald-500/25 text-emerald-400"
+                  : ""
+              }`}
+              style={saved ? {} : { background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.07)", color: "#94a3b8" }}>
+              <BookmarkPlus className="w-3.5 h-3.5" />
+              <span className="hidden sm:block">{saved ? "Saved!" : "Draft"}</span>
+            </motion.button>
+          )}
           <motion.button onClick={onSchedule} whileHover={{ scale: 1.04 }} whileTap={{ scale: 0.96 }}
             className="flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg font-medium transition-all"
             style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.07)", color: "#94a3b8" }}>
@@ -563,6 +588,9 @@ const SCHEDULE_PLATFORM_META: Record<string, { icon: string; color: string; labe
   instagram: { icon: "📸", color: "#E1306C", label: "Instagram"   },
   linkedin:  { icon: "💼", color: "#0A66C2", label: "LinkedIn"    },
   twitter:   { icon: "𝕏",  color: "#94a3b8", label: "Twitter / X" },
+  threads:   { icon: "🧵", color: "#e2e8f0", label: "Threads"     },
+  bluesky:   { icon: "🦋", color: "#0085ff", label: "Bluesky"     },
+  pinterest: { icon: "📌", color: "#E60023", label: "Pinterest"   },
 }
 
 function QuickScheduleModal({
@@ -785,6 +813,12 @@ export default function GeneratePage() {
   const [schedulePlatform, setSchedulePlatform] = useState("instagram")
   const [scheduledToast,   setScheduledToast]   = useState(false)
 
+  // Image generator
+  const [imgUrl,     setImgUrl]     = useState("")
+  const [imgLoading, setImgLoading] = useState(false)
+  const [imgError,   setImgError]   = useState("")
+  const [imgOpen,    setImgOpen]    = useState(false)
+
   const abortRef = useRef<AbortController | null>(null)
 
   useEffect(() => {
@@ -965,6 +999,22 @@ export default function GeneratePage() {
       clearTimeout(timeout)
     }
   }, [topic, product, blogUrl, tone, brandVoice, planName, genCount])
+
+  const handleGenerateImage = async () => {
+    setImgLoading(true); setImgError(""); setImgUrl("")
+    const { data: { session } } = await supabase.auth.getSession()
+    if (!session) { setImgError("Not logged in"); setImgLoading(false); return }
+    const caption = finalResult?.instagram ?? topic
+    const res = await fetch("/api/generate/image", {
+      method:  "POST",
+      headers: { "Content-Type": "application/json", Authorization: `Bearer ${session.access_token}` },
+      body:    JSON.stringify({ caption }),
+    })
+    setImgLoading(false)
+    if (!res.ok) { const j = await res.json().catch(() => ({})); setImgError(j.error || "Image generation failed"); return }
+    const { url } = await res.json()
+    setImgUrl(url)
+  }
 
   const handleRefine = (action: string) => {
     if (!finalResult) return
@@ -1312,6 +1362,15 @@ export default function GeneratePage() {
                           setSchedulePlatform(activeTab)
                           setScheduleOpen(true)
                         }}
+                        onSaveDraft={async () => {
+                          const { data: { session } } = await supabase.auth.getSession()
+                          if (!session) return
+                          await fetch("/api/drafts", {
+                            method: "POST",
+                            headers: { "Content-Type": "application/json", Authorization: `Bearer ${session.access_token}` },
+                            body: JSON.stringify({ platform: activeTab, content: (getTabContent(activeTab) as string) || "", topic }),
+                          })
+                        }}
                         isStreamingThis={isStreaming && !completedPlatforms.has(activeTab)}
                       />
                     )}
@@ -1324,6 +1383,93 @@ export default function GeneratePage() {
                 <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.3 }}
                   className="px-5 pb-5 pt-1 border-t border-white/[0.04]">
                   <RefinementBar onRefine={handleRefine} disabled={isStreaming} />
+                </motion.div>
+              )}
+
+              {/* Image Generator */}
+              {finalResult && !isStreaming && (
+                <motion.div
+                  initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.4 }}
+                  className="px-5 pb-5 border-t border-white/[0.04]"
+                >
+                  <button
+                    onClick={() => { setImgOpen(o => !o); setImgError("") }}
+                    className="flex items-center gap-2 mt-4 mb-3 text-xs font-semibold text-slate-400 hover:text-white transition-colors"
+                  >
+                    <ImageIcon className="w-3.5 h-3.5 text-[#818cf8]" />
+                    <span>Generate Image</span>
+                    <span className="text-[10px] text-slate-600 font-normal ml-1">AI-powered visual for your post</span>
+                    <motion.span
+                      animate={{ rotate: imgOpen ? 180 : 0 }}
+                      transition={{ duration: 0.2 }}
+                      className="ml-auto text-slate-600"
+                    >▾</motion.span>
+                  </button>
+
+                  <AnimatePresence>
+                    {imgOpen && (
+                      <motion.div
+                        initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }} exit={{ opacity: 0, height: 0 }}
+                        transition={{ duration: 0.22 }}
+                        className="overflow-hidden"
+                      >
+                        {imgUrl ? (
+                          <div className="space-y-3">
+                            <div className="relative rounded-xl overflow-hidden" style={{ maxHeight: 320 }}>
+                              {/* eslint-disable-next-line @next/next/no-img-element */}
+                              <img src={imgUrl} alt="AI generated" className="w-full object-cover rounded-xl" />
+                              <button
+                                onClick={() => setImgUrl("")}
+                                className="absolute top-2 right-2 w-7 h-7 rounded-full bg-black/70 flex items-center justify-center text-white hover:bg-black/90 transition-colors"
+                              >
+                                <X className="w-3.5 h-3.5" />
+                              </button>
+                            </div>
+                            <div className="flex gap-2">
+                              <a
+                                href={imgUrl} download="postpilot-image.png" target="_blank" rel="noreferrer"
+                                className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-xl text-xs font-semibold transition-all"
+                                style={{ background: "rgba(129,140,248,0.12)", border: "1px solid rgba(129,140,248,0.28)", color: "#818cf8" }}
+                              >
+                                ↓ Download
+                              </a>
+                              <motion.button
+                                onClick={handleGenerateImage} disabled={imgLoading}
+                                whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}
+                                className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-xl text-xs font-semibold transition-all"
+                                style={{ background: "rgba(247,190,77,0.09)", border: "1px solid rgba(247,190,77,0.24)", color: "#F7BE4D" }}
+                              >
+                                {imgLoading ? <><Loader2 className="w-3.5 h-3.5 animate-spin" /> Generating…</> : <><RefreshCw className="w-3.5 h-3.5" /> Regenerate</>}
+                              </motion.button>
+                            </div>
+                          </div>
+                        ) : (
+                          <div className="space-y-3">
+                            <p className="text-[11px] text-slate-500">
+                              AI will generate a visual based on your Instagram caption using DALL-E 3.
+                            </p>
+                            {imgError && <p className="text-xs text-red-400">{imgError}</p>}
+                            <motion.button
+                              onClick={handleGenerateImage} disabled={imgLoading}
+                              whileHover={{ scale: 1.01 }} whileTap={{ scale: 0.99 }}
+                              className="w-full flex items-center justify-center gap-2 py-3 rounded-xl text-xs font-bold transition-all"
+                              style={{
+                                background: "linear-gradient(135deg, rgba(129,140,248,0.15), rgba(129,140,248,0.08))",
+                                border: "1px solid rgba(129,140,248,0.3)",
+                                color: "#818cf8",
+                                boxShadow: "0 0 20px rgba(129,140,248,0.1)",
+                              }}
+                            >
+                              {imgLoading
+                                ? <><Loader2 className="w-4 h-4 animate-spin" /> Generating image…</>
+                                : <><Sparkles className="w-4 h-4" /> Generate Image with AI</>
+                              }
+                            </motion.button>
+                          </div>
+                        )}
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
                 </motion.div>
               )}
 

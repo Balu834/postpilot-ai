@@ -90,11 +90,12 @@ interface Props {
 
 /* ─── Component ──────────────────────────────────────────────── */
 export default function UpgradeModal({ open, onClose, onSuccess }: Props) {
-  const [billing,  setBilling]  = useState<Billing>("monthly")
-  const [selected, setSelected] = useState<PlanKey>("pro")
-  const [loading,  setLoading]  = useState(false)
-  const [success,  setSuccess]  = useState(false)
-  const [error,    setError]    = useState("")
+  const [billing,      setBilling]      = useState<Billing>("monthly")
+  const [selected,     setSelected]     = useState<PlanKey>("pro")
+  const [loading,      setLoading]      = useState(false)
+  const [success,      setSuccess]      = useState(false)
+  const [activatedPlan, setActivatedPlan] = useState("")
+  const [error,        setError]        = useState("")
 
   useEffect(() => {
     if (open) { setSuccess(false); setError("") }
@@ -105,15 +106,16 @@ export default function UpgradeModal({ open, onClose, onSuccess }: Props) {
     setError("")
 
     try {
-      const { data: { user } } = await supabase.auth.getUser()
-      if (!user) throw new Error("Please sign in first")
+      const { data: { session } } = await supabase.auth.getSession()
+      if (!session) throw new Error("Please sign in first")
+      const user = session.user
 
       const planKey = `${selected}_${billing}` // e.g. pro_monthly
 
       // 1. Create order server-side
       const orderRes = await fetch("/api/razorpay/create-order", {
         method:  "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${session.access_token}` },
         body:    JSON.stringify({ plan: planKey }),
       })
       const orderData = await orderRes.json()
@@ -139,30 +141,35 @@ export default function UpgradeModal({ open, onClose, onSuccess }: Props) {
         },
         theme: { color: plan.color },
         handler: async (response: any) => {
-          // 4. Verify payment server-side
-          const verifyRes = await fetch("/api/razorpay/verify", {
-            method:  "POST",
-            headers: { "Content-Type": "application/json" },
-            body:    JSON.stringify({
-              razorpay_order_id:   response.razorpay_order_id,
-              razorpay_payment_id: response.razorpay_payment_id,
-              razorpay_signature:  response.razorpay_signature,
-              userId:              user.id,
-              plan:                planKey,
-            }),
-          })
-          const verifyData = await verifyRes.json()
-          if (!verifyRes.ok) throw new Error(verifyData.error)
+          try {
+            // 4. Verify payment server-side
+            const verifyRes = await fetch("/api/razorpay/verify", {
+              method:  "POST",
+              headers: { "Content-Type": "application/json", Authorization: `Bearer ${session.access_token}` },
+              body:    JSON.stringify({
+                razorpay_order_id:   response.razorpay_order_id,
+                razorpay_payment_id: response.razorpay_payment_id,
+                razorpay_signature:  response.razorpay_signature,
+                plan:                planKey,
+              }),
+            })
+            const verifyData = await verifyRes.json()
+            if (!verifyRes.ok) throw new Error(verifyData.error ?? "Verification failed")
 
-          // Meta Pixel: completed purchase
-          ;(window as any).fbq?.("track", "Purchase", {
-            value:    price,
-            currency: "INR",
-          })
+            // Meta Pixel: completed purchase
+            ;(window as any).fbq?.("track", "Purchase", {
+              value:    price,
+              currency: "INR",
+            })
 
-          setSuccess(true)
-          setLoading(false)
-          onSuccess?.(verifyData.plan)
+            setSuccess(true)
+            setActivatedPlan(verifyData.plan)
+            onSuccess?.(verifyData.plan)
+          } catch (err: unknown) {
+            setError(err instanceof Error ? err.message : "Payment verification failed")
+          } finally {
+            setLoading(false)
+          }
         },
         modal: {
           ondismiss: () => setLoading(false),
@@ -218,7 +225,9 @@ export default function UpgradeModal({ open, onClose, onSuccess }: Props) {
                 >
                   <Check className="w-10 h-10 text-[#050816]" strokeWidth={3} />
                 </motion.div>
-                <h2 className="text-2xl font-black text-white mb-2">You&apos;re on Pro! 🚀</h2>
+                <h2 className="text-2xl font-black text-white mb-2 capitalize">
+                  You&apos;re on {activatedPlan || "Pro"}! 🚀
+                </h2>
                 <p className="text-slate-400 text-sm mb-6">
                   Unlimited generations unlocked. Your workspace is ready.
                 </p>
@@ -384,6 +393,7 @@ export default function UpgradeModal({ open, onClose, onSuccess }: Props) {
                     <span className="text-[10px] text-slate-700">•</span>
                     <span className="text-[10px] text-slate-600">Secured by Razorpay</span>
                   </div>
+
                 </div>
               </>
             )}

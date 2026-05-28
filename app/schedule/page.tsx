@@ -11,8 +11,8 @@ import { supabase } from "@/lib/supabase"
 import { analytics } from "@/lib/analytics"
 
 // ── Types ────────────────────────────────────────────────────────
-type Platform = "linkedin" | "twitter" | "instagram" | "facebook"
-type Status   = "pending" | "published" | "failed"
+type Platform = "linkedin" | "twitter" | "instagram" | "facebook" | "threads" | "bluesky" | "pinterest"
+type Status   = "pending" | "published" | "failed" | "pending_approval" | "rejected"
 type View     = "calendar" | "list"
 
 interface ScheduledPost {
@@ -30,12 +30,27 @@ const PLATFORM = {
   linkedin:  { label: "LinkedIn",  icon: "💼", color: "#0077B5" },
   twitter:   { label: "Twitter/X", icon: "𝕏",  color: "#94a3b8" },
   facebook:  { label: "Facebook",  icon: "f",   color: "#1877F2" },
+  threads:   { label: "Threads",   icon: "🧵", color: "#e2e8f0" },
+  bluesky:   { label: "Bluesky",   icon: "🦋", color: "#0085ff" },
+  pinterest: { label: "Pinterest", icon: "📌", color: "#E60023" },
 } as const
 
+const BEST_TIMES: Record<Platform, string> = {
+  instagram: "Mon–Fri, 9–11am",
+  linkedin:  "Tue–Thu, 8–10am",
+  twitter:   "Mon–Fri, 9am–3pm",
+  facebook:  "Thu–Fri, 1–4pm",
+  threads:   "Mon–Fri, 8am–12pm",
+  bluesky:   "Mon–Fri, 10am–2pm",
+  pinterest: "Sat–Sun, 8–11pm",
+}
+
 const STATUS = {
-  pending:   { label: "Scheduled", Icon: Clock,        color: "#F7BE4D" },
-  published: { label: "Published", Icon: CheckCircle2, color: "#34d399" },
-  failed:    { label: "Failed",    Icon: AlertCircle,  color: "#ef4444" },
+  pending:          { label: "Scheduled",        Icon: Clock,        color: "#F7BE4D" },
+  published:        { label: "Published",        Icon: CheckCircle2, color: "#34d399" },
+  failed:           { label: "Failed",           Icon: AlertCircle,  color: "#ef4444" },
+  pending_approval: { label: "Needs Approval",   Icon: Clock,        color: "#818cf8" },
+  rejected:         { label: "Rejected",         Icon: AlertCircle,  color: "#f87171" },
 } as const
 
 const DAYS   = ["Sun","Mon","Tue","Wed","Thu","Fri","Sat"]
@@ -123,6 +138,9 @@ const PLANNER_PLATFORMS = [
   { key: "twitter",   label: "Twitter / X", icon: "𝕏",  color: "#94a3b8" },
   { key: "instagram", label: "Instagram",   icon: "📸", color: "#E1306C" },
   { key: "facebook",  label: "Facebook",    icon: "f",  color: "#1877F2" },
+  { key: "threads",   label: "Threads",     icon: "🧵", color: "#e2e8f0" },
+  { key: "bluesky",   label: "Bluesky",     icon: "🦋", color: "#0085ff" },
+  { key: "pinterest", label: "Pinterest",   icon: "📌", color: "#E60023" },
 ] as const
 
 const POSTS_PER_WEEK_OPTIONS = [3, 5, 7]
@@ -343,7 +361,10 @@ function AddPostModal({
 
   const handleSave = async () => {
     if (!form.content.trim() || !form.scheduled_time) return
-    if (form.platform === "instagram" && !imageUrl) { setError("Instagram posts require an image"); return }
+    if ((form.platform === "instagram" || form.platform === "pinterest") && !imageUrl) {
+      setError(`${PLATFORM[form.platform].label} posts require an image`)
+      return
+    }
     setSaving(true); setError("")
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) return
@@ -393,10 +414,10 @@ function AddPostModal({
               {/* Platform tabs */}
               <div>
                 <label className="text-xs text-slate-500 mb-2 block font-medium">Platform</label>
-                <div className="flex gap-2">
+                <div className="flex gap-2 flex-wrap">
                   {(Object.entries(PLATFORM) as [Platform, typeof PLATFORM[Platform]][]).map(([key, cfg]) => (
                     <button key={key} onClick={() => setForm(f => ({ ...f, platform: key }))}
-                      className="flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-xl text-xs font-semibold transition-all"
+                      className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold transition-all"
                       style={{
                         background: form.platform === key ? `${cfg.color}20` : "rgba(255,255,255,0.03)",
                         border:     form.platform === key ? `1px solid ${cfg.color}50` : "1px solid rgba(255,255,255,0.07)",
@@ -406,6 +427,11 @@ function AddPostModal({
                     </button>
                   ))}
                 </div>
+                {/* Best time hint */}
+                <p className="text-[10px] text-slate-600 mt-1.5 flex items-center gap-1">
+                  <span>⏰</span> Best time for {PLATFORM[form.platform].label}:
+                  <span className="text-slate-400 font-medium">{BEST_TIMES[form.platform]}</span>
+                </p>
               </div>
 
               {/* Content */}
@@ -421,12 +447,12 @@ function AddPostModal({
                 <p className="text-[10px] text-slate-600 mt-1 text-right">{form.content.length} chars</p>
               </div>
 
-              {/* Image upload — Instagram only */}
-              {form.platform === "instagram" && (
+              {/* Image upload — Instagram & Pinterest */}
+              {(form.platform === "instagram" || form.platform === "pinterest") && (
                 <div>
                   <label className="text-xs text-slate-500 mb-2 block font-medium">
                     Image <span className="text-red-400">*</span>
-                    <span className="text-slate-600 ml-1 font-normal">(required for Instagram)</span>
+                    <span className="text-slate-600 ml-1 font-normal">(required for {PLATFORM[form.platform].label})</span>
                   </label>
                   {imageUrl ? (
                     <div className="relative rounded-xl overflow-hidden border border-[#E1306C]/30">
@@ -500,7 +526,7 @@ function PostDetailInner({ post, onClose, onDelete, onStatusChange }: {
   onDelete: (id: string) => void
   onStatusChange: (id: string, status: Status) => void
 }) {
-  const cfg      = PLATFORM[post.platform]
+  const cfg      = PLATFORM[post.platform] ?? { label: post.platform, icon: "📝", color: "#94a3b8" }
   const stCfg    = STATUS[post.status]
   const StIcon   = stCfg.Icon
   const [publishing, setPublishing] = useState(false)

@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react"
 import { motion, AnimatePresence } from "framer-motion"
-import { User, Key, Loader2, CheckCircle2, Zap, Crown, Link2, Unlink, AlertCircle, Bell, Gift, Copy, CheckCheck } from "lucide-react"
+import { User, Key, Loader2, CheckCircle2, Zap, Crown, Link2, Unlink, AlertCircle, Bell, Gift, Copy, CheckCheck, X, Eye, EyeOff, Users, UserPlus, Trash2, Mail } from "lucide-react"
 import { useSearchParams } from "next/navigation"
 import { supabase } from "@/lib/supabase"
 import UpgradeModal from "@/components/UpgradeModal"
@@ -16,11 +16,14 @@ function isExpiringSoon(expiresAt: string | null): boolean {
 }
 
 const SOCIAL_PLATFORMS = [
-  { key: "twitter",   label: "Twitter / X",  icon: "𝕏",  color: "#94a3b8", bg: "rgba(148,163,184,0.12)" },
-  { key: "linkedin",  label: "LinkedIn",     icon: "in", color: "#0077B5", bg: "rgba(0,119,181,0.12)"   },
-  { key: "instagram", label: "Instagram",    icon: "IG", color: "#E1306C", bg: "rgba(225,48,108,0.12)"  },
-  { key: "facebook",  label: "Facebook",     icon: "f",  color: "#1877F2", bg: "rgba(24,119,242,0.12)"  },
-  { key: "youtube",   label: "YouTube",      icon: "▶",  color: "#FF0000", bg: "rgba(255,0,0,0.10)"     },
+  { key: "twitter",   label: "Twitter / X",  icon: "𝕏",  color: "#94a3b8", bg: "rgba(148,163,184,0.12)", manual: false },
+  { key: "bluesky",   label: "Bluesky",      icon: "🦋", color: "#0085ff", bg: "rgba(0,133,255,0.12)",   manual: true  },
+  { key: "threads",   label: "Threads",      icon: "🧵", color: "#e2e8f0", bg: "rgba(226,232,240,0.10)", manual: false },
+  { key: "linkedin",  label: "LinkedIn",     icon: "in", color: "#0077B5", bg: "rgba(0,119,181,0.12)",   manual: false },
+  { key: "instagram", label: "Instagram",    icon: "IG", color: "#E1306C", bg: "rgba(225,48,108,0.12)",  manual: false },
+  { key: "facebook",  label: "Facebook",     icon: "f",  color: "#1877F2", bg: "rgba(24,119,242,0.12)",  manual: false },
+  { key: "pinterest", label: "Pinterest",    icon: "📌", color: "#E60023", bg: "rgba(230,0,35,0.10)",    manual: false },
+  { key: "youtube",   label: "YouTube",      icon: "▶",  color: "#FF0000", bg: "rgba(255,0,0,0.10)",     manual: false },
 ] as const
 
 export default function SettingsPage() {
@@ -51,6 +54,23 @@ export default function SettingsPage() {
   const [deleteInput,       setDeleteInput]       = useState("")
   const [deleting,          setDeleting]          = useState(false)
 
+  // Team
+  const [teamMembers,     setTeamMembers]     = useState<{ id: string; email: string; role: string; status: string; joined_at: string | null }[]>([])
+  const [teamWorkspace,   setTeamWorkspace]   = useState<{ id: string; name: string } | null>(null)
+  const [inviteEmail,     setInviteEmail]     = useState("")
+  const [inviteRole,      setInviteRole]      = useState<"editor" | "viewer">("editor")
+  const [inviting,        setInviting]        = useState(false)
+  const [inviteMsg,       setInviteMsg]       = useState<{ type: "success" | "error"; text: string } | null>(null)
+  const [removingMember,  setRemovingMember]  = useState<string | null>(null)
+
+  // Bluesky manual connect
+  const [blueskyOpen,       setBlueskyOpen]       = useState(false)
+  const [blueskyHandle,     setBlueskyHandle]     = useState("")
+  const [blueskyPassword,   setBlueskyPassword]   = useState("")
+  const [blueskyShowPw,     setBlueskyShowPw]     = useState(false)
+  const [blueskyConnecting, setBlueskyConnecting] = useState(false)
+  const [blueskyError,      setBlueskyError]      = useState("")
+
   const FREE_LIMIT = 30
   const isPro = planName !== "free"
 
@@ -79,6 +99,7 @@ export default function SettingsPage() {
   }, [loadAccounts, searchParams])
 
   const connectPlatform = async (platform: string) => {
+    if (platform === "bluesky") { setBlueskyOpen(true); setBlueskyError(""); return }
     setConnecting(platform)
     setSocialMsg(null)
     try {
@@ -93,6 +114,76 @@ export default function SettingsPage() {
     } catch (err: unknown) {
       setSocialMsg({ type: "error", text: err instanceof Error ? err.message : "Connection failed" })
       setConnecting(null)
+    }
+  }
+
+  const loadTeam = async () => {
+    const { data: { session } } = await supabase.auth.getSession()
+    if (!session) return
+    const res = await fetch("/api/team/invite", { headers: { Authorization: `Bearer ${session.access_token}` } })
+    if (!res.ok) return
+    const data = await res.json()
+    setTeamMembers(data.members ?? [])
+    setTeamWorkspace(data.workspace ?? null)
+  }
+
+  useEffect(() => {
+    if (isPro) loadTeam()
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isPro])
+
+  const handleInvite = async () => {
+    if (!inviteEmail.trim()) return
+    setInviting(true); setInviteMsg(null)
+    const { data: { session } } = await supabase.auth.getSession()
+    const res = await fetch("/api/team/invite", {
+      method:  "POST",
+      headers: { "Content-Type": "application/json", Authorization: `Bearer ${session?.access_token}` },
+      body:    JSON.stringify({ email: inviteEmail.trim(), role: inviteRole }),
+    })
+    const data = await res.json()
+    if (!res.ok) { setInviteMsg({ type: "error", text: data.error || "Failed to invite" }) }
+    else { setInviteMsg({ type: "success", text: `Invite sent to ${inviteEmail}` }); setInviteEmail(""); await loadTeam() }
+    setInviting(false)
+  }
+
+  const handleRemoveMember = async (memberId: string) => {
+    setRemovingMember(memberId)
+    const { data: { session } } = await supabase.auth.getSession()
+    await fetch("/api/team/invite", {
+      method:  "DELETE",
+      headers: { "Content-Type": "application/json", Authorization: `Bearer ${session?.access_token}` },
+      body:    JSON.stringify({ memberId }),
+    })
+    setTeamMembers(m => m.filter(x => x.id !== memberId))
+    setRemovingMember(null)
+  }
+
+  const saveBluesky = async () => {
+    if (!blueskyHandle.trim() || !blueskyPassword.trim()) {
+      setBlueskyError("Handle and App Password are required")
+      return
+    }
+    setBlueskyConnecting(true)
+    setBlueskyError("")
+    try {
+      const { data: { session } } = await supabase.auth.getSession()
+      const res = await fetch("/api/social/bluesky/connect", {
+        method:  "POST",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${session?.access_token}` },
+        body:    JSON.stringify({ handle: blueskyHandle.trim(), appPassword: blueskyPassword.trim() }),
+      })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error || "Connection failed")
+      setBlueskyOpen(false)
+      setBlueskyHandle("")
+      setBlueskyPassword("")
+      await loadAccounts()
+      setSocialMsg({ type: "success", text: "Bluesky connected successfully!" })
+    } catch (err: unknown) {
+      setBlueskyError(err instanceof Error ? err.message : "Connection failed")
+    } finally {
+      setBlueskyConnecting(false)
     }
   }
 
@@ -193,6 +284,95 @@ export default function SettingsPage() {
 
   return (
     <>
+    {/* Bluesky connect modal */}
+    <AnimatePresence>
+      {blueskyOpen && (
+        <motion.div
+          initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+          className="fixed inset-0 z-50 flex items-center justify-center p-4"
+          style={{ background: "rgba(5,8,22,0.85)", backdropFilter: "blur(12px)" }}
+          onClick={e => e.target === e.currentTarget && setBlueskyOpen(false)}
+        >
+          <motion.div
+            initial={{ scale: 0.94, y: 16, opacity: 0 }}
+            animate={{ scale: 1, y: 0, opacity: 1 }}
+            exit={{ scale: 0.96, opacity: 0 }}
+            transition={{ type: "spring", stiffness: 320, damping: 28 }}
+            className="w-full max-w-sm rounded-2xl p-6 space-y-4"
+            style={{ background: "#0d1526", border: "1px solid rgba(0,133,255,0.25)", boxShadow: "0 25px 60px rgba(0,0,0,0.6)" }}
+          >
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2.5">
+                <div className="w-9 h-9 rounded-xl flex items-center justify-center text-lg" style={{ background: "rgba(0,133,255,0.15)" }}>🦋</div>
+                <div>
+                  <p className="text-sm font-bold text-white">Connect Bluesky</p>
+                  <p className="text-[11px] text-slate-500">Uses an App Password — not your main password</p>
+                </div>
+              </div>
+              <button onClick={() => setBlueskyOpen(false)} className="text-slate-600 hover:text-slate-400 transition-colors">
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            <div>
+              <label className="text-[11px] text-slate-400 font-medium mb-1.5 block">Bluesky Handle</label>
+              <input
+                value={blueskyHandle}
+                onChange={e => setBlueskyHandle(e.target.value)}
+                placeholder="yourname.bsky.social"
+                className="w-full bg-white/[0.04] border border-white/[0.08] rounded-xl px-3.5 py-2.5 text-sm text-slate-200 placeholder-slate-600 focus:outline-none focus:border-[#0085ff]/50 transition-all"
+              />
+            </div>
+
+            <div>
+              <label className="text-[11px] text-slate-400 font-medium mb-1.5 block">App Password</label>
+              <div className="relative">
+                <input
+                  type={blueskyShowPw ? "text" : "password"}
+                  value={blueskyPassword}
+                  onChange={e => setBlueskyPassword(e.target.value)}
+                  onKeyDown={e => e.key === "Enter" && saveBluesky()}
+                  placeholder="xxxx-xxxx-xxxx-xxxx"
+                  className="w-full bg-white/[0.04] border border-white/[0.08] rounded-xl px-3.5 py-2.5 text-sm text-slate-200 placeholder-slate-600 focus:outline-none focus:border-[#0085ff]/50 transition-all pr-10"
+                />
+                <button
+                  onClick={() => setBlueskyShowPw(p => !p)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-600 hover:text-slate-400 transition-colors"
+                >
+                  {blueskyShowPw ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
+                </button>
+              </div>
+              <p className="text-[10px] text-slate-600 mt-1.5">
+                Generate one at: Bluesky → Settings → Privacy and Security → App Passwords
+              </p>
+            </div>
+
+            {blueskyError && <p className="text-xs text-red-400">{blueskyError}</p>}
+
+            <div className="flex gap-2 pt-1">
+              <button
+                onClick={() => setBlueskyOpen(false)}
+                className="flex-1 text-xs font-medium py-2.5 rounded-xl text-slate-500 hover:text-slate-300 transition-all"
+                style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.07)" }}
+              >
+                Cancel
+              </button>
+              <motion.button
+                onClick={saveBluesky}
+                disabled={blueskyConnecting}
+                whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}
+                className="flex-1 flex items-center justify-center gap-2 text-xs font-bold py-2.5 rounded-xl transition-all disabled:opacity-60"
+                style={{ background: "linear-gradient(135deg, #0085ff, #338fff)", color: "#fff" }}
+              >
+                {blueskyConnecting ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Link2 className="w-3.5 h-3.5" />}
+                {blueskyConnecting ? "Connecting…" : "Connect"}
+              </motion.button>
+            </div>
+          </motion.div>
+        </motion.div>
+      )}
+    </AnimatePresence>
+
     <UpgradeModal
       open={upgradeOpen}
       onClose={() => setUpgradeOpen(false)}
@@ -593,6 +773,120 @@ export default function SettingsPage() {
           </div>
         </div>
       </motion.div>
+
+      {/* Team — Agency only */}
+      {planName.includes("agency") ? (
+        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.45 }} className="glass rounded-2xl p-5 border border-white/6">
+          <div className="flex items-center gap-2.5 mb-5">
+            <div className="w-8 h-8 rounded-lg bg-[#818cf8]/15 flex items-center justify-center">
+              <Users className="w-4 h-4 text-[#818cf8]" />
+            </div>
+            <div>
+              <h2 className="text-sm font-semibold text-white">Team</h2>
+              <p className="text-[11px] text-slate-500">{teamWorkspace?.name ?? "Your workspace"} · invite editors &amp; viewers</p>
+            </div>
+          </div>
+
+          {/* Invite form */}
+          <div className="flex gap-2 mb-4">
+            <input
+              value={inviteEmail}
+              onChange={e => setInviteEmail(e.target.value)}
+              onKeyDown={e => e.key === "Enter" && handleInvite()}
+              placeholder="teammate@email.com"
+              type="email"
+              className="flex-1 bg-white/[0.04] border border-white/[0.08] rounded-xl px-3.5 py-2.5 text-sm text-slate-200 placeholder-slate-600 focus:outline-none focus:border-[#818cf8]/50 transition-all"
+            />
+            <select
+              value={inviteRole}
+              onChange={e => setInviteRole(e.target.value as "editor" | "viewer")}
+              className="bg-white/[0.04] border border-white/[0.08] rounded-xl px-3 py-2.5 text-sm text-slate-300 focus:outline-none focus:border-[#818cf8]/50 transition-all"
+              style={{ colorScheme: "dark" }}
+            >
+              <option value="editor">Editor</option>
+              <option value="viewer">Viewer</option>
+            </select>
+            <motion.button
+              onClick={handleInvite} disabled={inviting || !inviteEmail.trim()}
+              whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}
+              className="flex items-center gap-1.5 px-4 py-2.5 rounded-xl text-xs font-bold transition-all disabled:opacity-50"
+              style={{ background: "rgba(129,140,248,0.15)", border: "1px solid rgba(129,140,248,0.3)", color: "#818cf8" }}
+            >
+              {inviting ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <UserPlus className="w-3.5 h-3.5" />}
+              Invite
+            </motion.button>
+          </div>
+
+          {inviteMsg && (
+            <p className={`text-xs mb-3 ${inviteMsg.type === "success" ? "text-emerald-400" : "text-red-400"}`}>
+              {inviteMsg.text}
+            </p>
+          )}
+
+          {/* Members list */}
+          {teamMembers.length > 0 ? (
+            <div className="space-y-2">
+              {teamMembers.map(member => (
+                <div key={member.id}
+                  className="flex items-center gap-3 px-3.5 py-3 rounded-xl border border-white/[0.06]"
+                  style={{ background: "rgba(255,255,255,0.02)" }}
+                >
+                  <div className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 text-xs font-bold"
+                    style={{ background: "rgba(129,140,248,0.15)", color: "#818cf8" }}>
+                    {member.email[0].toUpperCase()}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-xs font-medium text-white truncate">{member.email}</p>
+                    <div className="flex items-center gap-2 mt-0.5">
+                      <span className="text-[10px] px-1.5 py-0.5 rounded-full font-semibold"
+                        style={{ background: "rgba(129,140,248,0.12)", color: "#818cf8" }}>
+                        {member.role}
+                      </span>
+                      <span className={`text-[10px] px-1.5 py-0.5 rounded-full font-semibold ${
+                        member.status === "active"
+                          ? "bg-emerald-500/12 text-emerald-400"
+                          : "bg-amber-500/12 text-amber-400"
+                      }`}>
+                        {member.status === "active" ? "Active" : "Invite sent"}
+                      </span>
+                    </div>
+                  </div>
+                  <button
+                    onClick={() => handleRemoveMember(member.id)}
+                    disabled={removingMember === member.id}
+                    className="text-slate-600 hover:text-red-400 transition-colors disabled:opacity-40 p-1"
+                  >
+                    {removingMember === member.id ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Trash2 className="w-3.5 h-3.5" />}
+                  </button>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="flex items-center gap-3 px-4 py-4 rounded-xl border border-dashed border-white/[0.08] text-center">
+              <Mail className="w-4 h-4 text-slate-600 mx-auto" />
+              <p className="text-xs text-slate-600">No team members yet — invite your first collaborator above.</p>
+            </div>
+          )}
+        </motion.div>
+      ) : (
+        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.45 }}
+          className="rounded-2xl p-5 border border-[#818cf8]/15 flex items-center gap-4"
+          style={{ background: "rgba(129,140,248,0.05)" }}>
+          <div className="w-9 h-9 rounded-xl bg-[#818cf8]/15 flex items-center justify-center flex-shrink-0">
+            <Users className="w-4.5 h-4.5 text-[#818cf8]" />
+          </div>
+          <div className="flex-1">
+            <p className="text-sm font-semibold text-white">Team Collaboration</p>
+            <p className="text-[11px] text-slate-500 mt-0.5">Invite editors, manage approvals — Agency plan only</p>
+          </div>
+          <button
+            onClick={() => { analytics.upgradeClicked("settings_team"); setUpgradeOpen(true) }}
+            className="text-xs font-bold px-4 py-2 rounded-xl flex-shrink-0 transition-all"
+            style={{ background: "rgba(129,140,248,0.15)", color: "#818cf8", border: "1px solid rgba(129,140,248,0.25)" }}>
+            Upgrade →
+          </button>
+        </motion.div>
+      )}
 
       {/* Save */}
       <div className="flex justify-end">

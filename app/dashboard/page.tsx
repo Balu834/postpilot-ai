@@ -8,7 +8,7 @@ import {
   Wand2, CalendarClock, BarChart3, TrendingUp,
   ArrowRight, Sparkles, Clock, CheckCircle2,
   Repeat2, History, Zap, FolderOpen, Circle,
-  Copy, CheckCheck, Activity,
+  Copy, CheckCheck, Activity, Brain, Target,
 } from "lucide-react"
 import { supabase } from "@/lib/supabase"
 
@@ -332,10 +332,12 @@ function timeAgo(iso: string): string {
 }
 
 const PLATFORM_ICON: Record<string, string> = {
-  instagram: "📸", linkedin: "💼", twitter: "𝕏", facebook: "📘", youtube: "▶",
+  instagram: "📸", linkedin: "💼", twitter: "𝕏", facebook: "📘",
+  youtube: "▶", threads: "🧵", bluesky: "🦋", pinterest: "📌",
 }
 const PLATFORM_COLOR: Record<string, string> = {
-  instagram: "#E1306C", linkedin: "#0A66C2", twitter: "#94a3b8", facebook: "#1877F2", youtube: "#FF0000",
+  instagram: "#E1306C", linkedin: "#0A66C2", twitter: "#94a3b8", facebook: "#1877F2",
+  youtube: "#FF0000", threads: "#e2e8f0", bluesky: "#0085ff", pinterest: "#E60023",
 }
 
 function ActivityFeed({ items, isDemo }: { items: ActivityItem[]; isDemo: boolean }) {
@@ -855,16 +857,18 @@ const statConfigs = [
 ]
 
 const quickActions = [
-  { icon: Wand2,        label: "Generate",      desc: "AI captions for any platform",    href: "/generate",  color: "#F7BE4D" },
-  { icon: Repeat2,      label: "Blog → Posts",  desc: "Turn articles into 20 posts",     href: "/repurpose", color: "#818cf8" },
-  { icon: CalendarClock, label: "Schedule",     desc: "Plan your content calendar",       href: "/schedule",  color: "#34d399" },
-  { icon: BarChart3,    label: "Analytics",     desc: "Track growth & engagement",        href: "/analytics", color: "#f472b6" },
-  { icon: History,      label: "History",       desc: "View all past generations",        href: "/history",   color: "#94a3b8" },
+  { icon: Wand2,        label: "Generate",       desc: "AI captions for any platform",    href: "/generate",       color: "#F7BE4D" },
+  { icon: Brain,        label: "Content Brain",  desc: "Topic clusters & content gaps",   href: "/brain",          color: "#a78bfa" },
+  { icon: Target,       label: "Campaigns",      desc: "AI-planned multi-week campaigns", href: "/campaign",       color: "#818cf8" },
+  { icon: Repeat2,      label: "Blog → Posts",   desc: "Turn articles into 20 posts",     href: "/repurpose",      color: "#34d399" },
+  { icon: CalendarClock, label: "Schedule",      desc: "Plan your content calendar",       href: "/schedule",       color: "#f472b6" },
+  { icon: History,      label: "History",        desc: "View all past generations",        href: "/history",        color: "#94a3b8" },
 ]
 
 /* ─── Page ──────────────────────────────────────────────────────── */
 
 export default function DashboardPage() {
+  const router        = useRouter()
   const [stats,       setStats]       = useState<Stats>({ generated: 0, scheduled: 0, published: 0 })
   const [recentPosts, setRecentPosts] = useState<RecentPost[]>([])
   const [activity,    setActivity]    = useState<ActivityItem[]>([])
@@ -886,6 +890,11 @@ export default function DashboardPage() {
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) return
     setUserId(user.id)
+
+    if (!localStorage.getItem(`postpilot_onboarded_${user.id}`)) {
+      router.replace("/onboarding")
+      return
+    }
 
     const cached = localStorage.getItem(`postpilot_prefs_${user.id}`)
     if (cached) { try { setPrefs(JSON.parse(cached)) } catch {} }

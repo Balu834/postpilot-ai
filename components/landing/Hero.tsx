@@ -44,30 +44,57 @@ export default function Hero() {
     <section className="relative min-h-screen flex flex-col items-center justify-center px-6 pt-24 pb-16 overflow-hidden">
 
       {/* ─── Background ─────────────────────────────────── */}
-      <div className="absolute inset-0 grid-bg opacity-30 pointer-events-none" />
 
-      {/* Centre radial sweep */}
+      {/* Grid — more visible */}
+      <div className="absolute inset-0 grid-bg pointer-events-none" />
+
+      {/* Top spotlight cone */}
       <div className="absolute inset-0 pointer-events-none"
-        style={{ background: "radial-gradient(ellipse 90% 55% at 50% -5%, rgba(247,190,77,0.09) 0%, transparent 65%)" }}
+        style={{ background: "radial-gradient(ellipse 75% 50% at 50% -2%, rgba(247,190,77,0.18) 0%, rgba(247,190,77,0.04) 40%, transparent 70%)" }}
       />
 
-      {/* Gold orb — top left */}
-      <motion.div
-        animate={{ scale: [1, 1.18, 1], opacity: [0.5, 0.8, 0.5] }}
-        transition={{ duration: 9, repeat: Infinity, ease: "easeInOut" }}
-        className="absolute -top-20 left-[10%] w-[600px] h-[600px] rounded-full pointer-events-none"
-        style={{ background: "radial-gradient(circle, rgba(247,190,77,0.07) 0%, transparent 70%)", filter: "blur(70px)" }}
+      {/* Vignette — fade edges to dark */}
+      <div className="absolute inset-0 pointer-events-none"
+        style={{ background: "radial-gradient(ellipse 100% 100% at 50% 50%, transparent 40%, rgba(5,8,22,0.7) 100%)" }}
       />
 
-      {/* Indigo orb — bottom right */}
-      <motion.div
-        animate={{ scale: [1, 1.22, 1], opacity: [0.35, 0.6, 0.35] }}
-        transition={{ duration: 11, repeat: Infinity, ease: "easeInOut", delay: 3 }}
-        className="absolute bottom-0 right-[8%] w-[500px] h-[500px] rounded-full pointer-events-none"
-        style={{ background: "radial-gradient(circle, rgba(129,140,248,0.08) 0%, transparent 70%)", filter: "blur(70px)" }}
-      />
+      {/* ── Aurora blobs ── */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
 
-      {/* Floating particles */}
+        {/* Gold — top center, main aurora */}
+        <motion.div
+          animate={{ scale: [1, 1.35, 1.1, 1], x: [0, 50, -30, 0], opacity: [0.7, 1, 0.8, 0.7] }}
+          transition={{ duration: 14, repeat: Infinity, ease: "easeInOut" }}
+          className="absolute -top-[20%] left-[22%] w-[750px] h-[750px] rounded-full"
+          style={{ background: "radial-gradient(circle, rgba(247,190,77,0.16) 0%, transparent 65%)", filter: "blur(90px)" }}
+        />
+
+        {/* Indigo — right side */}
+        <motion.div
+          animate={{ scale: [1, 1.28, 1], x: [0, -60, 0], y: [0, 50, 0], opacity: [0.6, 0.9, 0.6] }}
+          transition={{ duration: 18, repeat: Infinity, ease: "easeInOut", delay: 4 }}
+          className="absolute top-[10%] right-[-10%] w-[650px] h-[650px] rounded-full"
+          style={{ background: "radial-gradient(circle, rgba(129,140,248,0.14) 0%, transparent 65%)", filter: "blur(90px)" }}
+        />
+
+        {/* Rose/pink — bottom left */}
+        <motion.div
+          animate={{ scale: [1, 1.22, 1], x: [0, 40, 0], y: [0, -50, 0], opacity: [0.45, 0.7, 0.45] }}
+          transition={{ duration: 20, repeat: Infinity, ease: "easeInOut", delay: 7 }}
+          className="absolute bottom-[-10%] left-[-8%] w-[600px] h-[600px] rounded-full"
+          style={{ background: "radial-gradient(circle, rgba(236,72,153,0.11) 0%, transparent 65%)", filter: "blur(90px)" }}
+        />
+
+        {/* Emerald — bottom center */}
+        <motion.div
+          animate={{ scale: [1, 1.2, 0.92, 1], opacity: [0.3, 0.5, 0.3] }}
+          transition={{ duration: 13, repeat: Infinity, ease: "easeInOut", delay: 2 }}
+          className="absolute bottom-[15%] left-[42%] w-[450px] h-[450px] rounded-full"
+          style={{ background: "radial-gradient(circle, rgba(52,211,153,0.09) 0%, transparent 70%)", filter: "blur(80px)" }}
+        />
+      </div>
+
+      {/* Floating particles — brighter */}
       <div className="absolute inset-0 pointer-events-none overflow-hidden">
         {PARTICLES.map((p) => (
           <motion.div
@@ -76,11 +103,11 @@ export default function Hero() {
             style={{
               left: `${p.x}%`,
               top: `${p.y}%`,
-              width: p.size,
-              height: p.size,
-              background: p.id % 3 === 0 ? "#F7BE4D" : p.id % 3 === 1 ? "#818cf8" : "#34d399",
+              width: p.size + 0.5,
+              height: p.size + 0.5,
+              background: p.id % 4 === 0 ? "#F7BE4D" : p.id % 4 === 1 ? "#818cf8" : p.id % 4 === 2 ? "#34d399" : "#ec4899",
             }}
-            animate={{ y: [0, -40, 0], opacity: [0, 0.5, 0] }}
+            animate={{ y: [0, -50, 0], opacity: [0, 0.7, 0] }}
             transition={{ duration: p.duration, repeat: Infinity, delay: p.delay, ease: "easeInOut" }}
           />
         ))}

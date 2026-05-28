@@ -11,7 +11,7 @@ import Footer from "@/components/landing/Footer"
 
 export default function LandingPage() {
   return (
-    <main className="min-h-screen bg-[#050816]">
+    <main className="min-h-screen bg-[#050816] noise-overlay">
       <Navbar />
       <Hero />
       <Features />

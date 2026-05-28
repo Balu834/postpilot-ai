@@ -6,7 +6,7 @@ import {
   BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer,
   PieChart, Pie, Cell, Legend,
 } from "recharts"
-import { Sparkles, CalendarClock, CheckCircle2, TrendingUp, Loader2, Heart, Repeat2, Eye, ExternalLink, Radio, Zap } from "lucide-react"
+import { Sparkles, CalendarClock, CheckCircle2, TrendingUp, Loader2, Heart, Repeat2, Eye, ExternalLink, Radio, Zap, AlertCircle } from "lucide-react"
 import { supabase } from "@/lib/supabase"
 
 /* ─── Demo data ──────────────────────────────────────────────────── */
@@ -32,10 +32,11 @@ interface PlatformData { name: string; value: number; color: string }
 
 interface Stats {
   totalGenerated: number
-  scheduled: number
-  published: number
-  creditsUsed: number
-  topPlatform: string
+  scheduled:      number
+  published:      number
+  failed:         number
+  creditsUsed:    number
+  topPlatform:    string
 }
 
 interface SocialPlatformData {
@@ -61,8 +62,22 @@ interface SocialPlatformData {
 
 const PLATFORM_COLORS: Record<string, string> = {
   instagram: "#E1306C",
-  linkedin: "#0077B5",
-  twitter: "#94a3b8",
+  linkedin:  "#0077B5",
+  twitter:   "#94a3b8",
+  facebook:  "#1877F2",
+  threads:   "#e2e8f0",
+  bluesky:   "#0085ff",
+  pinterest: "#E60023",
+}
+
+const PLATFORM_ICONS: Record<string, string> = {
+  instagram: "📸",
+  linkedin:  "💼",
+  twitter:   "𝕏",
+  facebook:  "f",
+  threads:   "🧵",
+  bluesky:   "🦋",
+  pinterest: "📌",
 }
 
 function AnimatedCounter({ value, loading }: { value: number; loading: boolean }) {
@@ -95,7 +110,7 @@ const CustomPieTooltip = ({ active, payload }: any) => {
 }
 
 export default function AnalyticsPage() {
-  const [stats, setStats] = useState<Stats>({ totalGenerated: 0, scheduled: 0, published: 0, creditsUsed: 0, topPlatform: "—" })
+  const [stats, setStats] = useState<Stats>({ totalGenerated: 0, scheduled: 0, published: 0, failed: 0, creditsUsed: 0, topPlatform: "—" })
   const [weeklyData, setWeeklyData] = useState<DayData[]>([])
   const [platformData, setPlatformData] = useState<PlatformData[]>([])
   const [loading, setLoading] = useState(true)
@@ -123,12 +138,13 @@ export default function AnalyticsPage() {
     if (!user) return
     localStorage.setItem(`postpilot_analytics_visited_${user.id}`, '1')
 
-    const [genRes, scheduledRes, publishedRes, recentGenRes, platformRes] = await Promise.all([
+    const [genRes, scheduledRes, publishedRes, failedRes, recentGenRes, platformRes] = await Promise.all([
       supabase.from("generations").select("id, created_at", { count: "exact" }).eq("user_id", user.id),
       supabase.from("scheduled_posts").select("id", { count: "exact" }).eq("user_id", user.id).eq("status", "pending"),
       supabase.from("scheduled_posts").select("id", { count: "exact" }).eq("user_id", user.id).eq("status", "published"),
+      supabase.from("scheduled_posts").select("id", { count: "exact" }).eq("user_id", user.id).eq("status", "failed"),
       supabase.from("generations").select("created_at").eq("user_id", user.id).order("created_at", { ascending: false }).limit(100),
-      supabase.from("scheduled_posts").select("platform").eq("user_id", user.id),
+      supabase.from("scheduled_posts").select("platform, status").eq("user_id", user.id),
     ])
 
     // Weekly data — last 7 days
@@ -144,7 +160,7 @@ export default function AnalyticsPage() {
     })
     setWeeklyData(days.map(({ day, posts }) => ({ day, posts })))
 
-    // Platform distribution
+    // Platform distribution — count all published posts per platform
     const counts: Record<string, number> = {}
     ;(platformRes.data || []).forEach((p: any) => {
       counts[p.platform] = (counts[p.platform] || 0) + 1
@@ -157,14 +173,15 @@ export default function AnalyticsPage() {
     setPlatformData(pData)
 
     // Top platform
-    const top = pData.sort((a, b) => b.value - a.value)[0]
+    const top = [...pData].sort((a, b) => b.value - a.value)[0]
 
     setStats({
       totalGenerated: genRes.count || 0,
-      scheduled: scheduledRes.count || 0,
-      published: publishedRes.count || 0,
-      creditsUsed: genRes.count || 0,
-      topPlatform: top?.name || "—",
+      scheduled:      scheduledRes.count || 0,
+      published:      publishedRes.count || 0,
+      failed:         failedRes.count || 0,
+      creditsUsed:    genRes.count || 0,
+      topPlatform:    top?.name || "—",
     })
     setLoading(false)
   }
@@ -173,11 +190,15 @@ export default function AnalyticsPage() {
   const displayWeekly   = isDemoMode ? DEMO_WEEKLY        : weeklyData
   const displayPlatform = isDemoMode ? DEMO_PLATFORM_DATA : platformData
 
+  const successRate = stats.published + stats.failed > 0
+    ? Math.round((stats.published / (stats.published + stats.failed)) * 100)
+    : 100
+
   const statCards = [
     { label: "Posts Generated", value: isDemoMode ? 1284 : stats.totalGenerated, icon: Sparkles,      color: "#F7BE4D", suffix: "" },
     { label: "Scheduled",       value: isDemoMode ? 214  : stats.scheduled,       icon: CalendarClock, color: "#818cf8", suffix: "" },
     { label: "Published",       value: isDemoMode ? 48   : stats.published,        icon: CheckCircle2,  color: "#34d399", suffix: "" },
-    { label: "Credits Used",    value: stats.creditsUsed,                           icon: Zap,           color: "#f472b6", suffix: " / 30" },
+    { label: "Failed",          value: isDemoMode ? 2    : stats.failed,           icon: AlertCircle,   color: "#f87171", suffix: "" },
   ]
 
   return (
@@ -250,7 +271,7 @@ export default function AnalyticsPage() {
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.15 }}
-          className="grid grid-cols-1 sm:grid-cols-3 gap-4"
+          className="grid grid-cols-2 sm:grid-cols-4 gap-4"
         >
           {[
             {
@@ -273,6 +294,13 @@ export default function AnalyticsPage() {
               icon: Zap,
               color: "#F7BE4D",
               note: "Posts generated this month",
+            },
+            {
+              label: "Publish Success Rate",
+              value: isDemoMode ? "98%" : `${successRate}%`,
+              icon: CheckCircle2,
+              color: successRate >= 90 ? "#34d399" : successRate >= 70 ? "#F7BE4D" : "#f87171",
+              note: "Published ÷ (published + failed)",
             },
           ].map((m, i) => (
             <div key={m.label}
@@ -390,10 +418,14 @@ export default function AnalyticsPage() {
             {displayPlatform.map((p) => {
               const total = displayPlatform.reduce((a, b) => a + b.value, 0)
               const pct = total ? Math.round((p.value / total) * 100) : 0
+              const key = p.name.toLowerCase()
+              const icon = PLATFORM_ICONS[key] ?? "📝"
               return (
                 <div key={p.name}>
                   <div className="flex items-center justify-between mb-1.5">
-                    <span className="text-xs text-slate-300">{p.name}</span>
+                    <span className="text-xs text-slate-300 flex items-center gap-1.5">
+                      <span>{icon}</span>{p.name}
+                    </span>
                     <span className="text-xs text-slate-400">{p.value} posts · {pct}%</span>
                   </div>
                   <div className="w-full h-1.5 bg-white/5 rounded-full overflow-hidden">

@@ -65,6 +65,76 @@ async function postToFacebook(content: string, accessToken: string, pageId: stri
   }
 }
 
+async function postToPinterest(content: string, accessToken: string, boardId: string, imageUrl: string | null) {
+  if (!imageUrl) throw new Error("Pinterest pins require an image. Please add an image when scheduling.")
+  const lines   = content.split("\n")
+  const title   = lines[0].replace(/[#*]/g, "").trim().slice(0, 100)
+  const description = content.slice(0, 500)
+  const res = await fetch("https://api.pinterest.com/v5/pins", {
+    method:  "POST",
+    headers: { Authorization: `Bearer ${accessToken}`, "Content-Type": "application/json" },
+    body:    JSON.stringify({
+      board_id:    boardId,
+      title,
+      description,
+      media_source: { source_type: "image_url", url: imageUrl },
+    }),
+  })
+  if (!res.ok) {
+    const err = await res.json()
+    throw new Error(err.message || "Pinterest publish failed")
+  }
+}
+
+async function postToBluesky(content: string, appPassword: string, handle: string) {
+  const sessionRes = await fetch("https://bsky.social/xrpc/com.atproto.server.createSession", {
+    method:  "POST",
+    headers: { "Content-Type": "application/json" },
+    body:    JSON.stringify({ identifier: handle, password: appPassword }),
+  })
+  const session = await sessionRes.json()
+  if (!sessionRes.ok) throw new Error(session.message || "Bluesky auth failed — please reconnect in Settings.")
+
+  const postRes = await fetch("https://bsky.social/xrpc/com.atproto.repo.createRecord", {
+    method:  "POST",
+    headers: { "Content-Type": "application/json", Authorization: `Bearer ${session.accessJwt}` },
+    body:    JSON.stringify({
+      repo:       session.did,
+      collection: "app.bsky.feed.post",
+      record: {
+        $type:     "app.bsky.feed.post",
+        text:      content.slice(0, 300),
+        createdAt: new Date().toISOString(),
+      },
+    }),
+  })
+  if (!postRes.ok) {
+    const err = await postRes.json()
+    throw new Error(err.message || "Bluesky publish failed")
+  }
+}
+
+async function postToThreads(content: string, accessToken: string, userId: string) {
+  const createRes = await fetch(`https://graph.threads.net/v1.0/${userId}/threads`, {
+    method:  "POST",
+    headers: { "Content-Type": "application/json" },
+    body:    JSON.stringify({ media_type: "TEXT", text: content.slice(0, 500), access_token: accessToken }),
+  })
+  const createData = await createRes.json()
+  if (!createRes.ok || createData.error) {
+    throw new Error(createData.error?.message || "Failed to create Threads post")
+  }
+  const publishRes = await fetch(`https://graph.threads.net/v1.0/${userId}/threads_publish`, {
+    method:  "POST",
+    headers: { "Content-Type": "application/json" },
+    body:    JSON.stringify({ creation_id: createData.id, access_token: accessToken }),
+  })
+  if (!publishRes.ok) {
+    const err = await publishRes.json()
+    throw new Error(err.error?.message || "Failed to publish to Threads")
+  }
+}
+
 async function postToInstagram(content: string, accessToken: string, igAccountId: string, imageUrl: string) {
   const createRes = await fetch(`https://graph.facebook.com/v19.0/${igAccountId}/media`, {
     method:  "POST",
@@ -121,6 +191,15 @@ export async function POST(req: NextRequest) {
     try {
       if (post.platform === "twitter") {
         await postToTwitter(post.content, account.access_token)
+      } else if (post.platform === "bluesky") {
+        if (!account.platform_user_id) throw new Error("Bluesky handle missing — please reconnect in Settings.")
+        await postToBluesky(post.content, account.access_token, account.platform_user_id)
+      } else if (post.platform === "pinterest") {
+        if (!account.platform_user_id) throw new Error("Pinterest board not found — please reconnect Pinterest in Settings.")
+        await postToPinterest(post.content, account.access_token, account.platform_user_id, post.image_url ?? null)
+      } else if (post.platform === "threads") {
+        if (!account.platform_user_id) throw new Error("Threads user ID missing — please reconnect Threads in Settings.")
+        await postToThreads(post.content, account.access_token, account.platform_user_id)
       } else if (post.platform === "linkedin") {
         await postToLinkedIn(post.content, account.access_token)
       } else if (post.platform === "facebook") {
