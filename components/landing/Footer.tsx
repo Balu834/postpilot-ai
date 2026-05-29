@@ -1,26 +1,24 @@
 import Link from "next/link"
-import { Zap } from "lucide-react"
 
 export default function Footer() {
   return (
-    <footer className="border-t border-white/5 py-12 px-6">
+    <footer className="border-t border-slate-200 bg-white py-12 px-6">
       <div className="max-w-6xl mx-auto flex flex-col md:flex-row items-center justify-between gap-6">
         <Link href="/" className="flex items-center gap-2">
-          <div className="w-7 h-7 rounded-lg bg-[#F7BE4D] flex items-center justify-center">
-            <Zap className="w-3.5 h-3.5 text-[#050816]" fill="currentColor" />
-          </div>
-          <span className="font-bold text-white">PostPilot</span>
-          <span className="text-[#F7BE4D] font-bold">AI</span>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src="/logo-icon.svg" alt="PostPilot AI" className="h-7 w-auto" />
+          <span className="font-bold text-slate-900">PostPilot</span>
+          <span className="text-[#d97706] font-bold">AI</span>
         </Link>
 
         <div className="flex items-center gap-6 text-sm text-slate-500">
-          <Link href="/privacy" className="hover:text-white transition-colors">Privacy</Link>
-          <Link href="/terms" className="hover:text-white transition-colors">Terms</Link>
-          <a href="#" className="hover:text-white transition-colors">Blog</a>
-          <a href="https://twitter.com" className="hover:text-white transition-colors">Twitter</a>
+          <Link href="/privacy" className="hover:text-slate-900 transition-colors">Privacy</Link>
+          <Link href="/terms"   className="hover:text-slate-900 transition-colors">Terms</Link>
+          <a href="#"           className="hover:text-slate-900 transition-colors">Blog</a>
+          <a href="https://twitter.com" className="hover:text-slate-900 transition-colors">Twitter</a>
         </div>
 
-        <p className="text-xs text-slate-600">© 2026 PostPilot AI. All rights reserved.</p>
+        <p className="text-xs text-slate-400">© 2026 PostPilot AI. All rights reserved.</p>
       </div>
     </footer>
   )

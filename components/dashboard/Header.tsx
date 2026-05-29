@@ -154,28 +154,28 @@ export default function Header() {
   return (
     <header
       className="sticky top-0 z-30 flex items-center justify-between px-4 md:px-6 py-3.5
-        border-b border-white/[0.05]"
-      style={{ background: "rgba(8, 12, 26, 0.85)", backdropFilter: "blur(20px)" }}
+        border-b border-slate-100"
+      style={{ background: "rgba(255,255,255,0.92)", backdropFilter: "blur(16px)", boxShadow: "0 1px 8px rgba(0,0,0,0.05)" }}
     >
       <div className="flex items-center gap-3">
         {/* Hamburger — mobile only */}
         <button
           onClick={toggle}
           className="md:hidden w-8 h-8 rounded-xl flex items-center justify-center
-            text-slate-400 hover:text-white hover:bg-white/[0.06] transition-all flex-shrink-0"
-          style={{ border: "1px solid rgba(255,255,255,0.07)" }}>
+            text-slate-500 hover:text-slate-800 hover:bg-slate-100 transition-all flex-shrink-0"
+          style={{ border: "1px solid #e2e8f0" }}>
           <Menu className="w-4 h-4" />
         </button>
         <div>
-          <h1 className="text-base font-bold text-white leading-tight">{meta.title}</h1>
-          <p className="text-[11px] text-slate-600 mt-0.5 hidden sm:block">{meta.subtitle}</p>
+          <h1 className="text-base font-bold text-slate-900 leading-tight">{meta.title}</h1>
+          <p className="text-[11px] text-slate-400 mt-0.5 hidden sm:block">{meta.subtitle}</p>
         </div>
       </div>
 
       <div className="flex items-center gap-2.5">
         {/* Search */}
         <div ref={searchRef} className="relative hidden md:block">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-slate-600 pointer-events-none" />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-slate-400 pointer-events-none" />
           <input
             value={searchQuery}
             onChange={e => handleSearchChange(e.target.value)}
@@ -189,26 +189,26 @@ export default function Header() {
 
           {/* Search dropdown */}
           {searchOpen && searchResults.length > 0 && (
-            <div className="absolute top-full mt-2 left-0 w-72 rounded-xl overflow-hidden shadow-2xl z-50"
-              style={{ background: "#0d1526", border: "1px solid rgba(255,255,255,0.08)" }}>
+            <div className="absolute top-full mt-2 left-0 w-72 rounded-xl overflow-hidden shadow-xl z-50"
+              style={{ background: "#ffffff", border: "1px solid #e2e8f0" }}>
               {searchResults.map(r => (
                 <button
                   key={r.id}
                   onClick={() => { router.push(r.href); setSearchOpen(false); setSearchQuery("") }}
-                  className="w-full flex items-start gap-3 px-4 py-3 hover:bg-white/[0.04] transition-colors text-left border-b border-white/[0.04] last:border-0"
+                  className="w-full flex items-start gap-3 px-4 py-3 hover:bg-slate-50 transition-colors text-left border-b border-slate-100 last:border-0"
                 >
                   <span className="mt-0.5 text-base">{r.type === "generation" ? "⚡" : "📅"}</span>
                   <div className="min-w-0">
-                    <p className="text-xs text-white font-medium truncate">{r.title}</p>
-                    <p className="text-[10px] text-slate-500 mt-0.5 capitalize">{r.subtitle}</p>
+                    <p className="text-xs text-slate-800 font-medium truncate">{r.title}</p>
+                    <p className="text-[10px] text-slate-400 mt-0.5 capitalize">{r.subtitle}</p>
                   </div>
                 </button>
               ))}
             </div>
           )}
           {searchOpen && searchResults.length === 0 && searchQuery.length >= 2 && !searching && (
-            <div className="absolute top-full mt-2 left-0 w-72 rounded-xl px-4 py-5 text-center text-xs text-slate-500 shadow-2xl z-50"
-              style={{ background: "#0d1526", border: "1px solid rgba(255,255,255,0.08)" }}>
+            <div className="absolute top-full mt-2 left-0 w-72 rounded-xl px-4 py-5 text-center text-xs text-slate-400 shadow-xl z-50"
+              style={{ background: "#ffffff", border: "1px solid #e2e8f0" }}>
               No results for "{searchQuery}"
             </div>
           )}
@@ -219,8 +219,8 @@ export default function Header() {
           <button
             onClick={() => setNotifOpen(v => !v)}
             className="relative w-8 h-8 rounded-xl flex items-center justify-center
-              transition-all hover:bg-white/[0.06]"
-            style={{ border: "1px solid rgba(255,255,255,0.07)" }}>
+              transition-all hover:bg-slate-100"
+            style={{ border: "1px solid #e2e8f0" }}>
             <Bell className="w-3.5 h-3.5 text-slate-500" />
             {hasUnread && (
               <span className="absolute top-1.5 right-1.5 w-1.5 h-1.5 rounded-full bg-[#F7BE4D]" />
@@ -229,35 +229,35 @@ export default function Header() {
 
           {/* Notification dropdown */}
           {notifOpen && (
-            <div className="absolute top-full right-0 mt-2 w-80 rounded-xl overflow-hidden shadow-2xl z-50"
-              style={{ background: "#0d1526", border: "1px solid rgba(255,255,255,0.08)" }}>
-              <div className="flex items-center justify-between px-4 py-3 border-b border-white/[0.06]">
-                <span className="text-xs font-semibold text-white">Notifications</span>
-                <button onClick={() => setNotifOpen(false)} className="text-slate-500 hover:text-white transition-colors">
+            <div className="absolute top-full right-0 mt-2 w-80 rounded-xl overflow-hidden shadow-xl z-50"
+              style={{ background: "#ffffff", border: "1px solid #e2e8f0" }}>
+              <div className="flex items-center justify-between px-4 py-3 border-b border-slate-100">
+                <span className="text-xs font-semibold text-slate-800">Notifications</span>
+                <button onClick={() => setNotifOpen(false)} className="text-slate-400 hover:text-slate-700 transition-colors">
                   <X className="w-3.5 h-3.5" />
                 </button>
               </div>
 
               {!notifLoaded ? (
-                <div className="px-4 py-8 text-center text-xs text-slate-500">Loading…</div>
+                <div className="px-4 py-8 text-center text-xs text-slate-400">Loading…</div>
               ) : notifications.length === 0 ? (
                 <div className="px-4 py-8 text-center">
-                  <Bell className="w-6 h-6 text-slate-700 mx-auto mb-2" />
-                  <p className="text-xs text-slate-500">No notifications yet</p>
+                  <Bell className="w-6 h-6 text-slate-300 mx-auto mb-2" />
+                  <p className="text-xs text-slate-400">No notifications yet</p>
                 </div>
               ) : (
                 <div className="max-h-80 overflow-y-auto">
                   {notifications.map(n => (
-                    <div key={n.id} className="flex items-start gap-3 px-4 py-3 border-b border-white/[0.04] last:border-0 hover:bg-white/[0.03] transition-colors">
+                    <div key={n.id} className="flex items-start gap-3 px-4 py-3 border-b border-slate-50 last:border-0 hover:bg-slate-50 transition-colors">
                       <span className="mt-0.5 flex-shrink-0">
-                        {n.type === "published" && <CheckCircle2 className="w-4 h-4 text-emerald-400" />}
-                        {n.type === "failed"    && <AlertCircle  className="w-4 h-4 text-red-400" />}
-                        {n.type === "generated" && <Zap          className="w-4 h-4 text-[#F7BE4D]" />}
+                        {n.type === "published" && <CheckCircle2 className="w-4 h-4 text-emerald-500" />}
+                        {n.type === "failed"    && <AlertCircle  className="w-4 h-4 text-red-500" />}
+                        {n.type === "generated" && <Zap          className="w-4 h-4 text-[#d97706]" />}
                       </span>
                       <div className="min-w-0 flex-1">
-                        <p className="text-xs font-medium text-white">{n.title}</p>
-                        <p className="text-[10px] text-slate-500 mt-0.5 truncate">{n.body}</p>
-                        <p className="text-[10px] text-slate-600 mt-1">{timeAgo(n.time)}</p>
+                        <p className="text-xs font-medium text-slate-800">{n.title}</p>
+                        <p className="text-[10px] text-slate-400 mt-0.5 truncate">{n.body}</p>
+                        <p className="text-[10px] text-slate-300 mt-1">{timeAgo(n.time)}</p>
                       </div>
                     </div>
                   ))}

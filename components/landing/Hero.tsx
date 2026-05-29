@@ -1,18 +1,13 @@
 "use client"
 
+import dynamic from "next/dynamic"
 import { motion } from "framer-motion"
 import Link from "next/link"
 import { ArrowRight, Sparkles } from "lucide-react"
 import { analytics } from "@/lib/analytics"
 
-const PARTICLES = Array.from({ length: 24 }, (_, i) => ({
-  id: i,
-  x: Math.random() * 100,
-  y: Math.random() * 100,
-  size: Math.random() * 1.5 + 0.5,
-  delay: Math.random() * 5,
-  duration: Math.random() * 8 + 10,
-}))
+// Particles are client-only (framer-motion SSR serializes style props differently → hydration mismatch)
+const HeroParticles = dynamic(() => import("./HeroParticles"), { ssr: false })
 
 const AVATARS = [
   { letter: "P", color: "#E1306C" },
@@ -41,77 +36,54 @@ const PLATFORMS = [
 
 export default function Hero() {
   return (
-    <section className="relative min-h-screen flex flex-col items-center justify-center px-6 pt-24 pb-16 overflow-hidden">
+    <section className="relative min-h-screen flex flex-col items-center justify-center px-6 pt-24 pb-16 overflow-hidden bg-white">
 
       {/* ─── Background ─────────────────────────────────── */}
 
-      {/* Grid — more visible */}
-      <div className="absolute inset-0 grid-bg pointer-events-none" />
-
-      {/* Top spotlight cone */}
+      {/* Subtle dot grid */}
       <div className="absolute inset-0 pointer-events-none"
-        style={{ background: "radial-gradient(ellipse 75% 50% at 50% -2%, rgba(247,190,77,0.18) 0%, rgba(247,190,77,0.04) 40%, transparent 70%)" }}
+        style={{
+          backgroundImage: "radial-gradient(circle, rgba(247,190,77,0.18) 1px, transparent 1px)",
+          backgroundSize: "36px 36px",
+          opacity: 0.5,
+        }}
       />
 
-      {/* Vignette — fade edges to dark */}
+      {/* Top gold spotlight */}
       <div className="absolute inset-0 pointer-events-none"
-        style={{ background: "radial-gradient(ellipse 100% 100% at 50% 50%, transparent 40%, rgba(5,8,22,0.7) 100%)" }}
+        style={{ background: "radial-gradient(ellipse 70% 45% at 50% 0%, rgba(247,190,77,0.12) 0%, transparent 65%)" }}
       />
 
-      {/* ── Aurora blobs ── */}
+      {/* ── Light pastel blobs ── */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
-
-        {/* Gold — top center, main aurora */}
         <motion.div
-          animate={{ scale: [1, 1.35, 1.1, 1], x: [0, 50, -30, 0], opacity: [0.7, 1, 0.8, 0.7] }}
+          animate={{ scale: [1, 1.2, 1], x: [0, 30, 0], opacity: [0.5, 0.8, 0.5] }}
           transition={{ duration: 14, repeat: Infinity, ease: "easeInOut" }}
-          className="absolute -top-[20%] left-[22%] w-[750px] h-[750px] rounded-full"
-          style={{ background: "radial-gradient(circle, rgba(247,190,77,0.16) 0%, transparent 65%)", filter: "blur(90px)" }}
+          className="absolute -top-[15%] left-[20%] w-[600px] h-[600px] rounded-full"
+          style={{ background: "radial-gradient(circle, rgba(247,190,77,0.2) 0%, transparent 65%)", filter: "blur(80px)" }}
         />
-
-        {/* Indigo — right side */}
         <motion.div
-          animate={{ scale: [1, 1.28, 1], x: [0, -60, 0], y: [0, 50, 0], opacity: [0.6, 0.9, 0.6] }}
-          transition={{ duration: 18, repeat: Infinity, ease: "easeInOut", delay: 4 }}
-          className="absolute top-[10%] right-[-10%] w-[650px] h-[650px] rounded-full"
-          style={{ background: "radial-gradient(circle, rgba(129,140,248,0.14) 0%, transparent 65%)", filter: "blur(90px)" }}
+          animate={{ scale: [1, 1.15, 1], x: [0, -40, 0], y: [0, 30, 0], opacity: [0.4, 0.65, 0.4] }}
+          transition={{ duration: 18, repeat: Infinity, ease: "easeInOut", delay: 3 }}
+          className="absolute top-[5%] right-[-8%] w-[500px] h-[500px] rounded-full"
+          style={{ background: "radial-gradient(circle, rgba(129,140,248,0.18) 0%, transparent 65%)", filter: "blur(80px)" }}
         />
-
-        {/* Rose/pink — bottom left */}
         <motion.div
-          animate={{ scale: [1, 1.22, 1], x: [0, 40, 0], y: [0, -50, 0], opacity: [0.45, 0.7, 0.45] }}
-          transition={{ duration: 20, repeat: Infinity, ease: "easeInOut", delay: 7 }}
-          className="absolute bottom-[-10%] left-[-8%] w-[600px] h-[600px] rounded-full"
-          style={{ background: "radial-gradient(circle, rgba(236,72,153,0.11) 0%, transparent 65%)", filter: "blur(90px)" }}
+          animate={{ scale: [1, 1.18, 1], opacity: [0.3, 0.5, 0.3] }}
+          transition={{ duration: 20, repeat: Infinity, ease: "easeInOut", delay: 6 }}
+          className="absolute bottom-[5%] left-[-5%] w-[450px] h-[450px] rounded-full"
+          style={{ background: "radial-gradient(circle, rgba(244,114,182,0.15) 0%, transparent 65%)", filter: "blur(70px)" }}
         />
-
-        {/* Emerald — bottom center */}
         <motion.div
-          animate={{ scale: [1, 1.2, 0.92, 1], opacity: [0.3, 0.5, 0.3] }}
-          transition={{ duration: 13, repeat: Infinity, ease: "easeInOut", delay: 2 }}
-          className="absolute bottom-[15%] left-[42%] w-[450px] h-[450px] rounded-full"
-          style={{ background: "radial-gradient(circle, rgba(52,211,153,0.09) 0%, transparent 70%)", filter: "blur(80px)" }}
+          animate={{ scale: [1, 1.1, 1], opacity: [0.25, 0.4, 0.25] }}
+          transition={{ duration: 16, repeat: Infinity, ease: "easeInOut", delay: 2 }}
+          className="absolute bottom-[10%] right-[10%] w-[400px] h-[400px] rounded-full"
+          style={{ background: "radial-gradient(circle, rgba(52,211,153,0.13) 0%, transparent 70%)", filter: "blur(70px)" }}
         />
       </div>
 
-      {/* Floating particles — brighter */}
-      <div className="absolute inset-0 pointer-events-none overflow-hidden">
-        {PARTICLES.map((p) => (
-          <motion.div
-            key={p.id}
-            className="absolute rounded-full"
-            style={{
-              left: `${p.x}%`,
-              top: `${p.y}%`,
-              width: p.size + 0.5,
-              height: p.size + 0.5,
-              background: p.id % 4 === 0 ? "#F7BE4D" : p.id % 4 === 1 ? "#818cf8" : p.id % 4 === 2 ? "#34d399" : "#ec4899",
-            }}
-            animate={{ y: [0, -50, 0], opacity: [0, 0.7, 0] }}
-            transition={{ duration: p.duration, repeat: Infinity, delay: p.delay, ease: "easeInOut" }}
-          />
-        ))}
-      </div>
+      {/* Floating particles — client-only to avoid SSR hydration mismatch */}
+      <HeroParticles />
 
       {/* ─── Content ─────────────────────────────────────── */}
       <div className="relative z-10 max-w-5xl mx-auto text-center">
@@ -140,26 +112,26 @@ export default function Hero() {
           transition={{ duration: 0.7, delay: 0.1 }}
         >
           <h1 className="font-black leading-[1.04] tracking-tight mb-6">
-            <span className="block text-5xl md:text-7xl lg:text-[86px] text-white">
+            <span className="block text-5xl md:text-7xl lg:text-[86px] text-slate-900">
               Turn One Idea Into
             </span>
             <span className="block text-5xl md:text-7xl lg:text-[86px]">
               <span
                 style={{
-                  background: "linear-gradient(135deg, #F7BE4D 0%, #ffd166 45%, #f0a800 100%)",
+                  background: "linear-gradient(135deg, #d97706 0%, #F7BE4D 45%, #f0a800 100%)",
                   WebkitBackgroundClip: "text",
                   WebkitTextFillColor: "transparent",
-                  filter: "drop-shadow(0 0 32px rgba(247,190,77,0.45))",
+                  filter: "drop-shadow(0 0 24px rgba(247,190,77,0.3))",
                 }}
               >
                 30 Days
               </span>
-              <span className="text-white"> Of </span>
+              <span className="text-slate-900"> Of </span>
               <motion.span
-                animate={{ filter: ["drop-shadow(0 0 20px rgba(247,190,77,0.3))", "drop-shadow(0 0 40px rgba(247,190,77,0.6))", "drop-shadow(0 0 20px rgba(247,190,77,0.3))"] }}
+                animate={{ filter: ["drop-shadow(0 0 16px rgba(247,190,77,0.2))", "drop-shadow(0 0 32px rgba(247,190,77,0.5))", "drop-shadow(0 0 16px rgba(247,190,77,0.2))"] }}
                 transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
                 style={{
-                  background: "linear-gradient(135deg, #fff 0%, #F7BE4D 60%, #ffd166 100%)",
+                  background: "linear-gradient(135deg, #0f172a 0%, #d97706 60%, #F7BE4D 100%)",
                   WebkitBackgroundClip: "text",
                   WebkitTextFillColor: "transparent",
                   display: "inline-block",
@@ -226,8 +198,7 @@ export default function Hero() {
             <motion.div
               whileHover={{ scale: 1.04, y: -2 }}
               whileTap={{ scale: 0.97 }}
-              className="flex items-center gap-2 text-slate-300 hover:text-white border border-white/10 hover:border-white/25 px-8 py-4 rounded-xl text-base cursor-pointer select-none transition-colors duration-200"
-              style={{ backdropFilter: "blur(12px)", background: "rgba(255,255,255,0.03)" }}
+              className="flex items-center gap-2 text-slate-600 hover:text-slate-900 border border-slate-200 hover:border-slate-300 px-8 py-4 rounded-xl text-base cursor-pointer select-none transition-colors duration-200 bg-white"
             >
               See How It Works
             </motion.div>
@@ -246,15 +217,15 @@ export default function Hero() {
               {AVATARS.map((a) => (
                 <div
                   key={a.letter}
-                  className="w-8 h-8 rounded-full border-2 border-[#050816] flex items-center justify-center text-[11px] font-bold text-white flex-shrink-0"
+                  className="w-8 h-8 rounded-full border-2 border-white flex items-center justify-center text-[11px] font-bold text-white flex-shrink-0"
                   style={{ background: a.color }}
                 >
                   {a.letter}
                 </div>
               ))}
             </div>
-            <p className="text-sm text-slate-400">
-              <span className="text-white font-semibold">10,000+</span> AI posts generated this month
+            <p className="text-sm text-slate-500">
+              <span className="text-slate-900 font-semibold">10,000+</span> AI posts generated this month
             </p>
           </div>
           <p className="text-xs text-slate-600 tracking-wide">
@@ -271,7 +242,7 @@ export default function Hero() {
         >
           {STATS.map((s) => (
             <div key={s.label} className="text-center">
-              <div className="text-2xl font-black text-white mb-0.5">{s.value}</div>
+              <div className="text-2xl font-black text-slate-900 mb-0.5">{s.value}</div>
               <div className="text-[11px] text-slate-500 leading-tight">{s.label}</div>
             </div>
           ))}
@@ -291,38 +262,38 @@ export default function Hero() {
           />
 
           <div
-            className="glass rounded-2xl border border-white/8 overflow-hidden relative"
-            style={{ boxShadow: "0 0 0 1px rgba(247,190,77,0.1), 0 40px 100px rgba(0,0,0,0.55)" }}
+            className="bg-white rounded-2xl border border-slate-200 overflow-hidden relative"
+            style={{ boxShadow: "0 4px 32px rgba(247,190,77,0.12), 0 20px 60px rgba(0,0,0,0.08)" }}
           >
             {/* Window chrome */}
-            <div className="flex items-center gap-2 px-4 py-3 border-b border-white/5 bg-white/[0.02]">
-              <div className="w-3 h-3 rounded-full bg-red-500/70" />
-              <div className="w-3 h-3 rounded-full bg-yellow-500/70" />
-              <div className="w-3 h-3 rounded-full bg-green-500/70" />
-              <span className="ml-4 text-xs text-slate-500 font-mono">postpilot.ai/generate</span>
+            <div className="flex items-center gap-2 px-4 py-3 border-b border-slate-100 bg-slate-50">
+              <div className="w-3 h-3 rounded-full bg-red-400" />
+              <div className="w-3 h-3 rounded-full bg-yellow-400" />
+              <div className="w-3 h-3 rounded-full bg-green-400" />
+              <span className="ml-4 text-xs text-slate-400 font-mono">postpilot.ai/generate</span>
               <div className="ml-auto flex items-center gap-1.5">
                 <motion.span
                   animate={{ opacity: [1, 0.3, 1] }}
                   transition={{ duration: 1.2, repeat: Infinity }}
-                  className="w-1.5 h-1.5 rounded-full bg-emerald-400"
+                  className="w-1.5 h-1.5 rounded-full bg-emerald-500"
                 />
-                <span className="text-[10px] text-emerald-400 font-medium">AI generating…</span>
+                <span className="text-[10px] text-emerald-600 font-medium">AI generating…</span>
               </div>
             </div>
 
             {/* Platform cards */}
-            <div className="p-5 grid grid-cols-2 md:grid-cols-4 gap-3">
+            <div className="p-5 grid grid-cols-2 md:grid-cols-4 gap-3 bg-slate-50/50">
               {PLATFORMS.map((card, i) => (
                 <motion.div
                   key={card.platform}
                   initial={{ opacity: 0, y: 12 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 0.85 + i * 0.1, duration: 0.4 }}
-                  className="glass-sm rounded-xl p-4 border border-white/5 text-left"
+                  className="bg-white rounded-xl p-4 border border-slate-100 text-left shadow-sm"
                 >
                   <div className="flex items-center gap-2 mb-3">
                     <span className="text-base leading-none">{card.icon}</span>
-                    <span className="text-[10px] font-semibold text-slate-300 leading-none">{card.platform}</span>
+                    <span className="text-[10px] font-semibold text-slate-700 leading-none">{card.platform}</span>
                     <motion.span
                       animate={{ opacity: [0.5, 1, 0.5] }}
                       transition={{ duration: 2 + i * 0.4, repeat: Infinity }}
@@ -330,7 +301,7 @@ export default function Hero() {
                       style={{ background: card.color }}
                     />
                   </div>
-                  <p className="text-[11px] text-slate-400 leading-relaxed">{card.text}</p>
+                  <p className="text-[11px] text-slate-500 leading-relaxed">{card.text}</p>
                 </motion.div>
               ))}
             </div>

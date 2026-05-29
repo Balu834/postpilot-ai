@@ -11,7 +11,7 @@ const faqs = [
   },
   {
     q: "Which social media platforms are supported?",
-    a: "PostPilot AI supports Instagram, LinkedIn, Twitter / X, and Facebook. Each post is tailored for the platform's tone, format, and character limits.",
+    a: "PostPilot AI supports Instagram, LinkedIn, Twitter / X, Facebook, Threads, Bluesky, and Pinterest. Each post is tailored for the platform's tone, format, and character limits.",
   },
   {
     q: "How does the AI generate content?",
@@ -19,7 +19,7 @@ const faqs = [
   },
   {
     q: "Can I schedule posts in advance?",
-    a: "Yes. Use the Content Calendar to schedule posts on specific dates. On Pro and Agency plans, posts publish automatically via connected Twitter and LinkedIn accounts.",
+    a: "Yes. Use the Content Calendar to schedule posts on specific dates. On Pro and Agency plans, posts publish automatically via connected social accounts.",
   },
   {
     q: "Is my data secure?",
@@ -40,24 +40,25 @@ function FAQItem({ item, index }: { item: typeof faqs[0]; index: number }) {
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true }}
       transition={{ duration: 0.35, delay: index * 0.06 }}
-      className="border border-white/6 rounded-2xl overflow-hidden"
-      style={{ background: "rgba(13,21,38,0.7)", backdropFilter: "blur(16px)" }}
+      className="border border-slate-200 rounded-2xl overflow-hidden bg-white shadow-sm"
     >
+      {/* suppressHydrationWarning prevents browser-extension attr mismatches (e.g. fdprocessedid) */}
       <button
+        suppressHydrationWarning
         onClick={() => setOpen(!open)}
-        className="w-full flex items-center justify-between gap-4 px-6 py-4 text-left"
+        className="w-full flex items-center justify-between gap-4 px-6 py-4 text-left hover:bg-slate-50 transition-colors"
       >
-        <span className="text-sm font-semibold text-white">{item.q}</span>
+        <span className="text-sm font-semibold text-slate-800">{item.q}</span>
         <div
           className="w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0 transition-all"
           style={{
-            background: open ? "rgba(247,190,77,0.15)" : "rgba(255,255,255,0.05)",
+            background: open ? "rgba(247,190,77,0.15)" : "#f8fafc",
+            border: open ? "1px solid rgba(247,190,77,0.3)" : "1px solid #e2e8f0",
           }}
         >
           {open
-            ? <Minus className="w-3.5 h-3.5 text-[#F7BE4D]" />
-            : <Plus className="w-3.5 h-3.5 text-slate-400" />
-          }
+            ? <Minus className="w-3.5 h-3.5 text-[#d97706]" />
+            : <Plus className="w-3.5 h-3.5 text-slate-400" />}
         </div>
       </button>
 
@@ -69,7 +70,7 @@ function FAQItem({ item, index }: { item: typeof faqs[0]; index: number }) {
             exit={{ height: 0, opacity: 0 }}
             transition={{ duration: 0.25, ease: "easeInOut" }}
           >
-            <p className="px-6 pb-5 text-sm text-slate-400 leading-relaxed border-t border-white/5 pt-3">
+            <p className="px-6 pb-5 text-sm text-slate-500 leading-relaxed border-t border-slate-100 pt-3">
               {item.a}
             </p>
           </motion.div>
@@ -81,7 +82,7 @@ function FAQItem({ item, index }: { item: typeof faqs[0]; index: number }) {
 
 export default function FAQ() {
   return (
-    <section id="faq" className="py-24 px-6">
+    <section id="faq" className="py-24 px-6 bg-white">
       <div className="max-w-3xl mx-auto">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -90,14 +91,14 @@ export default function FAQ() {
           transition={{ duration: 0.5 }}
           className="text-center mb-12"
         >
-          <div className="inline-flex items-center gap-2 glass-sm rounded-full px-4 py-2 mb-6 border border-white/8">
-            <span className="text-xs text-[#F7BE4D] font-medium tracking-wide uppercase">FAQ</span>
+          <div className="inline-flex items-center gap-2 rounded-full px-4 py-2 mb-6 border border-amber-200 bg-amber-50">
+            <span className="text-xs text-amber-700 font-semibold tracking-wide uppercase">FAQ</span>
           </div>
-          <h2 className="text-4xl md:text-5xl font-bold text-white mb-4">
+          <h2 className="text-4xl md:text-5xl font-bold text-slate-900 mb-4">
             Common <span className="gradient-text">questions</span>
           </h2>
-          <p className="text-slate-400 text-lg">
-            Everything you need to know before getting started.
+          <p className="text-slate-500 text-lg">
+            Everything you need to know about PostPilot AI.
           </p>
         </motion.div>
 

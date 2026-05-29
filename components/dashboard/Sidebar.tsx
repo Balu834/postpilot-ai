@@ -112,44 +112,50 @@ export default function Sidebar() {
       className={`fixed left-0 top-0 h-screen w-60 flex flex-col z-40 transition-transform duration-300
         ${open ? "translate-x-0" : "-translate-x-full"} md:translate-x-0`}
       style={{
-        background: "rgba(8, 12, 26, 0.92)",
-        borderRight: "1px solid rgba(255,255,255,0.06)",
-        backdropFilter: "blur(24px)",
+        background: "#ffffff",
+        borderRight: "1px solid #e2e8f0",
+        boxShadow: "2px 0 16px rgba(0,0,0,0.06)",
       }}
     >
+      {/* Brand mark */}
+      <div className="px-4 pt-4 pb-2 flex items-center gap-2">
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img src="/logo-icon.svg" alt="PostPilot AI" className="h-7 w-auto flex-shrink-0" />
+        <span className="text-sm font-extrabold text-slate-900 tracking-tight">
+          PostPilot <span style={{ color: "#d97706" }}>AI</span>
+        </span>
+      </div>
+
       {/* Nav */}
-      <nav className="flex-1 px-3 py-3 space-y-0.5 overflow-y-auto">
+      <nav className="flex-1 px-3 py-2 space-y-0.5 overflow-y-auto">
         {navItems.map((item) => {
           const isActive = pathname === item.href
           return (
             <Link key={item.href} href={item.href} onClick={close}>
               <motion.div
-                whileHover={{ x: 3 }}
+                whileHover={{ x: 2 }}
                 transition={{ duration: 0.15, ease: "easeOut" }}
-                className={`relative flex items-center gap-3 px-3 py-2.5 rounded-xl
+                className={`relative flex items-center gap-3 px-3 py-2 rounded-xl
                   text-[13px] font-medium transition-all duration-200 group ${
                   isActive
                     ? "nav-active"
-                    : "text-slate-500 hover:text-slate-200 hover:bg-white/[0.04]"
+                    : "text-slate-500 hover:text-slate-800 hover:bg-slate-50"
                 }`}
               >
                 {isActive && (
                   <motion.div
                     layoutId="navBar"
-                    className="absolute left-0 top-1/2 -translate-y-1/2 w-0.5 h-5
-                      rounded-full bg-[#F7BE4D]"
-                    style={{ boxShadow: "0 0 8px rgba(247,190,77,0.6)" }}
+                    className="absolute left-0 top-1/2 -translate-y-1/2 w-0.5 h-5 rounded-full bg-[#F7BE4D]"
+                    style={{ boxShadow: "0 0 8px rgba(247,190,77,0.7)" }}
                   />
                 )}
-
                 <item.icon className={`w-4 h-4 flex-shrink-0 transition-colors ${
-                  isActive ? "text-[#F7BE4D]" : "group-hover:text-slate-300"
-                }`} />
+                  isActive ? "text-[#d97706]" : "group-hover:text-slate-700"
+                }`} style={isActive ? {} : {}} />
                 <span className="flex-1">{item.label}</span>
-
                 {item.badge && !isActive && (
                   <span className="text-[9px] font-bold px-1.5 py-0.5 rounded-full
-                    bg-[#F7BE4D]/15 text-[#F7BE4D] border border-[#F7BE4D]/20 leading-none">
+                    bg-[#F7BE4D]/15 text-[#b45309] border border-[#F7BE4D]/30 leading-none">
                     {item.badge}
                   </span>
                 )}
@@ -160,27 +166,21 @@ export default function Sidebar() {
       </nav>
 
       {/* Bottom section */}
-      <div className="px-3 pb-4 space-y-2">
+      <div className="px-3 pb-4 space-y-2 border-t border-slate-100 pt-3">
 
         {/* Credit meter */}
         <div className="rounded-xl px-3.5 py-3 border"
           style={{
-            background: nearLimit
-              ? "rgba(248,113,113,0.06)"
-              : "rgba(255,255,255,0.02)",
-            borderColor: nearLimit
-              ? "rgba(248,113,113,0.15)"
-              : "rgba(255,255,255,0.06)",
+            background: nearLimit ? "rgba(254,202,202,0.2)" : "#fafafa",
+            borderColor: nearLimit ? "rgba(248,113,113,0.3)" : "#e2e8f0",
           }}>
           <div className="flex items-center justify-between mb-2">
-            <span className="text-[11px] font-semibold text-slate-400">Free Credits</span>
-            <span className={`text-[11px] font-bold tabular-nums ${
-              nearLimit ? "text-red-400" : "text-slate-400"
-            }`}>
+            <span className="text-[11px] font-semibold text-slate-500">Free Credits</span>
+            <span className={`text-[11px] font-bold tabular-nums ${nearLimit ? "text-red-500" : "text-slate-600"}`}>
               {credits !== null ? `${credits} / ${FREE_LIMIT}` : "..."}
             </span>
           </div>
-          <div className="h-1.5 bg-white/5 rounded-full overflow-hidden mb-2">
+          <div className="h-1.5 bg-slate-100 rounded-full overflow-hidden mb-2">
             <motion.div
               className="h-full rounded-full transition-all duration-700"
               style={{
@@ -191,7 +191,7 @@ export default function Sidebar() {
               }}
             />
           </div>
-          <p className="text-[10px] text-slate-600">
+          <p className="text-[10px] text-slate-400">
             {remaining !== null
               ? nearLimit
                 ? remaining === 0 ? "Limit reached — upgrade for unlimited" : `${remaining} left — upgrade soon`
@@ -200,22 +200,23 @@ export default function Sidebar() {
           </p>
         </div>
 
-        {/* Upgrade card — free users only */}
+        {/* Upgrade card */}
         {!isPro && (
           <motion.div
             whileHover={{ scale: 1.01 }}
             transition={{ duration: 0.2 }}
-            className="rounded-xl p-3.5 relative overflow-hidden"
+            className="rounded-xl p-3.5 relative overflow-hidden cursor-pointer"
             style={{
-              background: "linear-gradient(135deg, rgba(247,190,77,0.12) 0%, rgba(247,190,77,0.04) 100%)",
-              border: "1px solid rgba(247,190,77,0.2)",
+              background: "linear-gradient(135deg, #fffbeb 0%, #fef9c3 100%)",
+              border: "1px solid rgba(247,190,77,0.35)",
+              boxShadow: "0 2px 12px rgba(247,190,77,0.15)",
             }}
           >
-            <div className="absolute top-0 right-0 w-16 h-16 bg-[#F7BE4D]/10 rounded-full blur-xl" />
+            <div className="absolute top-0 right-0 w-16 h-16 bg-[#F7BE4D]/15 rounded-full blur-xl" />
             <div className="relative">
-              <div className="flex items-center gap-1.5 mb-1.5">
-                <Zap className="w-3.5 h-3.5 text-[#F7BE4D]" fill="currentColor" strokeWidth={0} />
-                <span className="text-xs font-bold text-white">Upgrade to Pro</span>
+              <div className="flex items-center gap-1.5 mb-1">
+                <Zap className="w-3.5 h-3.5 text-[#d97706]" fill="currentColor" strokeWidth={0} />
+                <span className="text-xs font-bold text-slate-800">Upgrade to Pro</span>
               </div>
               <p className="text-[11px] text-slate-500 mb-3 leading-relaxed">
                 Unlimited generations, workspace & analytics.
@@ -229,21 +230,20 @@ export default function Sidebar() {
 
         {/* User row */}
         <div className="flex items-center gap-2.5 px-2.5 py-2 rounded-xl
-          hover:bg-white/[0.04] transition-colors group cursor-pointer">
+          hover:bg-slate-50 transition-colors group cursor-pointer">
           <div className="w-7 h-7 rounded-full bg-gradient-to-br from-[#F7BE4D] to-[#f0a800]
-            flex items-center justify-center flex-shrink-0
-            text-[#050816] text-xs font-bold glow-yellow-sm">
+            flex items-center justify-center flex-shrink-0 text-[#050816] text-xs font-bold glow-yellow-sm">
             {initials}
           </div>
           <div className="flex-1 min-w-0">
-            <p className="text-[11px] font-semibold text-white truncate">{planLabel}</p>
-            <p className="text-[10px] text-slate-600 truncate">{email || "Loading..."}</p>
+            <p className="text-[11px] font-semibold text-slate-800 truncate">{planLabel}</p>
+            <p className="text-[10px] text-slate-400 truncate">{email || "Loading..."}</p>
           </div>
           <button
             onClick={handleLogout}
             title="Sign out"
-            className="opacity-0 group-hover:opacity-100 p-1.5 rounded-lg text-slate-600
-              hover:text-red-400 hover:bg-red-500/10 transition-all">
+            className="opacity-0 group-hover:opacity-100 p-1.5 rounded-lg text-slate-400
+              hover:text-red-500 hover:bg-red-50 transition-all">
             <LogOut className="w-3 h-3" />
           </button>
         </div>

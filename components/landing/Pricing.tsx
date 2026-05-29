@@ -120,22 +120,23 @@ function BillingToggle({
 }: { billing: Billing; onChange: (b: Billing) => void }) {
   return (
     <div className="flex items-center justify-center gap-3">
+      {/* suppressHydrationWarning: browser extensions (password managers) add fdprocessedid to buttons */}
       <button
+        suppressHydrationWarning
         onClick={() => onChange("monthly")}
         className={`text-sm font-semibold transition-colors ${
-          billing === "monthly" ? "text-white" : "text-slate-500 hover:text-slate-300"
+          billing === "monthly" ? "text-slate-900" : "text-slate-400 hover:text-slate-600"
         }`}>
         Monthly
       </button>
 
       {/* Toggle pill */}
       <button
+        suppressHydrationWarning
         onClick={() => onChange(billing === "monthly" ? "yearly" : "monthly")}
-        className="relative w-12 h-6 rounded-full border border-white/12 transition-all"
+        className="relative w-12 h-6 rounded-full border border-slate-200 transition-all"
         style={{
-          background: billing === "yearly"
-            ? "rgba(247,190,77,0.2)"
-            : "rgba(255,255,255,0.05)",
+          background: billing === "yearly" ? "rgba(247,190,77,0.2)" : "#f1f5f9",
         }}
       >
         <motion.div
@@ -151,24 +152,21 @@ function BillingToggle({
       </button>
 
       <button
+        suppressHydrationWarning
         onClick={() => onChange("yearly")}
         className={`text-sm font-semibold transition-colors flex items-center gap-2 ${
-          billing === "yearly" ? "text-white" : "text-slate-500 hover:text-slate-300"
+          billing === "yearly" ? "text-slate-900" : "text-slate-400 hover:text-slate-600"
         }`}>
         Yearly
         <motion.span
           animate={{
-            background: billing === "yearly"
-              ? "rgba(247,190,77,0.2)"
-              : "rgba(255,255,255,0.06)",
-            color: billing === "yearly" ? "#F7BE4D" : "#64748b",
+            background: billing === "yearly" ? "rgba(247,190,77,0.2)" : "#f1f5f9",
+            color: billing === "yearly" ? "#b45309" : "#94a3b8",
           }}
           transition={{ duration: 0.25 }}
           className="text-[10px] font-bold px-2 py-0.5 rounded-full border"
           style={{
-            borderColor: billing === "yearly"
-              ? "rgba(247,190,77,0.3)"
-              : "rgba(255,255,255,0.08)",
+            borderColor: billing === "yearly" ? "rgba(247,190,77,0.3)" : "#e2e8f0",
           }}>
           Save 20%
         </motion.span>

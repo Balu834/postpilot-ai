@@ -87,7 +87,7 @@ export const metadata: Metadata = {
 }
 
 export const viewport: Viewport = {
-  themeColor: "#050816",
+  themeColor: "#ffffff",
   width: "device-width",
   initialScale: 1,
 }
@@ -98,7 +98,7 @@ export default function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html lang="en" className={`${geistSans.variable} ${geistMono.variable} dark`}>
+    <html lang="en" className={`${geistSans.variable} ${geistMono.variable}`}>
       <head>
         {META_PIXEL_ID && (
           <>
@@ -124,7 +124,7 @@ export default function RootLayout({
           </>
         )}
       </head>
-      <body className="min-h-screen bg-[#050816] text-slate-100 antialiased">
+      <body className="min-h-screen bg-[#f8fafc] text-slate-900 antialiased">
         <PostHogProvider>
           <PostHogPageView />
           {children}
