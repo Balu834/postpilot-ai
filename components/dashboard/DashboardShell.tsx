@@ -7,7 +7,7 @@ import Header from "./Header"
 export default function DashboardShell({ children }: { children: React.ReactNode }) {
   return (
     <SidebarProvider>
-      <div className="min-h-screen bg-[#f8fafc] flex">
+      <div className="min-h-screen flex" style={{ background: "#f8fafc" }}>
         <Sidebar />
         <div className="flex-1 min-w-0 md:ml-60 flex flex-col min-h-screen">
           <Header />

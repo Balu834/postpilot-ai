@@ -98,8 +98,12 @@ export default function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html lang="en" className={`${geistSans.variable} ${geistMono.variable}`}>
+    <html lang="en" className={`${geistSans.variable} ${geistMono.variable}`} style={{ background: "#ffffff", colorScheme: "light" }}>
       <head>
+        <style>{`
+          html, body { background: #ffffff !important; color: #0f172a !important; color-scheme: light !important; }
+          * { -webkit-font-smoothing: antialiased; }
+        `}</style>
         {META_PIXEL_ID && (
           <>
             <Script id="meta-pixel" strategy="afterInteractive">{`
@@ -124,7 +128,7 @@ export default function RootLayout({
           </>
         )}
       </head>
-      <body className="min-h-screen bg-[#f8fafc] text-slate-900 antialiased">
+      <body className="min-h-screen text-slate-900 antialiased" style={{ background: "#ffffff" }}>
         <PostHogProvider>
           <PostHogPageView />
           {children}
