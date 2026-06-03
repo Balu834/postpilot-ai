@@ -49,36 +49,40 @@ export default function Hero() {
         }}
       />
 
-      {/* Top gold spotlight */}
+      {/* Top gold spotlight — brighter */}
       <div className="absolute inset-0 pointer-events-none"
-        style={{ background: "radial-gradient(ellipse 70% 45% at 50% 0%, rgba(247,190,77,0.12) 0%, transparent 65%)" }}
+        style={{ background: "radial-gradient(ellipse 80% 55% at 50% -5%, rgba(247,190,77,0.28) 0%, rgba(251,191,36,0.08) 50%, transparent 70%)" }}
       />
 
-      {/* ── Light pastel blobs ── */}
+      {/* Rainbow strip across top */}
+      <div className="absolute top-0 left-0 right-0 h-1.5 pointer-events-none"
+        style={{ background: "linear-gradient(90deg, #F7BE4D, #f472b6, #818cf8, #34d399, #38bdf8, #F7BE4D)" }} />
+
+      {/* ── Vivid pastel blobs ── */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <motion.div
-          animate={{ scale: [1, 1.2, 1], x: [0, 30, 0], opacity: [0.5, 0.8, 0.5] }}
+          animate={{ scale: [1, 1.2, 1], x: [0, 30, 0], opacity: [0.6, 0.9, 0.6] }}
           transition={{ duration: 14, repeat: Infinity, ease: "easeInOut" }}
-          className="absolute -top-[15%] left-[20%] w-[600px] h-[600px] rounded-full"
-          style={{ background: "radial-gradient(circle, rgba(247,190,77,0.2) 0%, transparent 65%)", filter: "blur(80px)" }}
+          className="absolute -top-[15%] left-[15%] w-[700px] h-[700px] rounded-full"
+          style={{ background: "radial-gradient(circle, rgba(247,190,77,0.35) 0%, rgba(251,191,36,0.1) 50%, transparent 65%)", filter: "blur(70px)" }}
         />
         <motion.div
-          animate={{ scale: [1, 1.15, 1], x: [0, -40, 0], y: [0, 30, 0], opacity: [0.4, 0.65, 0.4] }}
+          animate={{ scale: [1, 1.15, 1], x: [0, -40, 0], y: [0, 30, 0], opacity: [0.5, 0.75, 0.5] }}
           transition={{ duration: 18, repeat: Infinity, ease: "easeInOut", delay: 3 }}
-          className="absolute top-[5%] right-[-8%] w-[500px] h-[500px] rounded-full"
-          style={{ background: "radial-gradient(circle, rgba(129,140,248,0.18) 0%, transparent 65%)", filter: "blur(80px)" }}
+          className="absolute top-[5%] right-[-8%] w-[550px] h-[550px] rounded-full"
+          style={{ background: "radial-gradient(circle, rgba(129,140,248,0.3) 0%, transparent 65%)", filter: "blur(70px)" }}
         />
         <motion.div
-          animate={{ scale: [1, 1.18, 1], opacity: [0.3, 0.5, 0.3] }}
+          animate={{ scale: [1, 1.18, 1], opacity: [0.4, 0.6, 0.4] }}
           transition={{ duration: 20, repeat: Infinity, ease: "easeInOut", delay: 6 }}
-          className="absolute bottom-[5%] left-[-5%] w-[450px] h-[450px] rounded-full"
-          style={{ background: "radial-gradient(circle, rgba(244,114,182,0.15) 0%, transparent 65%)", filter: "blur(70px)" }}
+          className="absolute bottom-[5%] left-[-5%] w-[500px] h-[500px] rounded-full"
+          style={{ background: "radial-gradient(circle, rgba(244,114,182,0.28) 0%, transparent 65%)", filter: "blur(60px)" }}
         />
         <motion.div
-          animate={{ scale: [1, 1.1, 1], opacity: [0.25, 0.4, 0.25] }}
+          animate={{ scale: [1, 1.1, 1], opacity: [0.35, 0.55, 0.35] }}
           transition={{ duration: 16, repeat: Infinity, ease: "easeInOut", delay: 2 }}
-          className="absolute bottom-[10%] right-[10%] w-[400px] h-[400px] rounded-full"
-          style={{ background: "radial-gradient(circle, rgba(52,211,153,0.13) 0%, transparent 70%)", filter: "blur(70px)" }}
+          className="absolute bottom-[10%] right-[10%] w-[450px] h-[450px] rounded-full"
+          style={{ background: "radial-gradient(circle, rgba(52,211,153,0.25) 0%, transparent 70%)", filter: "blur(60px)" }}
         />
       </div>
 

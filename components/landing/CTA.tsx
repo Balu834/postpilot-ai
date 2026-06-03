@@ -13,8 +13,8 @@ export default function CTA() {
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.6 }}
-          className="relative rounded-3xl p-12 text-center overflow-hidden border border-amber-200"
-          style={{ background: "linear-gradient(135deg, #fffbeb 0%, #fef3c7 50%, #fff7ed 100%)" }}
+          className="relative rounded-3xl p-12 text-center overflow-hidden border-2 border-amber-300"
+          style={{ background: "linear-gradient(135deg, #fef9c3 0%, #fef3c7 40%, #fde68a 100%)", boxShadow: "0 20px 60px rgba(247,190,77,0.25), 0 4px 16px rgba(247,190,77,0.15)" }}
         >
           {/* Shiny background accents */}
           <div className="absolute -top-16 -right-16 w-48 h-48 rounded-full opacity-40 pointer-events-none"

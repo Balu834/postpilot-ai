@@ -70,7 +70,7 @@ const AVATARS = [
 
 export default function Testimonials() {
   return (
-    <section className="relative py-24 overflow-hidden bg-slate-50">
+    <section className="relative py-24 overflow-hidden bg-white">
       <div className="max-w-6xl mx-auto px-6 mb-12">
         <motion.div
           initial={{ opacity: 0, y: 16 }} whileInView={{ opacity: 1, y: 0 }}
@@ -118,9 +118,9 @@ export default function Testimonials() {
       <div className="space-y-4 relative">
         {/* Fade edges — white to match section */}
         <div className="absolute left-0 top-0 bottom-0 w-32 z-10 pointer-events-none"
-          style={{ background: "linear-gradient(to right, #f8fafc, transparent)" }} />
+          style={{ background: "linear-gradient(to right, #ffffff, transparent)" }} />
         <div className="absolute right-0 top-0 bottom-0 w-32 z-10 pointer-events-none"
-          style={{ background: "linear-gradient(to left, #f8fafc, transparent)" }} />
+          style={{ background: "linear-gradient(to left, #ffffff, transparent)" }} />
 
         <div className="overflow-hidden">
           <div className="flex marquee-left">

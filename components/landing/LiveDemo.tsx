@@ -67,9 +67,10 @@ export default function LiveDemo() {
 
   return (
     <section className="py-24 px-4 relative overflow-hidden bg-white">
-      {/* Subtle background */}
       <div className="absolute inset-0 pointer-events-none"
-        style={{ background: "radial-gradient(ellipse 70% 50% at 50% 0%, rgba(247,190,77,0.07) 0%, transparent 60%)" }} />
+        style={{ background: "radial-gradient(ellipse 70% 50% at 50% 0%, rgba(52,211,153,0.12) 0%, transparent 60%)" }} />
+      <div className="absolute top-0 left-0 right-0 h-px pointer-events-none"
+        style={{ background: "linear-gradient(90deg, transparent, rgba(52,211,153,0.5), transparent)" }} />
 
       <div className="max-w-3xl mx-auto relative">
         {/* Header */}

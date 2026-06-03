@@ -14,9 +14,12 @@ const features = [
 
 export default function Features() {
   return (
-    <section id="features" className="py-24 px-6 bg-white relative">
+    <section id="features" className="py-24 px-6 relative bg-white">
       <div className="absolute inset-0 pointer-events-none"
-        style={{ backgroundImage: "radial-gradient(circle, rgba(247,190,77,0.12) 1px, transparent 1px)", backgroundSize: "40px 40px", opacity: 0.4 }} />
+        style={{ backgroundImage: "radial-gradient(circle, rgba(99,102,241,0.1) 1px, transparent 1px)", backgroundSize: "40px 40px", opacity: 0.5 }} />
+      {/* Section top accent */}
+      <div className="absolute top-0 left-0 right-0 h-px pointer-events-none"
+        style={{ background: "linear-gradient(90deg, transparent, rgba(99,102,241,0.3), rgba(247,190,77,0.3), transparent)" }} />
 
       <div className="max-w-6xl mx-auto relative">
         <motion.div

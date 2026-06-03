@@ -41,7 +41,7 @@
 html { color-scheme: light; scroll-behavior: smooth; }
 
 body {
-  background-color: #f8fafc;
+  background-color: #ffffff;
   color: #0f172a;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
@@ -110,17 +110,18 @@ body {
   border: 1px solid #e2e8f0;
   box-shadow:
     0 1px 3px rgba(0,0,0,0.06),
-    0 4px 16px rgba(0,0,0,0.04);
+    0 4px 20px rgba(99,102,241,0.06),
+    0 0 0 0 transparent;
   transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .glass-card:hover {
-  border-color: rgba(247,190,77,0.4);
+  border-color: rgba(247,190,77,0.5);
   box-shadow:
-    0 4px 24px rgba(247,190,77,0.12),
-    0 1px 3px rgba(0,0,0,0.06),
-    0 0 0 1px rgba(247,190,77,0.12);
-  transform: translateY(-2px);
+    0 8px 30px rgba(247,190,77,0.18),
+    0 2px 8px rgba(0,0,0,0.06),
+    0 0 0 2px rgba(247,190,77,0.1);
+  transform: translateY(-3px);
 }
 
 .glass-hero {
