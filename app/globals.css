@@ -1,5 +1,14 @@
 @import "tailwindcss";
 
+/* Force white background at Tailwind base layer level — highest priority */
+@layer base {
+  html, body {
+    background-color: #ffffff !important;
+    color: #0f172a !important;
+    color-scheme: light !important;
+  }
+}
+
 :root {
   --background:        #ffffff;
   --foreground:        #0f172a;

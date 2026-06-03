@@ -100,10 +100,16 @@ export default function RootLayout({
   return (
     <html lang="en" className={`${geistSans.variable} ${geistMono.variable}`} style={{ background: "#ffffff", colorScheme: "light" }}>
       <head>
+        <meta name="color-scheme" content="light" />
         <style>{`
           html, body { background: #ffffff !important; color: #0f172a !important; color-scheme: light !important; }
           * { -webkit-font-smoothing: antialiased; }
         `}</style>
+        {/* Immediate JS sets bg before any CSS — prevents flash of dark */}
+        <Script id="force-white" strategy="beforeInteractive">{`
+          document.documentElement.style.background='#fff';
+          document.documentElement.style.colorScheme='light';
+        `}</Script>
         {META_PIXEL_ID && (
           <>
             <Script id="meta-pixel" strategy="afterInteractive">{`
