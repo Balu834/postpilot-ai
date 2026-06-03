@@ -47,7 +47,8 @@ export async function POST(req: NextRequest) {
     }, { onConflict: "user_id,platform" })
 
     return NextResponse.json({ success: true })
-  } catch {
+  } catch (err: unknown) {
+    console.error("[OAuth]", err)
     return NextResponse.json({ error: "Failed to connect Bluesky" }, { status: 500 })
   }
 }

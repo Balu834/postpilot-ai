@@ -88,7 +88,8 @@ export async function GET(req: NextRequest) {
     res.cookies.delete("fb_state")
     res.cookies.delete("fb_uid")
     return res
-  } catch {
+  } catch (err: unknown) {
+    console.error("[OAuth]", err)
     return NextResponse.redirect(`${appUrl}/settings?social_error=facebook`)
   }
 }

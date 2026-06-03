@@ -67,7 +67,8 @@ export async function GET(req: NextRequest) {
     res.cookies.delete("tw_cv")
     res.cookies.delete("tw_uid")
     return res
-  } catch {
+  } catch (err: unknown) {
+    console.error("[OAuth]", err)
     return NextResponse.redirect(`${appUrl}/settings?social_error=twitter`)
   }
 }

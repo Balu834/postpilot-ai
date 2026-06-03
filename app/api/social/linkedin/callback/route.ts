@@ -58,7 +58,8 @@ export async function GET(req: NextRequest) {
     res.cookies.delete("li_state")
     res.cookies.delete("li_uid")
     return res
-  } catch {
+  } catch (err: unknown) {
+    console.error("[OAuth]", err)
     return NextResponse.redirect(`${appUrl}/settings?social_error=linkedin`)
   }
 }

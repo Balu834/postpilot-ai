@@ -29,7 +29,8 @@ export async function POST(req: NextRequest) {
     res.cookies.set("pinterest_state", state,   { httpOnly: true, secure: true, maxAge: 600, sameSite: "lax" })
     res.cookies.set("pinterest_uid",   user.id, { httpOnly: true, secure: true, maxAge: 600, sameSite: "lax" })
     return res
-  } catch {
+  } catch (err: unknown) {
+    console.error("[OAuth]", err)
     return NextResponse.json({ error: "Failed to initiate Pinterest auth" }, { status: 500 })
   }
 }
