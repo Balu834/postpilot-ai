@@ -187,9 +187,9 @@ function StreamingLoader({
       exit={{ opacity: 0, y: -12 }}
       className="rounded-2xl overflow-hidden relative"
       style={{
-        background: "linear-gradient(145deg, #0d1526 0%, #080c1a 100%)",
-        border: "1px solid rgba(247,190,77,0.14)",
-        boxShadow: "0 0 80px rgba(247,190,77,0.05)",
+        background: "linear-gradient(145deg, #fffbeb 0%, #fefce8 100%)",
+        border: "1px solid rgba(247,190,77,0.35)",
+        boxShadow: "0 4px 24px rgba(247,190,77,0.1)",
       }}
     >
       {/* Radial pulse */}
@@ -369,7 +369,7 @@ function PostCard({
         onHoverEnd={() => setHovered(false)}
         animate={{ y: hovered ? -3 : 0 }}
         transition={{ type: "spring", stiffness: 380, damping: 24 }}
-        className="p-5 rounded-2xl text-sm text-slate-300 leading-[1.75] whitespace-pre-wrap min-h-[140px] relative overflow-hidden transition-all duration-300"
+        className="p-5 rounded-2xl text-sm text-slate-700 leading-[1.75] whitespace-pre-wrap min-h-[140px] relative overflow-hidden transition-all duration-300"
         style={{
           background: hovered ? `${color}0e` : `${color}07`,
           border: hovered ? `1px solid ${color}38` : `1px solid ${color}18`,
@@ -670,7 +670,7 @@ function QuickScheduleModal({
         initial={{ opacity: 0, scale: 0.95, y: 8 }}
         animate={{ opacity: 1, scale: 1, y: 0 }}
         className="relative w-full max-w-md rounded-2xl p-6 space-y-4"
-        style={{ background: "#0d1526", border: "1px solid rgba(255,255,255,0.1)", boxShadow: "0 25px 60px rgba(0,0,0,0.6)" }}
+        style={{ background: "#ffffff", border: "1px solid #e2e8f0", boxShadow: "0 25px 60px rgba(0,0,0,0.15)" }}
       >
         {/* Header */}
         <div className="flex items-center justify-between">
@@ -1088,10 +1088,11 @@ export default function GeneratePage() {
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
           className="rounded-2xl p-6 relative overflow-hidden"
           style={{
-            background: "linear-gradient(145deg, #0d1526, #080c1a)",
-            border: "1px solid rgba(255,255,255,0.07)",
+            background: "#ffffff",
+            border: "1px solid #e2e8f0",
+            boxShadow: "0 2px 16px rgba(0,0,0,0.06)",
           }}>
-          <div className="absolute -top-14 -right-14 w-52 h-52 bg-[#F7BE4D]/[0.05] rounded-full blur-3xl pointer-events-none" />
+          <div className="absolute -top-14 -right-14 w-52 h-52 bg-[#F7BE4D]/[0.08] rounded-full blur-3xl pointer-events-none" />
           <div className="absolute -bottom-10 -left-10 w-40 h-40 bg-indigo-500/[0.04] rounded-full blur-3xl pointer-events-none" />
 
           <div className="relative">
@@ -1102,7 +1103,7 @@ export default function GeneratePage() {
                   <Wand2 className="w-5 h-5 text-[#F7BE4D]" />
                 </div>
                 <div>
-                  <h2 className="text-sm font-bold text-white">AI Content Generator</h2>
+                  <h2 className="text-sm font-bold text-slate-900">AI Content Generator</h2>
                   <p className="text-[11px] text-slate-500">One idea → full content pack across 5 platforms</p>
                 </div>
               </div>
@@ -1166,7 +1167,7 @@ export default function GeneratePage() {
                     className={`text-xs px-3 py-1.5 rounded-lg border transition-all duration-200 ${
                       tone === t.value
                         ? "bg-[#F7BE4D]/15 border-[#F7BE4D]/40 text-[#F7BE4D] font-semibold"
-                        : "border-white/[0.07] text-slate-500 hover:border-white/14 hover:text-white"
+                        : "border-slate-200 text-slate-500 hover:border-slate-300 hover:text-slate-700"
                     }`}
                     style={tone === t.value ? { boxShadow: "0 0 14px rgba(247,190,77,0.14)" } : {}}>
                     {t.emoji} {t.label}
@@ -1254,19 +1255,20 @@ export default function GeneratePage() {
               transition={{ type: "spring", stiffness: 200, damping: 24 }}
               className="rounded-2xl overflow-hidden"
               style={{
-                background: "linear-gradient(145deg, #0d1526, #080c1a)",
-                border: "1px solid rgba(255,255,255,0.07)",
+                background: "#ffffff",
+                border: "1px solid #e2e8f0",
+                boxShadow: "0 2px 12px rgba(0,0,0,0.05)",
               }}
             >
               {/* Header */}
-              <div className="flex items-center justify-between px-5 py-4 border-b border-white/[0.05]">
+              <div className="flex items-center justify-between px-5 py-4 border-b border-slate-100">
                 <div className="flex items-center gap-2.5">
                   {isStreaming ? (
                     <>
                       <motion.span className="w-2 h-2 rounded-full bg-[#F7BE4D]"
                         animate={{ opacity: [1, 0.3, 1], scale: [1, 1.3, 1] }}
                         transition={{ duration: 1, repeat: Infinity }} />
-                      <span className="text-sm font-semibold text-white">Generating live</span>
+                      <span className="text-sm font-semibold text-slate-900">Generating live</span>
                       <AnimatePresence mode="wait">
                         <motion.span key={streamPhase}
                           initial={{ opacity: 0, x: 6 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -6 }}
@@ -1281,7 +1283,7 @@ export default function GeneratePage() {
                         transition={{ type: "spring", stiffness: 400 }}
                         className="w-2 h-2 rounded-full bg-emerald-400"
                         style={{ boxShadow: "0 0 8px rgba(52,211,153,0.6)" }} />
-                      <span className="text-sm font-semibold text-white">Content ready</span>
+                      <span className="text-sm font-semibold text-slate-900">Content ready</span>
                       {finalResult && (
                         <span className="text-[11px] text-slate-600 hidden sm:block">
                           {finalResult.hashtags.length} hashtags · {finalResult.carousel.length} slides
@@ -1294,8 +1296,8 @@ export default function GeneratePage() {
                   {finalResult && <CopyAllBtn result={finalResult} />}
                   {!isStreaming && (
                     <motion.button onClick={() => generate()} whileHover={{ scale: 1.04 }} whileTap={{ scale: 0.96 }}
-                      className="flex items-center gap-1.5 text-xs text-slate-400 hover:text-white px-3 py-1.5 rounded-lg transition-all"
-                      style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.07)" }}>
+                      className="flex items-center gap-1.5 text-xs text-slate-500 hover:text-slate-900 px-3 py-1.5 rounded-lg transition-all"
+                      style={{ background: "#f8fafc", border: "1px solid #e2e8f0" }}>
                       <RefreshCw className="w-3 h-3" />
                       <span className="hidden sm:block">Regenerate</span>
                     </motion.button>
@@ -1304,7 +1306,7 @@ export default function GeneratePage() {
               </div>
 
               {/* Tabs — appear one by one */}
-              <div className="flex overflow-x-auto border-b border-white/[0.05]" style={{ scrollbarWidth: "none" }}>
+              <div className="flex overflow-x-auto border-b border-slate-100" style={{ scrollbarWidth: "none" }}>
                 {TABS.filter(t => visibleTabs.includes(t.key)).map((tab, i) => (
                   <motion.button key={tab.key}
                     initial={{ opacity: 0, y: 10, scale: 0.9 }}
@@ -1312,7 +1314,7 @@ export default function GeneratePage() {
                     transition={{ delay: i * 0.04, type: "spring", stiffness: 320, damping: 22 }}
                     onClick={() => setActiveTab(tab.key)}
                     className={`flex items-center gap-2 px-4 py-3 text-xs font-semibold whitespace-nowrap transition-all relative flex-shrink-0 ${
-                      activeTab === tab.key ? "text-white" : "text-slate-500 hover:text-slate-300"
+                      activeTab === tab.key ? "text-slate-900" : "text-slate-500 hover:text-slate-700"
                     }`}
                     style={activeTab === tab.key ? { color: tab.color } : {}}>
                     <span className="text-sm">{tab.icon}</span>
@@ -1519,7 +1521,7 @@ export default function GeneratePage() {
         {!finalResult && !isStreaming && visibleTabs.length === 0 && (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.2 }}
             className="rounded-2xl p-14 text-center"
-            style={{ background: "linear-gradient(145deg, #0d1526, #080c1a)", border: "1px solid rgba(255,255,255,0.06)" }}>
+            style={{ background: "#f8fafc", border: "1px solid #e2e8f0" }}>
             <div className="relative w-20 h-20 mx-auto mb-6">
               <div className="w-20 h-20 rounded-2xl bg-[#F7BE4D]/10 border border-[#F7BE4D]/20 flex items-center justify-center"
                 style={{ boxShadow: "0 0 40px rgba(247,190,77,0.08)" }}>
@@ -1537,7 +1539,7 @@ export default function GeneratePage() {
               ))}
             </div>
 
-            <h3 className="text-xl font-bold text-white mb-2">Generate your first AI content pack</h3>
+            <h3 className="text-xl font-bold text-slate-900 mb-2">Generate your first AI content pack</h3>
             <p className="text-sm text-slate-500 max-w-md mx-auto mb-8 leading-relaxed">
               Watch the AI generate platform-ready posts live — Instagram, LinkedIn, Twitter, hashtags, and carousels appear one by one in real time.
             </p>
