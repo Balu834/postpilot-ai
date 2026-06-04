@@ -112,33 +112,32 @@ export default function RootLayout({
           }
           * { -webkit-font-smoothing: antialiased; }
         `}</style>
-        {/* Kill Dark Reader: remove its injected styles and watch for re-injection */}
-        <Script id="kill-darkreader" strategy="beforeInteractive">{`
-          document.documentElement.style.background='#fff';
-          document.documentElement.style.colorScheme='light only';
+        {/* Set bg before paint — must NOT mutate DOM subtree (causes React hydration #418) */}
+        <Script id="force-white" strategy="beforeInteractive">{`
+          document.documentElement.style.background='#ffffff';
+        `}</Script>
+        {/* Dark Reader removal runs after hydration to avoid mismatch */}
+        <Script id="kill-darkreader" strategy="afterInteractive">{`
           (function(){
             function removeDR(){
               document.querySelectorAll(
                 'style[data-darkreader-style],link[data-darkreader-fallback],style[class*="darkreader"],link[class*="darkreader"]'
               ).forEach(function(el){el.parentNode&&el.parentNode.removeChild(el);});
-              document.documentElement.style.background='#fff';
-              document.documentElement.style.filter='none';
             }
             removeDR();
             if(typeof MutationObserver!=='undefined'){
               new MutationObserver(function(m){
+                var changed=false;
                 m.forEach(function(r){
                   r.addedNodes.forEach(function(n){
                     if(n.nodeType===1){
                       var a=n.getAttribute&&n.getAttribute('data-darkreader-style');
                       var b=n.className&&(n.className+'').indexOf('darkreader')>-1;
-                      if(a||b){n.parentNode&&n.parentNode.removeChild(n);}
+                      if(a||b){n.parentNode&&n.parentNode.removeChild(n);changed=true;}
                     }
                   });
                 });
-                document.documentElement.style.background='#fff';
-                document.documentElement.style.filter='none';
-              }).observe(document.documentElement,{childList:true,subtree:true});
+              }).observe(document.head,{childList:true});
             }
           })();
         `}</Script>
