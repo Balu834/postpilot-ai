@@ -112,11 +112,35 @@ export default function RootLayout({
           }
           * { -webkit-font-smoothing: antialiased; }
         `}</style>
-        {/* Immediate JS sets bg before any CSS — prevents flash of dark */}
-        <Script id="force-white" strategy="beforeInteractive">{`
+        {/* Kill Dark Reader: remove its injected styles and watch for re-injection */}
+        <Script id="kill-darkreader" strategy="beforeInteractive">{`
           document.documentElement.style.background='#fff';
           document.documentElement.style.colorScheme='light only';
-          document.documentElement.setAttribute('data-color-scheme','light');
+          (function(){
+            function removeDR(){
+              document.querySelectorAll(
+                'style[data-darkreader-style],link[data-darkreader-fallback],style[class*="darkreader"],link[class*="darkreader"]'
+              ).forEach(function(el){el.parentNode&&el.parentNode.removeChild(el);});
+              document.documentElement.style.background='#fff';
+              document.documentElement.style.filter='none';
+            }
+            removeDR();
+            if(typeof MutationObserver!=='undefined'){
+              new MutationObserver(function(m){
+                m.forEach(function(r){
+                  r.addedNodes.forEach(function(n){
+                    if(n.nodeType===1){
+                      var a=n.getAttribute&&n.getAttribute('data-darkreader-style');
+                      var b=n.className&&(n.className+'').indexOf('darkreader')>-1;
+                      if(a||b){n.parentNode&&n.parentNode.removeChild(n);}
+                    }
+                  });
+                });
+                document.documentElement.style.background='#fff';
+                document.documentElement.style.filter='none';
+              }).observe(document.documentElement,{childList:true,subtree:true});
+            }
+          })();
         `}</Script>
         {META_PIXEL_ID && (
           <>
