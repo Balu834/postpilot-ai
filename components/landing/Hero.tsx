@@ -38,56 +38,9 @@ export default function Hero() {
   return (
     <section className="relative min-h-screen flex flex-col items-center justify-center px-6 pt-24 pb-16 overflow-hidden" style={{ backgroundColor: '#ffffff' }}>
 
-      {/* ─── Background ─────────────────────────────────── */}
-
-      {/* Subtle dot grid */}
-      <div className="absolute inset-0 pointer-events-none"
-        style={{
-          backgroundImage: "radial-gradient(circle, rgba(247,190,77,0.18) 1px, transparent 1px)",
-          backgroundSize: "36px 36px",
-          opacity: 0.5,
-        }}
-      />
-
-      {/* Top gold spotlight — brighter */}
-      <div className="absolute inset-0 pointer-events-none"
-        style={{ background: "radial-gradient(ellipse 80% 55% at 50% -5%, rgba(247,190,77,0.28) 0%, rgba(251,191,36,0.08) 50%, transparent 70%)" }}
-      />
-
       {/* Rainbow strip across top */}
-      <div className="absolute top-0 left-0 right-0 h-1.5 pointer-events-none"
+      <div className="absolute top-0 left-0 right-0 h-1 pointer-events-none"
         style={{ background: "linear-gradient(90deg, #F7BE4D, #f472b6, #818cf8, #34d399, #38bdf8, #F7BE4D)" }} />
-
-      {/* ── Vivid pastel blobs ── */}
-      <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <motion.div
-          animate={{ scale: [1, 1.2, 1], x: [0, 30, 0], opacity: [0.6, 0.9, 0.6] }}
-          transition={{ duration: 14, repeat: Infinity, ease: "easeInOut" }}
-          className="absolute -top-[15%] left-[15%] w-[700px] h-[700px] rounded-full"
-          style={{ background: "radial-gradient(circle, rgba(247,190,77,0.35) 0%, rgba(251,191,36,0.1) 50%, transparent 65%)", filter: "blur(70px)" }}
-        />
-        <motion.div
-          animate={{ scale: [1, 1.15, 1], x: [0, -40, 0], y: [0, 30, 0], opacity: [0.5, 0.75, 0.5] }}
-          transition={{ duration: 18, repeat: Infinity, ease: "easeInOut", delay: 3 }}
-          className="absolute top-[5%] right-[-8%] w-[550px] h-[550px] rounded-full"
-          style={{ background: "radial-gradient(circle, rgba(129,140,248,0.3) 0%, transparent 65%)", filter: "blur(70px)" }}
-        />
-        <motion.div
-          animate={{ scale: [1, 1.18, 1], opacity: [0.4, 0.6, 0.4] }}
-          transition={{ duration: 20, repeat: Infinity, ease: "easeInOut", delay: 6 }}
-          className="absolute bottom-[5%] left-[-5%] w-[500px] h-[500px] rounded-full"
-          style={{ background: "radial-gradient(circle, rgba(244,114,182,0.28) 0%, transparent 65%)", filter: "blur(60px)" }}
-        />
-        <motion.div
-          animate={{ scale: [1, 1.1, 1], opacity: [0.35, 0.55, 0.35] }}
-          transition={{ duration: 16, repeat: Infinity, ease: "easeInOut", delay: 2 }}
-          className="absolute bottom-[10%] right-[10%] w-[450px] h-[450px] rounded-full"
-          style={{ background: "radial-gradient(circle, rgba(52,211,153,0.25) 0%, transparent 70%)", filter: "blur(60px)" }}
-        />
-      </div>
-
-      {/* Floating particles — client-only to avoid SSR hydration mismatch */}
-      <HeroParticles />
 
       {/* ─── Content ─────────────────────────────────────── */}
       <div className="relative z-10 max-w-5xl mx-auto text-center">
