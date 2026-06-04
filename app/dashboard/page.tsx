@@ -195,8 +195,8 @@ function GettingStartedCard({ stats, userId }: { stats: Stats; userId: string })
       transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
       className="rounded-2xl overflow-hidden relative"
       style={{
-        background: "linear-gradient(145deg, #0d1526 0%, #080c1a 100%)",
-        border: "1px solid rgba(247,190,77,0.14)",
+        background: "linear-gradient(145deg, #fffbeb 0%, #fefce8 100%)",
+        border: "1px solid rgba(247,190,77,0.35)",
       }}
     >
       {/* Ambient glow */}
@@ -211,7 +211,7 @@ function GettingStartedCard({ stats, userId }: { stats: Stats; userId: string })
               <Zap className="w-4 h-4 text-[#F7BE4D]" fill="currentColor" strokeWidth={0} />
             </div>
             <div>
-              <h3 className="text-sm font-bold text-white">Getting Started</h3>
+              <h3 className="text-sm font-bold text-slate-900">Getting Started</h3>
               <p className="text-[11px] text-slate-500">{totalDone} of {ONBOARDING_STEPS.length} steps completed</p>
             </div>
           </div>
@@ -258,8 +258,8 @@ function GettingStartedCard({ stats, userId }: { stats: Stats; userId: string })
                     transition={{ duration: 0.15 }}
                     className="flex items-start gap-2.5 p-3 rounded-xl cursor-pointer transition-all duration-200 group"
                     style={{
-                      background: done ? `${step.color}08` : isNext ? `${step.color}06` : "rgba(255,255,255,0.02)",
-                      border: done ? `1px solid ${step.color}25` : isNext ? `1px solid ${step.color}18` : "1px solid rgba(255,255,255,0.05)",
+                      background: done ? `${step.color}10` : isNext ? `${step.color}08` : "#f8fafc",
+                      border: done ? `1px solid ${step.color}35` : isNext ? `1px solid ${step.color}28` : "1px solid #e2e8f0",
                       boxShadow: isNext ? `0 0 20px ${step.color}10` : "none",
                     }}
                   >
@@ -284,7 +284,7 @@ function GettingStartedCard({ stats, userId }: { stats: Stats; userId: string })
                             style={{ background: step.color }} />
                         </div>
                       ) : (
-                        <div className="w-5 h-5 rounded-full border-2 border-white/10" />
+                        <div className="w-5 h-5 rounded-full border-2 border-slate-200" />
                       )}
                     </div>
 
@@ -636,9 +636,9 @@ function HeroGenerate({ prefs, brandName }: { prefs: UserPrefs | null; brandName
       transition={{ duration: 0.65, ease: [0.22, 1, 0.36, 1] }}
       className="relative rounded-3xl overflow-hidden mb-6"
       style={{
-        background: "linear-gradient(145deg, #0d1526 0%, #080c1a 55%, #0c1020 100%)",
-        border: "1px solid rgba(247,190,77,0.13)",
-        boxShadow: "0 0 80px rgba(247,190,77,0.04), inset 0 1px 0 rgba(255,255,255,0.04)",
+        background: "linear-gradient(145deg, #ffffff 0%, #fffbeb 55%, #fefce8 100%)",
+        border: "1px solid rgba(247,190,77,0.3)",
+        boxShadow: "0 4px 32px rgba(247,190,77,0.1), 0 1px 0 rgba(255,255,255,1) inset",
       }}
     >
       {/* Deep layered glows */}
@@ -695,7 +695,7 @@ function HeroGenerate({ prefs, brandName }: { prefs: UserPrefs | null; brandName
           initial={{ opacity: 0, y: 14 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.15, duration: 0.55, ease: [0.22, 1, 0.36, 1] }}
-          className="text-[2rem] md:text-[2.6rem] font-extrabold text-white mb-3 leading-[1.08] tracking-tight"
+          className="text-[2rem] md:text-[2.6rem] font-extrabold text-slate-900 mb-3 leading-[1.08] tracking-tight"
         >
           Generate{" "}
           <motion.span
@@ -718,7 +718,7 @@ function HeroGenerate({ prefs, brandName }: { prefs: UserPrefs | null; brandName
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.22, duration: 0.5 }}
-          className="text-slate-400 text-[15px] mb-8 max-w-xl leading-relaxed"
+          className="text-slate-500 text-[15px] mb-8 max-w-xl leading-relaxed"
         >
           Drop a topic, blog post, or idea — get LinkedIn, Twitter, and Instagram posts in seconds.
         </motion.p>
@@ -738,12 +738,10 @@ function HeroGenerate({ prefs, brandName }: { prefs: UserPrefs | null; brandName
               onBlur={() => setFocused(false)}
               onKeyDown={e => e.key === "Enter" && canGenerate && router.push(`/generate?topic=${encodeURIComponent(topic.trim())}`)}
               placeholder={placeholder}
-              className="w-full px-5 py-[14px] text-sm text-white rounded-2xl outline-none transition-all duration-300 placeholder:text-slate-600"
+              className="w-full px-5 py-[14px] text-sm text-slate-900 rounded-2xl outline-none transition-all duration-300 placeholder:text-slate-400 bg-white"
               style={{
-                background: focused ? "rgba(255,255,255,0.07)" : "rgba(255,255,255,0.04)",
-                border: focused ? "1px solid rgba(247,190,77,0.45)" : "1px solid rgba(255,255,255,0.08)",
-                boxShadow: focused ? "0 0 0 3px rgba(247,190,77,0.09), 0 0 28px rgba(247,190,77,0.08)" : "none",
-                backdropFilter: "blur(10px)",
+                border: focused ? "1px solid rgba(247,190,77,0.6)" : "1px solid #d1d5db",
+                boxShadow: focused ? "0 0 0 3px rgba(247,190,77,0.12)" : "none",
               }}
             />
           </div>
