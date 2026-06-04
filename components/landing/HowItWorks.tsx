@@ -53,7 +53,7 @@ const steps = [
 
 export default function HowItWorks() {
   return (
-    <section id="demo" className="py-24 px-6 relative bg-white">
+    <section id="demo" className="py-24 px-6 relative" style={{ backgroundColor: '#ffffff' }}>
       <div className="absolute inset-0 pointer-events-none"
         style={{ background: "radial-gradient(ellipse 80% 60% at 50% 0%, rgba(247,190,77,0.2) 0%, transparent 60%)" }} />
       <div className="absolute top-0 left-0 right-0 h-px pointer-events-none"

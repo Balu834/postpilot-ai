@@ -14,7 +14,7 @@ const features = [
 
 export default function Features() {
   return (
-    <section id="features" className="py-24 px-6 relative bg-white">
+    <section id="features" className="py-24 px-6 relative" style={{ backgroundColor: '#ffffff' }}>
       <div className="absolute inset-0 pointer-events-none"
         style={{ backgroundImage: "radial-gradient(circle, rgba(99,102,241,0.1) 1px, transparent 1px)", backgroundSize: "40px 40px", opacity: 0.5 }} />
       {/* Section top accent */}

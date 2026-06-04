@@ -439,7 +439,7 @@ export default function Pricing() {
   const [billing, setBilling] = useState<Billing>("monthly")
 
   return (
-    <section id="pricing" className="py-28 px-6 relative overflow-hidden">
+    <section id="pricing" className="py-28 px-6 relative overflow-hidden" style={{ backgroundColor: '#ffffff' }}>
 
       {/* ── Background effects ──────────────────────────────────── */}
       <div className="absolute inset-0 pointer-events-none">

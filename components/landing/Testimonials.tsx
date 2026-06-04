@@ -70,7 +70,7 @@ const AVATARS = [
 
 export default function Testimonials() {
   return (
-    <section className="relative py-24 overflow-hidden bg-white">
+    <section className="relative py-24 overflow-hidden" style={{ backgroundColor: '#ffffff' }}>
       <div className="max-w-6xl mx-auto px-6 mb-12">
         <motion.div
           initial={{ opacity: 0, y: 16 }} whileInView={{ opacity: 1, y: 0 }}

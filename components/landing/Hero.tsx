@@ -36,7 +36,7 @@ const PLATFORMS = [
 
 export default function Hero() {
   return (
-    <section className="relative min-h-screen flex flex-col items-center justify-center px-6 pt-24 pb-16 overflow-hidden bg-white">
+    <section className="relative min-h-screen flex flex-col items-center justify-center px-6 pt-24 pb-16 overflow-hidden" style={{ backgroundColor: '#ffffff' }}>
 
       {/* ─── Background ─────────────────────────────────── */}
 
@@ -104,7 +104,7 @@ export default function Hero() {
             transition={{ duration: 2, repeat: Infinity }}
             className="w-2 h-2 rounded-full bg-[#F7BE4D]"
           />
-          <span className="text-xs text-[#F7BE4D] font-semibold tracking-widest uppercase">
+          <span className="text-xs font-semibold tracking-widest uppercase" style={{ color: '#b45309' }}>
             AI-Powered Content Engine
           </span>
         </motion.div>

@@ -66,7 +66,7 @@ export default function LiveDemo() {
   }
 
   return (
-    <section className="py-24 px-4 relative overflow-hidden bg-white">
+    <section className="py-24 px-4 relative overflow-hidden" style={{ backgroundColor: '#ffffff' }}>
       <div className="absolute inset-0 pointer-events-none"
         style={{ background: "radial-gradient(ellipse 70% 50% at 50% 0%, rgba(52,211,153,0.12) 0%, transparent 60%)" }} />
       <div className="absolute top-0 left-0 right-0 h-px pointer-events-none"

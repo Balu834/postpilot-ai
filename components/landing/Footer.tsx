@@ -2,7 +2,7 @@ import Link from "next/link"
 
 export default function Footer() {
   return (
-    <footer className="border-t border-slate-100 py-12 px-6 bg-white">
+    <footer className="border-t border-slate-100 py-12 px-6" style={{ backgroundColor: '#ffffff' }}>
       <div className="max-w-6xl mx-auto flex flex-col md:flex-row items-center justify-between gap-6">
         <Link href="/" className="flex items-center gap-2">
           {/* eslint-disable-next-line @next/next/no-img-element */}
