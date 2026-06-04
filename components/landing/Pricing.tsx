@@ -196,21 +196,21 @@ function PlanCard({
     >
       {/* Card body */}
       <div
-        className={`relative flex flex-col h-full rounded-2xl p-7 overflow-hidden
-          transition-all duration-300 ${isPro ? "" : "hover:border-white/14"}`}
+        className="relative flex flex-col h-full rounded-2xl p-7 overflow-hidden transition-all duration-300"
         style={{
           background: isPro
-            ? "linear-gradient(145deg, rgba(20,28,50,0.98) 0%, rgba(14,20,40,0.98) 100%)"
-            : "rgba(13,21,38,0.85)",
-          border: isPro
-            ? "1px solid rgba(247,190,77,0.35)"
+            ? "linear-gradient(145deg, #fffbeb 0%, #fefce8 100%)"
             : isAgency
-              ? "1px solid rgba(129,140,248,0.18)"
-              : "1px solid rgba(255,255,255,0.07)",
+              ? "#f5f3ff"
+              : "#f8fafc",
+          border: isPro
+            ? "1px solid rgba(247,190,77,0.45)"
+            : isAgency
+              ? "1px solid rgba(129,140,248,0.35)"
+              : "1px solid #e2e8f0",
           boxShadow: isPro
-            ? "0 0 0 1px rgba(247,190,77,0.12), 0 24px 80px rgba(0,0,0,0.5), 0 0 60px rgba(247,190,77,0.1)"
-            : "0 8px 32px rgba(0,0,0,0.3)",
-          backdropFilter: "blur(24px)",
+            ? "0 0 0 1px rgba(247,190,77,0.15), 0 8px 32px rgba(247,190,77,0.14)"
+            : "0 4px 20px rgba(0,0,0,0.05)",
         }}
       >
         {/* Pro animated glow ring */}
@@ -269,7 +269,7 @@ function PlanCard({
                   <Zap className="w-3.5 h-3.5" style={{ color: plan.accent }} />
                 )}
               </div>
-              <h3 className="text-base font-bold text-white">{plan.name}</h3>
+              <h3 className="text-base font-bold text-slate-900">{plan.name}</h3>
             </div>
             <p className="text-xs text-slate-500 leading-relaxed">{plan.description}</p>
           </div>
@@ -284,7 +284,7 @@ function PlanCard({
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: 12 }}
                   transition={{ duration: 0.22 }}
-                  className="text-4xl font-black text-white tracking-tight"
+                  className="text-4xl font-black text-slate-900 tracking-tight"
                   style={isPro ? {
                     background: "linear-gradient(135deg, #F7BE4D, #ffd166)",
                     WebkitBackgroundClip: "text",
@@ -361,7 +361,7 @@ function PlanCard({
                   style={{
                     background: f.power
                       ? `${plan.accent}22`
-                      : "rgba(255,255,255,0.06)",
+                      : "rgba(0,0,0,0.05)",
                   }}>
                   <Check
                     className="w-2.5 h-2.5"
@@ -369,7 +369,7 @@ function PlanCard({
                   />
                 </div>
                 <span className={`text-sm leading-snug ${
-                  f.power ? "text-slate-200 font-medium" : "text-slate-500"
+                  f.power ? "text-slate-800 font-medium" : "text-slate-500"
                 }`}>
                   {f.text}
                 </span>
@@ -404,8 +404,8 @@ function PlanCard({
                   cursor-pointer flex items-center justify-center gap-2 transition-all"
                 style={{
                   background: "rgba(129,140,248,0.1)",
-                  border: "1px solid rgba(129,140,248,0.3)",
-                  color: "#818cf8",
+                  border: "1px solid rgba(129,140,248,0.4)",
+                  color: "#4338ca",
                 }}
               >
                 Contact Sales
@@ -420,8 +420,8 @@ function PlanCard({
                 className="w-full py-3.5 rounded-xl text-sm font-semibold text-center
                   cursor-pointer transition-all"
                 style={{
-                  border: "1px solid rgba(255,255,255,0.1)",
-                  color: "#94a3b8",
+                  border: "1px solid #d1d5db",
+                  color: "#475569",
                 }}
               >
                 {plan.cta}
@@ -475,13 +475,13 @@ export default function Pricing() {
               borderColor: "rgba(247,190,77,0.2)",
             }}>
             <span className="w-1.5 h-1.5 rounded-full bg-[#F7BE4D] pulse-dot" />
-            <span className="text-xs text-[#F7BE4D] font-semibold tracking-widest uppercase">
+            <span className="text-xs text-amber-700 font-semibold tracking-widest uppercase">
               India-First Pricing · Made for Creators
             </span>
           </div>
 
           {/* Headline */}
-          <h2 className="text-4xl md:text-5xl lg:text-6xl font-black text-white mb-4
+          <h2 className="text-4xl md:text-5xl lg:text-6xl font-black text-slate-900 mb-4
             leading-tight tracking-tight">
             Your AI Social{" "}
             <span className="gradient-text">Media Team.</span>
@@ -527,10 +527,10 @@ export default function Pricing() {
               { icon: CreditCard, text: "UPI · Cards · Net Banking" },
             ].map(({ icon: Icon, text }) => (
               <div key={text} className="flex items-center gap-2">
-                <div className="w-5 h-5 rounded-full bg-emerald-500/15 flex items-center justify-center">
-                  <Icon className="w-3 h-3 text-emerald-400" />
+                <div className="w-5 h-5 rounded-full bg-emerald-100 flex items-center justify-center">
+                  <Icon className="w-3 h-3 text-emerald-600" />
                 </div>
-                <span className="text-sm text-slate-400">{text}</span>
+                <span className="text-sm text-slate-600">{text}</span>
               </div>
             ))}
           </div>
@@ -545,9 +545,8 @@ export default function Pricing() {
               { label: "Net Banking",bg: "#1a2235" },
             ].map(p => (
               <div key={p.label}
-                className="px-3 py-1.5 rounded-lg text-[11px] font-semibold text-slate-500
-                  border border-white/6"
-                style={{ background: p.bg }}>
+                className="px-3 py-1.5 rounded-lg text-[11px] font-semibold text-slate-600
+                  border border-slate-200 bg-slate-50">
                 {p.label}
               </div>
             ))}
@@ -569,11 +568,8 @@ export default function Pricing() {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ delay: 0.1 * i + 0.4 }}
-              className="rounded-2xl p-5 border border-white/6"
-              style={{
-                background: "rgba(13,21,38,0.7)",
-                backdropFilter: "blur(16px)",
-              }}
+              className="rounded-2xl p-5 border border-slate-100 bg-white"
+              style={{ boxShadow: "0 2px 12px rgba(0,0,0,0.05)" }}
             >
               {/* Stars */}
               <div className="flex items-center gap-0.5 mb-3">
@@ -581,7 +577,7 @@ export default function Pricing() {
                   <Star key={s} className="w-3 h-3 text-[#F7BE4D]" fill="#F7BE4D" />
                 ))}
               </div>
-              <p className="text-sm text-slate-300 leading-relaxed mb-4 italic">
+              <p className="text-sm text-slate-600 leading-relaxed mb-4 italic">
                 "{t.quote}"
               </p>
               <div className="flex items-center gap-2.5">
@@ -591,7 +587,7 @@ export default function Pricing() {
                   {t.avatar}
                 </div>
                 <div>
-                  <p className="text-xs font-semibold text-white">{t.name}</p>
+                  <p className="text-xs font-semibold text-slate-900">{t.name}</p>
                   <p className="text-[11px] text-slate-500">{t.role}</p>
                 </div>
               </div>

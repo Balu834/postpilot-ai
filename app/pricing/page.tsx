@@ -9,10 +9,7 @@ export const metadata = {
 
 export default function PricingPage() {
   return (
-    <main
-      className="min-h-screen"
-      style={{ background: "radial-gradient(ellipse at 50% 0%, rgba(247,190,77,0.06) 0%, #050816 55%)" }}
-    >
+    <main className="min-h-screen bg-white">
       <Navbar />
       <div className="pt-24 pb-16">
         <Pricing />
