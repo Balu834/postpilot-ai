@@ -98,7 +98,7 @@ export default function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html lang="en" className={`${geistSans.variable} ${geistMono.variable}`} style={{ background: "#ffffff", colorScheme: "light only" }}>
+    <html lang="en" data-darkreader-ignore className={`${geistSans.variable} ${geistMono.variable}`} style={{ background: "#ffffff", colorScheme: "light only" }}>
       <head>
         {/* "light only" tells Chrome forced-dark and Dark Reader: do NOT invert this page */}
         <meta name="color-scheme" content="light only" />
