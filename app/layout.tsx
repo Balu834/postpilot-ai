@@ -98,17 +98,25 @@ export default function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html lang="en" className={`${geistSans.variable} ${geistMono.variable}`} style={{ background: "#ffffff", colorScheme: "light" }}>
+    <html lang="en" className={`${geistSans.variable} ${geistMono.variable}`} style={{ background: "#ffffff", colorScheme: "light only" }}>
       <head>
-        <meta name="color-scheme" content="light" />
+        {/* "light only" tells Chrome forced-dark and Dark Reader: do NOT invert this page */}
+        <meta name="color-scheme" content="light only" />
+        <meta name="darkreader-lock" />
         <style>{`
-          html, body { background: #ffffff !important; color: #0f172a !important; color-scheme: light !important; }
+          :root, html, body {
+            background: #ffffff !important;
+            color: #0f172a !important;
+            color-scheme: light only !important;
+            forced-color-adjust: none;
+          }
           * { -webkit-font-smoothing: antialiased; }
         `}</style>
         {/* Immediate JS sets bg before any CSS — prevents flash of dark */}
         <Script id="force-white" strategy="beforeInteractive">{`
           document.documentElement.style.background='#fff';
-          document.documentElement.style.colorScheme='light';
+          document.documentElement.style.colorScheme='light only';
+          document.documentElement.setAttribute('data-color-scheme','light');
         `}</Script>
         {META_PIXEL_ID && (
           <>
