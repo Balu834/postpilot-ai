@@ -19,7 +19,7 @@ export async function POST(req: NextRequest) {
     const params = new URLSearchParams({
       client_id:     process.env.META_APP_ID!,
       redirect_uri:  `${process.env.NEXT_PUBLIC_APP_URL}/api/social/facebook/callback`,
-      scope:         "pages_show_list,pages_read_user_content,pages_manage_posts,public_profile,email",
+      scope:         "public_profile,email,pages_show_list,pages_read_user_content",
       response_type: "code",
       state,
     })
