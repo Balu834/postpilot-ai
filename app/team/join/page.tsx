@@ -38,13 +38,13 @@ export default function JoinTeamPage() {
   }, [inviteToken, router])
 
   return (
-    <div className="min-h-screen bg-[#050816] flex items-center justify-center p-6">
+    <div className="min-h-screen bg-white flex items-center justify-center p-6">
       <motion.div
         initial={{ opacity: 0, scale: 0.94, y: 16 }}
         animate={{ opacity: 1, scale: 1, y: 0 }}
         transition={{ type: "spring", stiffness: 280, damping: 26 }}
         className="w-full max-w-sm rounded-2xl p-8 text-center"
-        style={{ background: "#0d1526", border: "1px solid rgba(255,255,255,0.08)", boxShadow: "0 32px 80px rgba(0,0,0,0.6)" }}
+        style={{ background: "#ffffff", border: "1px solid #e2e8f0", boxShadow: "0 32px 80px rgba(0,0,0,0.12)" }}
       >
         <div className="w-14 h-14 rounded-2xl bg-[#818cf8]/15 flex items-center justify-center mx-auto mb-5">
           {status === "loading" || status === "joining" ? (

@@ -290,7 +290,7 @@ export default function SettingsPage() {
         <motion.div
           initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
           className="fixed inset-0 z-50 flex items-center justify-center p-4"
-          style={{ background: "rgba(5,8,22,0.85)", backdropFilter: "blur(12px)" }}
+          style={{ background: "rgba(15,23,42,0.5)", backdropFilter: "blur(12px)" }}
           onClick={e => e.target === e.currentTarget && setBlueskyOpen(false)}
         >
           <motion.div
@@ -299,7 +299,7 @@ export default function SettingsPage() {
             exit={{ scale: 0.96, opacity: 0 }}
             transition={{ type: "spring", stiffness: 320, damping: 28 }}
             className="w-full max-w-sm rounded-2xl p-6 space-y-4"
-            style={{ background: "#0d1526", border: "1px solid rgba(0,133,255,0.25)", boxShadow: "0 25px 60px rgba(0,0,0,0.6)" }}
+            style={{ background: "#ffffff", border: "1px solid rgba(0,133,255,0.35)", boxShadow: "0 25px 60px rgba(0,0,0,0.15)" }}
           >
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2.5">

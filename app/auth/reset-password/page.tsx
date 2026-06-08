@@ -48,7 +48,7 @@ export default function ResetPasswordPage() {
   }
 
   return (
-    <div className="min-h-screen bg-[#050816] flex items-center justify-center px-4">
+    <div className="min-h-screen bg-white flex items-center justify-center px-4">
       <div className="fixed inset-0 pointer-events-none overflow-hidden">
         <div className="absolute top-[-120px] left-1/2 -translate-x-1/2 w-[600px] h-[400px]"
           style={{ background: "radial-gradient(ellipse at top, rgba(247,190,77,0.08) 0%, transparent 60%)" }} />

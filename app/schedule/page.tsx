@@ -188,7 +188,7 @@ function AIPlannerModal({ open, onClose, onDone }: {
         <motion.div
           initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
           className="fixed inset-0 z-50 flex items-center justify-center p-4"
-          style={{ background: "rgba(5,8,22,0.88)", backdropFilter: "blur(14px)" }}
+          style={{ background: "rgba(15,23,42,0.5)", backdropFilter: "blur(14px)" }}
           onClick={e => e.target === e.currentTarget && onClose()}
         >
           <motion.div
@@ -388,7 +388,7 @@ function AddPostModal({
         <motion.div
           initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
           className="fixed inset-0 z-50 flex items-center justify-center p-4"
-          style={{ background: "rgba(5,8,22,0.85)", backdropFilter: "blur(12px)" }}
+          style={{ background: "rgba(15,23,42,0.5)", backdropFilter: "blur(12px)" }}
           onClick={e => e.target === e.currentTarget && onClose()}
         >
           <motion.div
@@ -615,7 +615,7 @@ function PostDetail({ post, onClose, onDelete, onStatusChange }: {
         <motion.div
           initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
           className="fixed inset-0 z-50 flex items-center justify-center p-4"
-          style={{ background: "rgba(5,8,22,0.7)", backdropFilter: "blur(8px)" }}
+          style={{ background: "rgba(15,23,42,0.45)", backdropFilter: "blur(8px)" }}
           onClick={e => e.target === e.currentTarget && onClose()}
         >
           <PostDetailInner post={post} onClose={onClose} onDelete={onDelete} onStatusChange={onStatusChange} />

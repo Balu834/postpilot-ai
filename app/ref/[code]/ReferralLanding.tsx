@@ -26,7 +26,7 @@ export default function ReferralLanding({
   }
 
   return (
-    <div className="min-h-screen bg-[#050816] flex flex-col items-center justify-center px-4 py-16 relative overflow-hidden">
+    <div className="min-h-screen bg-white flex flex-col items-center justify-center px-4 py-16 relative overflow-hidden">
 
       {/* Background glows */}
       <div className="absolute inset-0 pointer-events-none"

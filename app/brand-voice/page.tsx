@@ -134,7 +134,7 @@ export default function BrandVoicePage() {
 
   if (loading) {
     return (
-      <div className="flex h-screen bg-[#050816]">
+      <div className="flex h-screen bg-white">
         <Sidebar />
         <div className="flex-1 flex items-center justify-center">
           <div className="w-8 h-8 border-2 border-[#F7BE4D]/30 border-t-[#F7BE4D] rounded-full animate-spin" />
@@ -144,7 +144,7 @@ export default function BrandVoicePage() {
   }
 
   return (
-    <div className="flex h-screen bg-[#050816] overflow-hidden">
+    <div className="flex h-screen bg-white overflow-hidden">
       <Sidebar />
       <main className="flex-1 overflow-y-auto">
         <div className="max-w-3xl mx-auto px-6 py-10">

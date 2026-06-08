@@ -26,7 +26,7 @@ type Theme = "dark" | "purple" | "gold" | "minimal"
 
 // ── Config ────────────────────────────────────────────────────────
 const THEMES: { key: Theme; label: string; preview: string }[] = [
-  { key: "dark",    label: "Dark",    preview: "bg-[#050816]" },
+  { key: "dark",    label: "Dark",    preview: "bg-white" },
   { key: "purple",  label: "Purple",  preview: "bg-[#1e1b4b]" },
   { key: "gold",    label: "Gold",    preview: "bg-[#0a0a00]" },
   { key: "minimal", label: "Minimal", preview: "bg-white" },

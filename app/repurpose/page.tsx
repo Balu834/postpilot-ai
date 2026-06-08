@@ -644,7 +644,7 @@ function DarkSelect({ value, onChange, options, renderLabel }: {
       {open && (
         <div
           className="absolute left-0 right-0 top-full mt-1.5 rounded-xl overflow-hidden z-50 shadow-2xl"
-          style={{ background: "#0d1526", border: "1px solid rgba(255,255,255,0.10)" }}>
+          style={{ background: "#ffffff", border: "1px solid #e2e8f0" }}>
           {options.map(opt => (
             <button
               key={opt.value}
