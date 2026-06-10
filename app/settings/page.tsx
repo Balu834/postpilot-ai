@@ -22,7 +22,7 @@ const SOCIAL_PLATFORMS = [
   { key: "linkedin",  label: "LinkedIn",     icon: "in", color: "#0077B5", bg: "rgba(0,119,181,0.12)",   manual: false },
   { key: "instagram", label: "Instagram",    icon: "IG", color: "#E1306C", bg: "rgba(225,48,108,0.12)",  manual: false },
   { key: "facebook",  label: "Facebook",     icon: "f",  color: "#1877F2", bg: "rgba(24,119,242,0.12)",  manual: false },
-  { key: "pinterest", label: "Pinterest",    icon: "📌", color: "#E60023", bg: "rgba(230,0,35,0.10)",    manual: false },
+  { key: "pinterest", label: "Pinterest",    icon: "📌", color: "#E60023", bg: "rgba(230,0,35,0.10)",    manual: false, comingSoon: true },
   { key: "youtube",   label: "YouTube",      icon: "▶",  color: "#FF0000", bg: "rgba(255,0,0,0.10)",     manual: false },
 ] as const
 
@@ -569,15 +569,17 @@ export default function SettingsPage() {
 
         <div className="space-y-3">
           {SOCIAL_PLATFORMS.map(platform => {
-            const account   = accounts.find(a => a.platform === platform.key)
-            const isLoading = connecting === platform.key
-            const expiring  = account ? isExpiringSoon(account.expires_at) : false
+            const account    = accounts.find(a => a.platform === platform.key)
+            const isLoading  = connecting === platform.key
+            const expiring   = account ? isExpiringSoon(account.expires_at) : false
+            const comingSoon = 'comingSoon' in platform && platform.comingSoon
             return (
               <div key={platform.key}
                 className="flex items-center gap-3 p-3.5 rounded-xl border transition-all"
                 style={{
                   background:   account ? platform.bg : "rgba(255,255,255,0.02)",
                   borderColor:  expiring ? "rgba(251,146,60,0.35)" : account ? `${platform.color}30` : "rgba(255,255,255,0.06)",
+                  opacity:      comingSoon && !account ? 0.55 : 1,
                 }}>
                 <div className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0 font-bold text-sm"
                   style={{ background: platform.bg, color: platform.color }}>
@@ -620,6 +622,11 @@ export default function SettingsPage() {
                       Disconnect
                     </button>
                   </div>
+                ) : comingSoon ? (
+                  <span className="text-[11px] font-semibold px-3 py-1.5 rounded-lg"
+                    style={{ background: "rgba(255,255,255,0.05)", color: "#475569", border: "1px solid rgba(255,255,255,0.08)" }}>
+                    Coming Soon
+                  </span>
                 ) : (
                   <button
                     onClick={() => connectPlatform(platform.key)}
