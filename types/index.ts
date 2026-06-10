@@ -1,9 +1,23 @@
-export type Platform = 'instagram' | 'linkedin' | 'twitter' | 'all'
+export type Platform =
+  | 'instagram'
+  | 'linkedin'
+  | 'twitter'
+  | 'facebook'
+  | 'youtube'
+  | 'threads'
+  | 'bluesky'
+  | 'pinterest'
+  | 'all'
 
 export interface GeneratedContent {
   instagram: string
   linkedin: string
   twitter: string
+  facebook?: string
+  youtube?: string
+  threads?: string
+  bluesky?: string
+  pinterest?: string
   hashtags: string[]
   carousel: string[]
 }
