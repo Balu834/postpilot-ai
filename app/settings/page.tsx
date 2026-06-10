@@ -18,7 +18,7 @@ function isExpiringSoon(expiresAt: string | null): boolean {
 const SOCIAL_PLATFORMS = [
   { key: "twitter",   label: "Twitter / X",  icon: "𝕏",  color: "#94a3b8", bg: "rgba(148,163,184,0.12)", manual: false },
   { key: "bluesky",   label: "Bluesky",      icon: "🦋", color: "#0085ff", bg: "rgba(0,133,255,0.12)",   manual: true  },
-  { key: "threads",   label: "Threads",      icon: "🧵", color: "#a78bfa", bg: "rgba(167,139,250,0.10)", manual: false },
+  { key: "threads",   label: "Threads",      icon: "🧵", color: "#a78bfa", bg: "rgba(167,139,250,0.10)", manual: false, comingSoon: true },
   { key: "linkedin",  label: "LinkedIn",     icon: "in", color: "#0077B5", bg: "rgba(0,119,181,0.12)",   manual: false },
   { key: "instagram", label: "Instagram",    icon: "IG", color: "#E1306C", bg: "rgba(225,48,108,0.12)",  manual: false },
   { key: "facebook",  label: "Facebook",     icon: "f",  color: "#1877F2", bg: "rgba(24,119,242,0.12)",  manual: false },
