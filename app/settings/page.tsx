@@ -305,7 +305,7 @@ export default function SettingsPage() {
               <div className="flex items-center gap-2.5">
                 <div className="w-9 h-9 rounded-xl flex items-center justify-center text-lg" style={{ background: "rgba(0,133,255,0.15)" }}>🦋</div>
                 <div>
-                  <p className="text-sm font-bold text-white">Connect Bluesky</p>
+                  <p className="text-sm font-bold text-slate-800">Connect Bluesky</p>
                   <p className="text-[11px] text-slate-500">Uses an App Password — not your main password</p>
                 </div>
               </div>
