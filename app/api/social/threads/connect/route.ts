@@ -17,7 +17,7 @@ export async function POST(req: NextRequest) {
     const state = crypto.randomBytes(16).toString("hex")
 
     const params = new URLSearchParams({
-      client_id:     process.env.META_APP_ID!,
+      client_id:     process.env.THREADS_APP_ID!,
       redirect_uri:  `${process.env.NEXT_PUBLIC_APP_URL}/api/social/threads/callback`,
       scope:         "threads_basic,threads_content_publish",
       response_type: "code",

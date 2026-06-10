@@ -29,8 +29,8 @@ export async function GET(req: NextRequest) {
       method:  "POST",
       headers: { "Content-Type": "application/x-www-form-urlencoded" },
       body: new URLSearchParams({
-        client_id:     process.env.META_APP_ID!,
-        client_secret: process.env.META_APP_SECRET!,
+        client_id:     process.env.THREADS_APP_ID!,
+        client_secret: process.env.THREADS_APP_SECRET!,
         redirect_uri:  `${appUrl}/api/social/threads/callback`,
         code,
         grant_type:    "authorization_code",
@@ -44,8 +44,8 @@ export async function GET(req: NextRequest) {
       `https://graph.threads.net/access_token?` +
       new URLSearchParams({
         grant_type:    "th_exchange_token",
-        client_id:     process.env.META_APP_ID!,
-        client_secret: process.env.META_APP_SECRET!,
+        client_id:     process.env.THREADS_APP_ID!,
+        client_secret: process.env.THREADS_APP_SECRET!,
         access_token:  tokenData.access_token,
       })
     )
