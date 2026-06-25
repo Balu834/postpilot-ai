@@ -70,11 +70,43 @@ function StepArrow() {
 }
 
 // ─────────────────────────────────────────────────────────────────
-// Step 1 — Input card
+// Step 1 — Input card (interactive + auto-play modes)
 // ─────────────────────────────────────────────────────────────────
 function InputCard({
-  typed, isTyping, isDone,
-}: { typed: string; isTyping: boolean; isDone: boolean }) {
+  value, typed, isInteractive, isTyping, isDone,
+  onFocus, onChange, onGenerate,
+}: {
+  value: string
+  typed: string
+  isInteractive: boolean
+  isTyping: boolean
+  isDone: boolean
+  onFocus: () => void
+  onChange: (v: string) => void
+  onGenerate: () => void
+}) {
+  const btnStyle: React.CSSProperties = isDone
+    ? { background: "linear-gradient(135deg,#10b981,#34d399)", color: "#050816", boxShadow: "0 2px 10px rgba(16,185,129,0.25)" }
+    : { background: "linear-gradient(135deg,#F7BE4D,#fbbf24)", color: "#050816", boxShadow: "0 2px 10px rgba(247,190,77,0.3)" }
+
+  const btnContent = isDone ? (
+    <>
+      <motion.div
+        animate={{ rotate: 360 }}
+        transition={{ duration: 0.9, repeat: Infinity, ease: "linear" }}
+        className="w-3 h-3 rounded-full"
+        style={{ border: "1.5px solid #050816", borderTopColor: "transparent" }}
+      />
+      Generating content…
+    </>
+  ) : (
+    <>
+      <Sparkles className="w-3 h-3" />
+      Generate Content
+      <ArrowRight className="w-3 h-3" />
+    </>
+  )
+
   return (
     <div
       className="rounded-2xl bg-white border border-slate-200 p-3.5"
@@ -92,63 +124,78 @@ function InputCard({
         </span>
       </div>
 
-      {/* Input area */}
+      {/* Input area — switches between animated display and real <input> */}
       <div
-        className="rounded-xl px-3 py-2.5 mb-3 border min-h-[40px]"
+        className="rounded-xl px-3 py-2.5 mb-3 border min-h-[40px] cursor-text transition-all duration-200"
         style={{
           background: "linear-gradient(135deg,#fffbeb,#fef9c3)",
-          borderColor: "#fde68a",
-          boxShadow: "inset 0 1px 3px rgba(0,0,0,0.03)",
+          borderColor: isInteractive ? "#F7BE4D" : "#fde68a",
+          boxShadow: isInteractive
+            ? "0 0 0 2px rgba(247,190,77,0.2), inset 0 1px 3px rgba(0,0,0,0.03)"
+            : "inset 0 1px 3px rgba(0,0,0,0.03)",
         }}
+        onClick={!isInteractive ? onFocus : undefined}
       >
-        <span className="text-[11px] font-semibold text-slate-800 leading-snug">
-          {typed || (
-            <span className="text-slate-300 italic font-normal text-[10px]">
-              Paste any idea, blog URL, YouTube link…
-            </span>
-          )}
-          {isTyping && typed.length < TOPIC.length && (
-            <motion.span
-              animate={{ opacity: [1, 0, 1] }}
-              transition={{ duration: 0.55, repeat: Infinity }}
-              className="inline-block w-0.5 h-3.5 align-middle ml-0.5"
-              style={{ background: "#F7BE4D" }}
-            />
-          )}
-        </span>
-      </div>
-
-      {/* CTA button */}
-      <div
-        className="w-full flex items-center justify-center gap-1.5 py-2 rounded-xl text-[11px] font-bold cursor-default select-none transition-all duration-500"
-        style={isDone ? {
-          background: "linear-gradient(135deg,#10b981,#34d399)",
-          color: "#050816",
-          boxShadow: "0 2px 10px rgba(16,185,129,0.25)",
-        } : {
-          background: "linear-gradient(135deg,#F7BE4D,#fbbf24)",
-          color: "#050816",
-          boxShadow: "0 2px 10px rgba(247,190,77,0.3)",
-        }}
-      >
-        {isDone ? (
-          <>
-            <motion.div
-              animate={{ rotate: 360 }}
-              transition={{ duration: 0.9, repeat: Infinity, ease: "linear" }}
-              className="w-3 h-3 rounded-full border-t-transparent"
-              style={{ border: "1.5px solid #050816", borderTopColor: "transparent" }}
-            />
-            Generating content…
-          </>
+        {isInteractive ? (
+          <input
+            suppressHydrationWarning
+            type="text"
+            value={value}
+            onChange={e => onChange(e.target.value)}
+            onFocus={onFocus}
+            placeholder="Paste any idea, blog URL, YouTube link…"
+            disabled={isDone}
+            autoFocus
+            className="w-full bg-transparent text-[11px] font-semibold text-slate-800 placeholder:text-slate-300 placeholder:font-normal placeholder:italic outline-none disabled:opacity-60"
+          />
         ) : (
-          <>
-            <Sparkles className="w-3 h-3" />
-            Generate Content
-            <ArrowRight className="w-3 h-3" />
-          </>
+          <span className="text-[11px] font-semibold text-slate-800 leading-snug">
+            {typed || (
+              <span className="text-slate-300 italic font-normal text-[10px]">
+                Paste any idea, blog URL, YouTube link…
+              </span>
+            )}
+            {isTyping && typed.length < TOPIC.length && (
+              <motion.span
+                animate={{ opacity: [1, 0, 1] }}
+                transition={{ duration: 0.55, repeat: Infinity }}
+                className="inline-block w-0.5 h-3.5 align-middle ml-0.5"
+                style={{ background: "#F7BE4D" }}
+              />
+            )}
+          </span>
         )}
       </div>
+
+      {/* CTA — real <button> when interactive, presentational <div> during auto-play */}
+      {isInteractive ? (
+        <button
+          suppressHydrationWarning
+          onClick={onGenerate}
+          disabled={isDone}
+          className="w-full flex items-center justify-center gap-1.5 py-2 rounded-xl text-[11px] font-bold cursor-pointer select-none transition-all duration-500 disabled:cursor-not-allowed"
+          style={btnStyle}
+        >
+          {btnContent}
+        </button>
+      ) : (
+        <div
+          className="w-full flex items-center justify-center gap-1.5 py-2 rounded-xl text-[11px] font-bold cursor-default select-none transition-all duration-500"
+          style={btnStyle}
+        >
+          {btnContent}
+        </div>
+      )}
+
+      {/* "Try your own idea" nudge — visible only during auto-play idle/typing */}
+      {!isInteractive && !isDone && (
+        <p
+          className="text-center text-[9px] text-slate-400 mt-2 cursor-pointer hover:text-amber-600 transition-colors select-none"
+          onClick={onFocus}
+        >
+          ⌨️ Click to try with your own idea
+        </p>
+      )}
     </div>
   )
 }
@@ -602,20 +649,37 @@ function PublishBar({ visible }: { visible: boolean }) {
 }
 
 // ─────────────────────────────────────────────────────────────────
-// Workflow — animation state machine
+// Workflow — animation state machine (interactive + auto-play)
 // ─────────────────────────────────────────────────────────────────
 type Phase = "idle" | "typing" | "processing" | "complete"
+type Mode  = "auto" | "interactive"
 
 function WorkflowDemo() {
   const [phase,        setPhase]        = useState<Phase>("idle")
+  const [mode,         setMode]         = useState<Mode>("auto")
+  const [userInput,    setUserInput]    = useState(TOPIC)
   const [typedChars,   setTypedChars]   = useState(0)
   const [doneSteps,    setDoneSteps]    = useState<number[]>([])
   const [progress,     setProgress]     = useState(0)
   const [visibleCards, setVisibleCards] = useState(0)
   const [publishReady, setPublishReady] = useState(false)
 
-  const loopRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined)
+  const loopRef  = useRef<ReturnType<typeof setTimeout> | undefined>(undefined)
+  const modeRef  = useRef<Mode>("auto")
+  useEffect(() => { modeRef.current = mode }, [mode])
 
+  // Start a fresh generation run (both modes)
+  const startProcessing = useCallback(() => {
+    if (loopRef.current) clearTimeout(loopRef.current)
+    setTypedChars(0)
+    setDoneSteps([])
+    setProgress(0)
+    setVisibleCards(0)
+    setPublishReady(false)
+    setPhase("processing")
+  }, [])
+
+  // Auto-play reset → re-enter typing phase
   const reset = useCallback(() => {
     if (loopRef.current) clearTimeout(loopRef.current)
     setTypedChars(0)
@@ -626,14 +690,33 @@ function WorkflowDemo() {
     setPhase("typing")
   }, [])
 
-  // Boot
+  // User clicked the input area while auto-play is running
+  const handleFocus = useCallback(() => {
+    if (modeRef.current === "interactive") return
+    setMode("interactive")
+    if (loopRef.current) clearTimeout(loopRef.current)
+    if (phase === "typing") {
+      // Abort the typing animation; let user take over
+      setPhase("idle")
+      setTypedChars(0)
+    }
+    // If processing/complete, let it finish — user can generate again after
+  }, [phase])
+
+  // User clicked "Generate Content"
+  const handleGenerate = useCallback(() => {
+    setMode("interactive")
+    startProcessing()
+  }, [startProcessing])
+
+  // Boot — kick off auto-play after a short delay
   useEffect(() => {
     const t = setTimeout(reset, 700)
     return () => clearTimeout(t)
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
-  // Typing
+  // Typing phase (auto-play only)
   useEffect(() => {
     if (phase !== "typing") return
     let chars = 0
@@ -649,7 +732,7 @@ function WorkflowDemo() {
     return () => { clearInterval(iv); if (followUp) clearTimeout(followUp) }
   }, [phase])
 
-  // Processing
+  // Processing (both modes)
   useEffect(() => {
     if (phase !== "processing") return
     const timers: ReturnType<typeof setTimeout>[] = []
@@ -666,7 +749,7 @@ function WorkflowDemo() {
     return () => timers.forEach(clearTimeout)
   }, [phase])
 
-  // Complete — reveal cards one by one, then publish bar, then loop
+  // Complete — reveal cards one by one, publish bar, then loop (auto-play only)
   useEffect(() => {
     if (phase !== "complete") return
     let count = 0
@@ -677,7 +760,9 @@ function WorkflowDemo() {
       if (count >= 5) {
         clearInterval(iv)
         publishTimer = setTimeout(() => setPublishReady(true), 450)
-        loopRef.current = setTimeout(reset, 8200)
+        if (modeRef.current === "auto") {
+          loopRef.current = setTimeout(reset, 8200)
+        }
       }
     }, 160)
     return () => {
@@ -696,9 +781,14 @@ function WorkflowDemo() {
       {/* Step 1 */}
       <StepLabel emoji="💡" label="Your Input" color="#d97706" />
       <InputCard
+        value={userInput}
         typed={TOPIC.slice(0, typedChars)}
+        isInteractive={mode === "interactive"}
         isTyping={isTyping}
-        isDone={isProcessing || isComplete}
+        isDone={isProcessing}
+        onFocus={handleFocus}
+        onChange={setUserInput}
+        onGenerate={handleGenerate}
       />
 
       <StepArrow />
