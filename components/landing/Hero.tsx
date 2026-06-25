@@ -293,19 +293,31 @@ function ProcessingCard({
 }
 
 // ─────────────────────────────────────────────────────────────────
-// Step 3 — Platform-specific output cards
+// Step 3 — Platform-specific output cards (real content)
 // ─────────────────────────────────────────────────────────────────
 function OutputCards({ visible }: { visible: number }) {
-  const card = (i: number, children: React.ReactNode, cls: string, style: React.CSSProperties) => (
+  // card(index, jsx, colSpan, bg/border style, platform glow color)
+  const card = (
+    i: number,
+    children: React.ReactNode,
+    cls: string,
+    style: React.CSSProperties,
+    glowColor: string,
+  ) => (
     <AnimatePresence key={i}>
       {visible > i && (
         <motion.div
-          initial={{ opacity: 0, y: 10, scale: 0.96 }}
+          initial={{ opacity: 0, y: 12, scale: 0.95 }}
           animate={{ opacity: 1, y: 0, scale: 1 }}
-          transition={{ duration: 0.24, ease: "easeOut" }}
-          whileHover={{ y: -3, scale: 1.025, transition: { duration: 0.12 } }}
+          transition={{ duration: 0.26, ease: "easeOut" }}
+          whileHover={{
+            y: -5,
+            scale: 1.025,
+            boxShadow: `0 12px 28px ${glowColor}1e, 0 0 0 1.5px ${glowColor}50`,
+            transition: { duration: 0.15 },
+          }}
           className={`rounded-xl p-2.5 border cursor-default ${cls}`}
-          style={{ ...style, boxShadow: `0 2px 8px rgba(0,0,0,0.05)` }}
+          style={{ ...style, boxShadow: "0 2px 8px rgba(0,0,0,0.04)" }}
         >
           {children}
         </motion.div>
@@ -314,47 +326,48 @@ function OutputCards({ visible }: { visible: number }) {
   )
 
   return (
-    <div className="grid grid-cols-3 gap-1.5" style={{ minHeight: 184 }}>
+    <div className="grid grid-cols-3 gap-1.5" style={{ minHeight: 198 }}>
 
-      {/* 1 — LinkedIn Post (2 cols) */}
+      {/* ── 1. LinkedIn Post (2/3 width) ───────── */}
       {card(0,
         <>
-          {/* Author row */}
-          <div className="flex items-start gap-1.5 mb-2">
+          {/* Author */}
+          <div className="flex items-center gap-1.5 mb-2">
             <div
-              className="w-7 h-7 rounded-full flex items-center justify-center text-[9px] font-black flex-shrink-0"
+              className="w-6 h-6 rounded-full flex items-center justify-center text-[8px] font-black flex-shrink-0"
               style={{ background: "linear-gradient(135deg,#0077B5,#0a90d4)", color: "#fff" }}
             >
               JD
             </div>
             <div className="flex-1 min-w-0">
               <p className="text-[9px] font-bold text-slate-800 leading-none">John Doe</p>
-              <p className="text-[8px] text-slate-400 mt-0.5">Founder · 1st · 3h ago</p>
+              <p className="text-[7px] text-slate-400 mt-0.5">Founder · 1st · 3h ago</p>
             </div>
             <span
-              className="text-[8px] font-bold px-1.5 py-0.5 rounded flex-shrink-0"
+              className="text-[7px] font-bold px-1.5 py-0.5 rounded flex-shrink-0"
               style={{ background: "#0077B5", color: "#fff" }}
             >
               💼 LinkedIn
             </span>
           </div>
-          {/* Post text */}
-          <p
-            className="text-[9px] text-slate-700 leading-relaxed mb-2"
-            style={{
-              display: "-webkit-box",
-              WebkitLineClamp: 2,
-              WebkitBoxOrient: "vertical",
-              overflow: "hidden",
-            }}
-          >
-            Most founders fail because they optimize the wrong metric at the wrong time. Here&apos;s
-            the exact framework that took us from $0 to $100k MRR in 8 months…
-          </p>
+
+          {/* Post — short punchy sentences, real LinkedIn style */}
+          <div className="space-y-1 mb-2">
+            <p className="text-[9px] font-semibold text-slate-800 leading-snug">
+              The biggest mistake founders make is trying to grow on every platform at once.
+            </p>
+            <div className="space-y-0.5 pl-2 border-l-2 border-blue-200">
+              {["Focus on one channel.", "Master it.", "Then expand."].map(line => (
+                <p key={line} className="text-[9px] text-slate-600 leading-none">{line}</p>
+              ))}
+            </div>
+            <p className="text-[9px] text-slate-500 italic leading-none">Here&apos;s why this works…</p>
+          </div>
+
           {/* Actions */}
           <div className="flex items-center gap-2.5 pt-1.5 border-t border-blue-100">
             {["👍 46", "💬 12", "🔄 8"].map(a => (
-              <span key={a} className="text-[8px] text-slate-400 font-medium">{a}</span>
+              <span key={a} className="text-[7px] text-slate-400 font-medium">{a}</span>
             ))}
             <span className="text-[8px] font-semibold ml-auto" style={{ color: "#0077B5" }}>
               Read more →
@@ -362,93 +375,121 @@ function OutputCards({ visible }: { visible: number }) {
           </div>
         </>,
         "col-span-2",
-        { background: "#eff8ff", borderColor: "#bfdbfe" }
+        { background: "#eff8ff", borderColor: "#bfdbfe" },
+        "#0077B5",
       )}
 
-      {/* 2 — Twitter Thread (1 col) */}
+      {/* ── 2. Twitter Thread (1/3 width) ──────── */}
       {card(1,
         <>
-          <div className="flex items-center gap-1 mb-1.5">
-            <span className="text-[12px] font-black text-slate-900 leading-none">𝕏</span>
-            <span className="text-[8px] text-slate-500 font-semibold truncate flex-1">@johndoe_saas</span>
+          {/* Header */}
+          <div className="flex items-center gap-1 mb-2">
+            <span className="text-[11px] font-black text-slate-900 leading-none">𝕏</span>
+            <span className="text-[7px] text-slate-500 font-semibold flex-1 truncate">@johndoe_saas</span>
             <span
-              className="text-[8px] font-bold px-1 py-0.5 rounded flex-shrink-0"
+              className="text-[7px] font-bold px-1 py-0.5 rounded flex-shrink-0"
               style={{ background: "#1e293b", color: "#f8fafc" }}
             >
-              🧵 6
+              🧵 5
             </span>
           </div>
+
+          {/* Thread items with connector lines */}
           <div className="space-y-1 mb-2">
-            <p className="text-[9px] text-slate-800 leading-snug">
-              <span className="font-black text-slate-900">1/</span>{" "}
-              Growing a SaaS isn&apos;t about working harder — it&apos;s about thinking differently
-            </p>
-            <p className="text-[8px] text-slate-400 leading-snug">
-              <span className="font-semibold">2/</span> Most founders miss this one thing…
-            </p>
+            {[
+              { n: "1/", text: "99% of startups fail because they build before validating." },
+              { n: "2/", text: "Find one painful problem people already pay to solve…" },
+              { n: "3/", text: "Talk to real customers before writing a single line of code." },
+            ].map((item, idx) => (
+              <div key={item.n} className="flex gap-1.5">
+                {/* Thread line */}
+                <div className="flex flex-col items-center flex-shrink-0">
+                  <span className="text-[8px] font-black text-slate-900 leading-none w-3 text-center">{item.n}</span>
+                  {idx < 2 && <div className="w-px flex-1 mt-0.5 bg-slate-200" style={{ minHeight: 6 }} />}
+                </div>
+                <p
+                  className="text-[8px] text-slate-700 leading-snug flex-1 min-w-0"
+                  style={{
+                    display: "-webkit-box",
+                    WebkitLineClamp: 2,
+                    WebkitBoxOrient: "vertical",
+                    overflow: "hidden",
+                  }}
+                >
+                  {item.text}
+                </p>
+              </div>
+            ))}
           </div>
+
+          {/* Counts */}
           <div className="flex items-center gap-2 pt-1.5 border-t border-slate-100">
-            <span className="text-[8px] text-slate-400">❤️ 94</span>
-            <span className="text-[8px] text-slate-400">🔁 23</span>
-            <span className="text-[8px] text-slate-400">💬 15</span>
+            <span className="text-[7px] text-slate-400">❤️ 94</span>
+            <span className="text-[7px] text-slate-400">🔁 23</span>
+            <span className="text-[7px] text-slate-400">💬 15</span>
           </div>
         </>,
         "col-span-1",
-        { background: "#f8fafc", borderColor: "#e2e8f0" }
+        { background: "#f8fafc", borderColor: "#e2e8f0" },
+        "#1e293b",
       )}
 
-      {/* 3 — Instagram Caption (1 col) */}
+      {/* ── 3. Instagram Caption (1/3 width) ───── */}
       {card(2,
         <>
+          {/* Photo placeholder */}
           <div
-            className="h-9 rounded-lg mb-1.5 flex items-center justify-center text-lg leading-none"
+            className="h-8 rounded-lg mb-1.5 flex items-center justify-center"
             style={{ background: "linear-gradient(135deg,#f43f5e,#E1306C,#a855f7)" }}
           >
-            📸
+            <span className="text-base leading-none">📸</span>
           </div>
-          <p
-            className="text-[9px] text-slate-700 leading-snug mb-1"
-            style={{
-              display: "-webkit-box",
-              WebkitLineClamp: 1,
-              WebkitBoxOrient: "vertical",
-              overflow: "hidden",
-            }}
-          >
-            Consistency beats perfection. Every. Time. 🚀
-          </p>
-          <div className="flex flex-wrap gap-1">
-            {["#startup", "#AI", "#SaaS"].map(h => (
+
+          {/* Caption — short punchy lines */}
+          <div className="space-y-0.5 mb-1.5">
+            <p className="text-[9px] font-semibold text-slate-800 leading-tight">
+              Success isn&apos;t about posting more.
+            </p>
+            <p className="text-[9px] text-slate-600 leading-tight">
+              It&apos;s about posting smarter. 👇
+            </p>
+            <p className="text-[8px] text-slate-500 leading-tight">Save this checklist.</p>
+          </div>
+
+          {/* Hashtags */}
+          <div className="flex flex-wrap gap-x-1.5 gap-y-0.5">
+            {["#startup", "#AI", "#growth"].map(h => (
               <span key={h} className="text-[7px] font-semibold" style={{ color: "#E1306C" }}>{h}</span>
             ))}
           </div>
         </>,
         "col-span-1",
-        { background: "#fdf2f8", borderColor: "#fbcfe8" }
+        { background: "#fdf2f8", borderColor: "#fbcfe8" },
+        "#E1306C",
       )}
 
-      {/* 4 — Viral Hashtags (1 col) */}
+      {/* ── 4. Viral Hashtags (1/3 width) ──────── */}
       {card(3,
         <>
           <div className="flex items-center gap-1 mb-2">
             <span className="text-xs leading-none">🏷️</span>
             <span className="text-[9px] font-bold text-slate-700 flex-1">Hashtags</span>
             <span
-              className="text-[8px] font-bold px-1.5 py-0.5 rounded-full"
+              className="text-[7px] font-bold px-1.5 py-0.5 rounded-full"
               style={{ background: "#fde68a", color: "#d97706" }}
             >
               15
             </span>
           </div>
           <div className="flex flex-wrap gap-1">
-            {["#AI", "#SaaS", "#Startups", "#Growth", "#Founders"].map(h => (
+            {["#Startup", "#SaaS", "#AI", "#Marketing", "#Growth", "#Founders"].map(h => (
               <span
                 key={h}
                 className="text-[7px] font-bold px-1.5 py-0.5 rounded-full"
                 style={{
                   background: "#d97706" + "14",
                   color: "#d97706",
-                  border: "1px solid #d97706" + "30",
+                  border: "1px solid #d97706" + "35",
                 }}
               >
                 {h}
@@ -457,22 +498,23 @@ function OutputCards({ visible }: { visible: number }) {
           </div>
         </>,
         "col-span-1",
-        { background: "#fffbeb", borderColor: "#fde68a" }
+        { background: "#fffbeb", borderColor: "#fde68a" },
+        "#d97706",
       )}
 
-      {/* 5 — Carousel Slides (1 col) */}
+      {/* ── 5. Carousel Slides (1/3 width) ──────── */}
       {card(4,
         <>
           <div className="flex items-center gap-1 mb-1.5">
             <span className="text-xs leading-none">🎠</span>
             <span className="text-[9px] font-bold text-slate-700 flex-1">Carousel</span>
-            <span className="text-[8px] text-slate-400">5 slides</span>
+            <span className="text-[7px] text-slate-400">5 slides</span>
           </div>
-          <div className="grid grid-cols-3 gap-1">
+          <div className="grid grid-cols-3 gap-0.5">
             {[
-              ["1", "How to Grow Faster"],
-              ["2", "Know Your Customer"],
-              ["3", "Scale with AI"],
+              ["1", "5 Startup Growth Mistakes"],
+              ["2", "Ignoring Customer Feedback"],
+              ["3", "Building Too Many Features"],
             ].map(([n, title]) => (
               <div
                 key={n}
@@ -482,7 +524,7 @@ function OutputCards({ visible }: { visible: number }) {
                   border: "1px solid #818cf8" + "30",
                 }}
               >
-                <span className="text-[7px] font-black" style={{ color: "#818cf8" + "99" }}>{n}</span>
+                <span className="text-[7px] font-black" style={{ color: "#818cf8" + "90" }}>{n}</span>
                 <p
                   className="text-[7px] font-semibold text-slate-700 leading-tight mt-0.5"
                   style={{
@@ -499,7 +541,8 @@ function OutputCards({ visible }: { visible: number }) {
           </div>
         </>,
         "col-span-1",
-        { background: "#eef2ff", borderColor: "#c7d2fe" }
+        { background: "#eef2ff", borderColor: "#c7d2fe" },
+        "#818cf8",
       )}
 
     </div>
