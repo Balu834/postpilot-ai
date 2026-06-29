@@ -6,6 +6,27 @@
   forced-color-adjust: none;
 }
 
+/* ─── Typography foundation ──────────────────────────────── */
+@layer base {
+  html {
+    font-size: 16px;
+  }
+
+  body {
+    line-height: 1.65;
+    font-feature-settings: "kern" 1, "liga" 1, "calt" 1;
+    text-rendering: optimizeLegibility;
+  }
+
+  /* Tight tracking on headings — Tailwind tracking utilities override when present */
+  h1 { letter-spacing: -0.03em;  line-height: 1.08; }
+  h2 { letter-spacing: -0.025em; line-height: 1.12; }
+  h3 { letter-spacing: -0.015em; line-height: 1.2;  }
+  h4 { letter-spacing: -0.01em;  line-height: 1.25; }
+
+  p { line-height: 1.65; }
+}
+
 @layer base {
   html, body {
     background-color: #ffffff !important;

@@ -167,8 +167,8 @@ export default function Header() {
           <Menu className="w-4 h-4" />
         </button>
         <div>
-          <h1 className="text-base font-bold text-slate-900 leading-tight">{meta.title}</h1>
-          <p className="text-[11px] text-slate-400 mt-0.5 hidden sm:block">{meta.subtitle}</p>
+          <h1 className="text-lg font-bold text-slate-900 leading-tight tracking-tight">{meta.title}</h1>
+          <p className="text-xs text-slate-400 mt-0.5 hidden sm:block font-normal">{meta.subtitle}</p>
         </div>
       </div>
 
