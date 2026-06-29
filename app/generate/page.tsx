@@ -7,11 +7,13 @@ import {
   Wand2, Sparkles, Copy, CheckCheck, RefreshCw,
   LinkIcon, Package, CalendarClock, Zap, Check,
   ClipboardList, TrendingUp, Flame, BookmarkPlus,
-  X, Loader2, ImageIcon, Upload,
+  X, Loader2, ImageIcon, Upload, Monitor,
 } from "lucide-react"
 import { supabase } from "@/lib/supabase"
 import UpgradeModal from "@/components/UpgradeModal"
 import { analytics } from "@/lib/analytics"
+import SocialPreviewPanel from "@/components/generate/SocialPreviewPanel"
+import ViralScore from "@/components/generate/ViralScore"
 
 const FREE_LIMIT = 30
 
@@ -30,11 +32,18 @@ type PlatformKey = keyof FullResult
 
 // ── Constants ──────────────────────────────────────────────────────
 const TONE_OPTIONS = [
-  { value: "engaging",      label: "Engaging",      emoji: "🔥" },
-  { value: "professional",  label: "Professional",  emoji: "💼" },
-  { value: "witty",         label: "Witty",         emoji: "😄" },
-  { value: "inspirational", label: "Inspirational", emoji: "✨" },
-  { value: "educational",   label: "Educational",   emoji: "🎓" },
+  { value: "engaging",       label: "Engaging",       emoji: "⚡" },
+  { value: "professional",   label: "Professional",   emoji: "💼" },
+  { value: "viral",          label: "Viral",          emoji: "🔥" },
+  { value: "storytelling",   label: "Storytelling",   emoji: "📖" },
+  { value: "founder",        label: "Founder",        emoji: "🚀" },
+  { value: "educational",    label: "Educational",    emoji: "🎓" },
+  { value: "conversational", label: "Conversational", emoji: "💬" },
+  { value: "marketing",      label: "Marketing",      emoji: "📣" },
+  { value: "sales",          label: "Sales",          emoji: "🎯" },
+  { value: "inspirational",  label: "Inspirational",  emoji: "✨" },
+  { value: "technical",      label: "Technical",      emoji: "⚙️" },
+  { value: "friendly",       label: "Friendly",       emoji: "😊" },
 ]
 
 const TABS = [
@@ -49,12 +58,22 @@ const TABS = [
 ]
 
 const REFINEMENTS = [
-  { label: "🔥 More Viral",     action: "more viral and attention-grabbing",   color: "#ef4444" },
-  { label: "✍️ Rewrite",        action: "completely rewritten with fresh angle", color: "#818cf8" },
-  { label: "✂️ Shorter",        action: "shorter and punchier",                 color: "#F7BE4D" },
-  { label: "🪝 Add Hooks",      action: "with a stronger hook at the start",    color: "#f472b6" },
-  { label: "💼 Professional",   action: "more professional and authoritative",  color: "#0A66C2" },
-  { label: "❤️ More Emotional", action: "more emotional and personal",          color: "#e11d48" },
+  { label: "🔥 More Viral",      action: "more viral and attention-grabbing",                            color: "#ef4444" },
+  { label: "✍️ Rewrite",         action: "completely rewritten with a fresh angle",                      color: "#818cf8" },
+  { label: "✨ Improve",          action: "improved with better clarity, flow, and impact",               color: "#a78bfa" },
+  { label: "🧑 Humanize",        action: "more human, conversational, and relatable — less AI-sounding", color: "#34d399" },
+  { label: "✂️ Shorter",         action: "shorter and punchier without losing the core message",          color: "#F7BE4D" },
+  { label: "📝 Expand",          action: "expanded with more detail, examples, and depth",               color: "#38bdf8" },
+  { label: "📖 Fix Grammar",     action: "grammatically polished with improved sentence flow",           color: "#94a3b8" },
+  { label: "🪝 Add Hook",        action: "with a much stronger opening hook that stops the scroll",      color: "#f472b6" },
+  { label: "💼 Professional",    action: "more professional, authoritative, and business-appropriate",   color: "#0A66C2" },
+  { label: "❤️ More Emotional",  action: "more emotionally compelling, personal, and vulnerable",        color: "#e11d48" },
+  { label: "👇 Add CTA",         action: "with a clear, compelling call-to-action at the end",           color: "#fb923c" },
+  { label: "😊 Add Emojis",      action: "enhanced with relevant emojis placed naturally throughout",    color: "#fbbf24" },
+  { label: "🚫 Remove Emojis",   action: "with all emojis removed for a cleaner, text-only look",       color: "#64748b" },
+  { label: "📖 Add Story",       action: "rewritten with a clear storytelling narrative arc",            color: "#c084fc" },
+  { label: "🎯 Simplify",        action: "simplified so a non-expert can understand it instantly",       color: "#4ade80" },
+  { label: "⚡ 3 Versions",      action: "rewritten in 3 completely different styles, separated by ---", color: "#F7BE4D" },
 ]
 
 const AI_SUGGESTIONS = [
@@ -807,6 +826,9 @@ export default function GeneratePage() {
   const [upgradeOpen,  setUpgradeOpen]  = useState(false)
   const [reacted,      setReacted]      = useState<"up" | "down" | null>(null)
 
+  // Preview panel
+  const [showPreview, setShowPreview] = useState(true)
+
   // Schedule modal
   const [scheduleOpen,     setScheduleOpen]     = useState(false)
   const [scheduleContent,  setScheduleContent]  = useState("")
@@ -1295,6 +1317,19 @@ export default function GeneratePage() {
                 <div className="flex items-center gap-2">
                   {finalResult && <CopyAllBtn result={finalResult} />}
                   {!isStreaming && (
+                    <motion.button
+                      onClick={() => setShowPreview(v => !v)}
+                      whileHover={{ scale: 1.04 }} whileTap={{ scale: 0.96 }}
+                      className="flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg transition-all font-medium"
+                      style={showPreview
+                        ? { background: "rgba(247,190,77,0.1)", border: "1px solid rgba(247,190,77,0.3)", color: "#F7BE4D" }
+                        : { background: "#f8fafc", border: "1px solid #e2e8f0", color: "#64748b" }
+                      }>
+                      <Monitor className="w-3 h-3" />
+                      <span className="hidden sm:block">Preview</span>
+                    </motion.button>
+                  )}
+                  {!isStreaming && (
                     <motion.button onClick={() => generate()} whileHover={{ scale: 1.04 }} whileTap={{ scale: 0.96 }}
                       className="flex items-center gap-1.5 text-xs text-slate-500 hover:text-slate-900 px-3 py-1.5 rounded-lg transition-all"
                       style={{ background: "#f8fafc", border: "1px solid #e2e8f0" }}>
@@ -1339,7 +1374,7 @@ export default function GeneratePage() {
               </div>
 
               {/* Tab content */}
-              <div className="p-5">
+              <div className="p-5 space-y-4">
                 <AnimatePresence mode="wait">
                   <motion.div key={activeTab}
                     initial={{ opacity: 0, x: 10 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -10 }}
@@ -1378,6 +1413,14 @@ export default function GeneratePage() {
                     )}
                   </motion.div>
                 </AnimatePresence>
+
+                {/* Viral Score — shown for text platforms when content is ready */}
+                {activeTab !== "hashtags" && activeTab !== "carousel" && (
+                  <ViralScore
+                    text={(getTabContent(activeTab) as string) || ""}
+                    visible={!isStreaming && finalResult !== null}
+                  />
+                )}
               </div>
 
               {/* AI refinement bar */}
@@ -1513,6 +1556,25 @@ export default function GeneratePage() {
                   </AnimatePresence>
                 </motion.div>
               )}
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        {/* ── Social Preview Panel ──────────────────────────────── */}
+        <AnimatePresence>
+          {showPreview && finalResult && !isStreaming && activeTab !== "hashtags" && activeTab !== "carousel" && (
+            <motion.div
+              initial={{ opacity: 0, y: 16 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: 8 }}
+              transition={{ duration: 0.28, ease: [0.22, 1, 0.36, 1] }}
+              className="rounded-2xl p-5"
+              style={{ background: "#ffffff", border: "1px solid #e2e8f0", boxShadow: "0 2px 12px rgba(0,0,0,0.04)" }}
+            >
+              <SocialPreviewPanel
+                platform={activeTab as "instagram" | "linkedin" | "twitter" | "threads" | "bluesky" | "pinterest" | "hashtags" | "carousel"}
+                content={(getTabContent(activeTab) as string) || ""}
+              />
             </motion.div>
           )}
         </AnimatePresence>

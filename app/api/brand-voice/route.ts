@@ -41,22 +41,45 @@ export async function POST(req: NextRequest) {
 
     const body = await req.json()
 
+    // Try upsert with all fields (including new ones: mission, hashtags, cta)
     const { error } = await supabaseAdmin
       .from("brand_voices")
       .upsert({
-        user_id: user.id,
-        brand_name: body.brand_name ?? null,
-        industry: body.industry ?? null,
-        tone: body.tone ?? "engaging",
-        audience: body.audience ?? null,
-        key_topics: body.key_topics ?? [],
+        user_id:     user.id,
+        brand_name:  body.brand_name  ?? null,
+        industry:    body.industry    ?? null,
+        mission:     body.mission     ?? null,
+        tone:        body.tone        ?? "engaging",
+        audience:    body.audience    ?? null,
+        key_topics:  body.key_topics  ?? [],
         avoid_words: body.avoid_words ?? [],
+        hashtags:    body.hashtags    ?? [],
+        cta:         body.cta         ?? null,
         emoji_style: body.emoji_style ?? "moderate",
         sample_post: body.sample_post ?? null,
-        updated_at: new Date().toISOString(),
+        updated_at:  new Date().toISOString(),
       }, { onConflict: "user_id" })
 
-    if (error) throw error
+    if (error) {
+      // Fallback: save original columns only (new columns may not be migrated yet)
+      const { error: fallbackError } = await supabaseAdmin
+        .from("brand_voices")
+        .upsert({
+          user_id:     user.id,
+          brand_name:  body.brand_name  ?? null,
+          industry:    body.industry    ?? null,
+          tone:        body.tone        ?? "engaging",
+          audience:    body.audience    ?? null,
+          key_topics:  body.key_topics  ?? [],
+          avoid_words: body.avoid_words ?? [],
+          emoji_style: body.emoji_style ?? "moderate",
+          sample_post: body.sample_post ?? null,
+          updated_at:  new Date().toISOString(),
+        }, { onConflict: "user_id" })
+
+      if (fallbackError) throw fallbackError
+    }
+
     return NextResponse.json({ success: true })
   } catch {
     return NextResponse.json({ error: "Failed to save" }, { status: 500 })
