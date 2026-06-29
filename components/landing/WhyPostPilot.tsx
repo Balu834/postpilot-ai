@@ -84,9 +84,9 @@ export default function WhyPostPilot() {
           style={{ boxShadow: "0 4px 24px rgba(0,0,0,0.05), 0 1px 4px rgba(0,0,0,0.04)" }}
         >
           {/* Column headers */}
-          <div className="grid grid-cols-3">
-            {/* Feature label column */}
-            <div className="px-5 py-4 bg-slate-50 border-b border-r border-slate-200">
+          <div className="grid grid-cols-2 sm:grid-cols-3">
+            {/* Feature label column — hidden on mobile */}
+            <div className="hidden sm:block px-5 py-4 bg-slate-50 border-b border-r border-slate-200">
               <span className="text-[11px] font-black uppercase tracking-widest text-slate-400">
                 Feature
               </span>
@@ -130,11 +130,11 @@ export default function WhyPostPilot() {
               whileInView={{ opacity: 1, x: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.35, delay: 0.12 + i * 0.07 }}
-              className="grid grid-cols-3"
+              className="grid grid-cols-2 sm:grid-cols-3"
             >
-              {/* Feature name */}
+              {/* Feature name — hidden on mobile */}
               <div
-                className={`px-5 py-3.5 border-r border-slate-100 flex items-center ${
+                className={`hidden sm:flex px-5 py-3.5 border-r border-slate-100 items-center ${
                   i < ROWS.length - 1 ? "border-b" : ""
                 }`}
                 style={{ background: "#fafafa" }}
@@ -183,18 +183,18 @@ export default function WhyPostPilot() {
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.5, delay: 0.3 }}
-          className="grid grid-cols-3 gap-4 mb-12"
+          className="grid grid-cols-3 gap-2 sm:gap-4 mb-12"
         >
           {STATS.map((stat, i) => (
             <motion.div
               key={stat.label}
               whileHover={{ y: -3, transition: { duration: 0.15 } }}
-              className="rounded-2xl p-6 text-center border border-slate-200 bg-white"
+              className="rounded-2xl p-4 sm:p-6 text-center border border-slate-200 bg-white"
               style={{ boxShadow: "0 2px 12px rgba(0,0,0,0.04)" }}
             >
               <span className="text-2xl block mb-2">{stat.emoji}</span>
               <p
-                className="text-3xl font-black mb-1"
+                className="text-2xl sm:text-3xl font-black mb-1"
                 style={{
                   background: "linear-gradient(135deg,#d97706,#F7BE4D)",
                   WebkitBackgroundClip: "text",
@@ -220,7 +220,7 @@ export default function WhyPostPilot() {
             <motion.div
               whileHover={{ scale: 1.04, y: -3 }}
               whileTap={{ scale: 0.97 }}
-              className="inline-flex items-center gap-2.5 font-bold px-8 py-4 rounded-xl text-base cursor-pointer select-none"
+              className="inline-flex w-full sm:w-auto justify-center items-center gap-2.5 font-bold px-8 py-4 rounded-xl text-base cursor-pointer select-none"
               style={{
                 background: "linear-gradient(135deg,#F7BE4D,#fbbf24)",
                 color: "#050816",

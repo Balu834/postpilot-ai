@@ -373,7 +373,7 @@ function OutputCards({ visible }: { visible: number }) {
   )
 
   return (
-    <div className="grid grid-cols-3 gap-1.5" style={{ minHeight: 198 }}>
+    <div className="grid grid-cols-2 sm:grid-cols-3 gap-1.5">
 
       {/* ── 1. LinkedIn Post (2/3 width) ───────── */}
       {card(0,
@@ -834,7 +834,7 @@ function WorkflowDemo() {
 export default function Hero() {
   return (
     <section
-      className="relative flex flex-col justify-center min-h-screen px-6 pt-20 pb-12 overflow-hidden"
+      className="relative flex flex-col justify-center px-6 pt-20 pb-16 overflow-hidden lg:min-h-screen"
       style={{ backgroundColor: "#ffffff" }}
     >
       {/* Top gradient strip */}
@@ -864,12 +864,12 @@ export default function Hero() {
       </div>
 
       <div className="relative z-10 w-full max-w-7xl mx-auto">
-        <div className="grid grid-cols-1 lg:grid-cols-[45%_55%] gap-8 lg:gap-14 items-start">
+        <div className="grid grid-cols-1 lg:grid-cols-[45%_55%] gap-10 lg:gap-14 items-start">
 
           {/* ──────────────────────────────────────────
                LEFT — headline + CTAs + social proof
           ────────────────────────────────────────── */}
-          <div className="text-center lg:text-left pt-4">
+          <div className="text-center lg:text-left pt-2 lg:pt-4">
 
             {/* Badge */}
             <motion.div
