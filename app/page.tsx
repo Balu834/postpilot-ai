@@ -9,10 +9,12 @@ import Pricing from "@/components/landing/Pricing"
 import FAQ from "@/components/landing/FAQ"
 import CTA from "@/components/landing/CTA"
 import Footer from "@/components/landing/Footer"
+import AuthRedirect from "@/components/landing/AuthRedirect"
 
 export default function LandingPage() {
   return (
     <main className="min-h-screen" style={{ background: "#ffffff" }}>
+      <AuthRedirect />
       <Navbar />
       <Hero />          {/* 1. What do I get? */}
       <HowItWorks />    {/* 2. How does it work? */}
