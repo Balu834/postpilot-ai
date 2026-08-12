@@ -8,7 +8,7 @@ export const metadata: Metadata = {
 }
 
 const LAST_UPDATED = "May 20, 2026"
-const CONTACT_EMAIL = "support@postpilot.ai"
+const CONTACT_EMAIL = "intellixy54@gmail.com"
 
 export default function PrivacyPage() {
   return (
@@ -41,7 +41,7 @@ export default function PrivacyPage() {
             <p>
               PostPilot AI ("we", "us", or "our") is committed to protecting your personal information.
               This Privacy Policy explains what data we collect, how we use it, and the choices you have
-              regarding your information when you use our platform at postpilot.ai.
+              regarding your information when you use our platform at getpostpilot.vercel.app.
             </p>
             <p>
               By using PostPilot AI, you consent to the data practices described in this policy.

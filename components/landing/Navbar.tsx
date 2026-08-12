@@ -49,12 +49,16 @@ export default function Navbar() {
 
         {/* Desktop nav */}
         <div className="hidden md:flex items-center gap-8">
-          {["Features", "Demo", "Pricing", "FAQ"].map((item) => (
+          {["Features", "Demo", "FAQ"].map((item) => (
             <a key={item} href={`#${item.toLowerCase()}`}
               className="text-sm text-slate-600 hover:text-slate-900 font-medium transition-colors duration-200">
               {item}
             </a>
           ))}
+          <Link href="/pricing"
+            className="text-sm text-slate-600 hover:text-slate-900 font-medium transition-colors duration-200">
+            Pricing
+          </Link>
         </div>
 
         <div className="hidden md:flex items-center gap-3">
@@ -101,13 +105,18 @@ export default function Navbar() {
             className="md:hidden bg-white border-t border-slate-100"
           >
             <div className="px-6 py-4 flex flex-col gap-4">
-              {["Features", "Demo", "Pricing", "FAQ"].map((item) => (
+              {["Features", "Demo", "FAQ"].map((item) => (
                 <a key={item} href={`#${item.toLowerCase()}`}
                   className="text-sm text-slate-700 font-medium"
                   onClick={() => setMenuOpen(false)}>
                   {item}
                 </a>
               ))}
+              <Link href="/pricing"
+                className="text-sm text-slate-700 font-medium"
+                onClick={() => setMenuOpen(false)}>
+                Pricing
+              </Link>
               <Link href={user ? "/dashboard" : "/login"}
                 className="text-sm font-bold bg-[#F7BE4D] text-[#050816] px-4 py-2.5 rounded-lg text-center">
                 {user ? "Dashboard →" : "Start free →"}

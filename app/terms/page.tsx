@@ -8,8 +8,8 @@ export const metadata: Metadata = {
 }
 
 const LAST_UPDATED = "May 20, 2026"
-const CONTACT_EMAIL = "support@postpilot.ai"
-const APP_URL = "https://postpilot.ai"
+const CONTACT_EMAIL = "intellixy54@gmail.com"
+const APP_URL = "https://getpostpilot.vercel.app"
 
 export default function TermsPage() {
   return (

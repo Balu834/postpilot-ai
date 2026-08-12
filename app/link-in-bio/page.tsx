@@ -69,7 +69,7 @@ function LivePreview({ bio, accounts, appUrl }: { bio: BioData; accounts: Social
         <div className="text-center">
           <p className="text-sm font-bold" style={{ color: t.text }}>{bio.display_name || "Your Name"}</p>
           {bio.bio && <p className="text-xs mt-1 leading-relaxed" style={{ color: t.sub }}>{bio.bio}</p>}
-          <p className="text-[10px] mt-1 opacity-40" style={{ color: t.sub }}>postpilot.ai/u/{bio.username || "username"}</p>
+          <p className="text-[10px] mt-1 opacity-40" style={{ color: t.sub }}>{appUrl.replace(/^https?:\/\//, "")}/u/{bio.username || "username"}</p>
         </div>
         {/* Platform links */}
         {bio.show_platforms && accounts.length > 0 && (

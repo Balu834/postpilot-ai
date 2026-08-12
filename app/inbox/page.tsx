@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback } from "react"
 import { motion, AnimatePresence } from "framer-motion"
 import {
   Inbox, AlertCircle, Clock, CheckCircle2, RefreshCw,
-  Trash2, Send, Loader2, Bell, Activity,
+  Trash2, Send, Loader2, Bell, Activity, X,
 } from "lucide-react"
 import { supabase } from "@/lib/supabase"
 
@@ -59,6 +59,7 @@ export default function InboxPage() {
   const [loading,        setLoading]        = useState(true)
   const [retrying,       setRetrying]       = useState<string | null>(null)
   const [deleting,       setDeleting]       = useState<string | null>(null)
+  const [reviewing,      setReviewing]      = useState<string | null>(null)
   const [tab,            setTab]            = useState<"attention" | "activity">("attention")
 
   const load = useCallback(async () => {
@@ -108,6 +109,22 @@ export default function InboxPage() {
     setFailedPosts(ps => ps.filter(p => p.id !== id))
     setApprovalPosts(ps => ps.filter(p => p.id !== id))
     setDeleting(null)
+  }
+
+  const handleReview = async (postId: string, action: "approve" | "reject") => {
+    setReviewing(postId)
+    const { data: { session } } = await supabase.auth.getSession()
+    try {
+      const res = await fetch("/api/posts/approve", {
+        method:  "POST",
+        headers: { Authorization: `Bearer ${session?.access_token}`, "Content-Type": "application/json" },
+        body:    JSON.stringify({ postId, action }),
+      })
+      if (res.ok) {
+        setApprovalPosts(ps => ps.filter(p => p.id !== postId))
+      }
+    } catch {}
+    setReviewing(null)
   }
 
   const attentionCount = failedPosts.length + approvalPosts.length
@@ -278,12 +295,28 @@ export default function InboxPage() {
                             Due: {new Date(post.scheduled_time).toLocaleString("en-US", { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" })}
                           </p>
                         </div>
-                        <button onClick={() => handleDelete(post.id)} disabled={deleting === post.id}
-                          className="p-1.5 rounded-lg text-slate-600 hover:text-red-400 hover:bg-red-500/10 transition-all flex-shrink-0">
-                          {deleting === post.id
-                            ? <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                            : <Trash2 className="w-3.5 h-3.5" />}
-                        </button>
+                        <div className="flex items-center gap-1.5 flex-shrink-0">
+                          <button onClick={() => handleReview(post.id, "approve")} disabled={reviewing === post.id}
+                            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all disabled:opacity-50"
+                            style={{ background: "rgba(52,211,153,0.10)", border: "1px solid rgba(52,211,153,0.25)", color: "#34d399" }}>
+                            {reviewing === post.id
+                              ? <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                              : <CheckCircle2 className="w-3.5 h-3.5" />}
+                            Approve
+                          </button>
+                          <button onClick={() => handleReview(post.id, "reject")} disabled={reviewing === post.id}
+                            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all disabled:opacity-50"
+                            style={{ background: "rgba(248,113,113,0.10)", border: "1px solid rgba(248,113,113,0.25)", color: "#f87171" }}>
+                            <X className="w-3.5 h-3.5" />
+                            Reject
+                          </button>
+                          <button onClick={() => handleDelete(post.id)} disabled={deleting === post.id}
+                            className="p-1.5 rounded-lg text-slate-600 hover:text-red-400 hover:bg-red-500/10 transition-all">
+                            {deleting === post.id
+                              ? <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                              : <Trash2 className="w-3.5 h-3.5" />}
+                          </button>
+                        </div>
                       </div>
                     </motion.div>
                   )

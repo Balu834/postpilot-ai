@@ -5,7 +5,7 @@ import { motion, AnimatePresence } from "framer-motion"
 import Link from "next/link"
 import {
   Check, Zap, Shield, CreditCard, Users,
-  ArrowRight, Star, Sparkles,
+  ArrowRight, Sparkles,
 } from "lucide-react"
 
 // ── Types ─────────────────────────────────────────────────────────
@@ -103,15 +103,6 @@ const PLANS: Plan[] = [
     ctaHref:       "/login",
     yearlySavings: "Save ₹5,989/year",
   },
-]
-
-const TESTIMONIALS = [
-  { name: "Priya S.",  role: "Creator · Mumbai",    avatar: "P", color: "#E1306C",
-    quote: "Saves me 15 hours a week. ₹799 is insane value." },
-  { name: "Rahul K.",  role: "Agency · Bengaluru",  avatar: "R", color: "#0077B5",
-    quote: "We run 12 client accounts on the Agency plan. ROI is incredible." },
-  { name: "Ananya T.", role: "Founder · Delhi",     avatar: "A", color: "#818cf8",
-    quote: "Upgraded to Pro after day 1. The repurpose feature alone is worth it." },
 ]
 
 // ── BillingToggle ─────────────────────────────────────────────────
@@ -523,7 +514,7 @@ export default function Pricing() {
             {[
               { icon: Shield,     text: "No credit card required" },
               { icon: Check,      text: "Cancel anytime"          },
-              { icon: Users,      text: "10,000+ creators trust us" },
+              { icon: Users,      text: "8 platforms supported" },
               { icon: CreditCard, text: "UPI · Cards · Net Banking" },
             ].map(({ icon: Icon, text }) => (
               <div key={text} className="flex items-center gap-2">
@@ -551,48 +542,6 @@ export default function Pricing() {
               </div>
             ))}
           </div>
-        </motion.div>
-
-        {/* ── Testimonial micro-strip ─────────────────────────────── */}
-        <motion.div
-          initial={{ opacity: 0, y: 16 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ delay: 0.4 }}
-          className="mt-12 grid grid-cols-1 md:grid-cols-3 gap-4"
-        >
-          {TESTIMONIALS.map((t, i) => (
-            <motion.div
-              key={t.name}
-              initial={{ opacity: 0, y: 12 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ delay: 0.1 * i + 0.4 }}
-              className="rounded-2xl p-5 border border-slate-100 bg-white"
-              style={{ boxShadow: "0 2px 12px rgba(0,0,0,0.05)" }}
-            >
-              {/* Stars */}
-              <div className="flex items-center gap-0.5 mb-3">
-                {[...Array(5)].map((_, s) => (
-                  <Star key={s} className="w-3 h-3 text-[#F7BE4D]" fill="#F7BE4D" />
-                ))}
-              </div>
-              <p className="text-sm text-slate-600 leading-relaxed mb-4 italic">
-                "{t.quote}"
-              </p>
-              <div className="flex items-center gap-2.5">
-                <div className="w-8 h-8 rounded-full flex items-center justify-center
-                  text-xs font-bold text-white flex-shrink-0"
-                  style={{ background: t.color }}>
-                  {t.avatar}
-                </div>
-                <div>
-                  <p className="text-xs font-semibold text-slate-900">{t.name}</p>
-                  <p className="text-[11px] text-slate-500">{t.role}</p>
-                </div>
-              </div>
-            </motion.div>
-          ))}
         </motion.div>
 
         {/* ── Bottom note ────────────────────────────────────────── */}

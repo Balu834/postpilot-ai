@@ -1,9 +1,9 @@
 import Navbar from "@/components/landing/Navbar"
 import Hero from "@/components/landing/Hero"
+import LiveDemo from "@/components/landing/LiveDemo"
 import HowItWorks from "@/components/landing/HowItWorks"
 import ProductShowcase from "@/components/landing/ProductShowcase"
 import Features from "@/components/landing/Features"
-import Testimonials from "@/components/landing/Testimonials"
 import WhyPostPilot from "@/components/landing/WhyPostPilot"
 import Pricing from "@/components/landing/Pricing"
 import FAQ from "@/components/landing/FAQ"
@@ -17,10 +17,10 @@ export default function LandingPage() {
       <AuthRedirect />
       <Navbar />
       <Hero />          {/* 1. What do I get? */}
-      <HowItWorks />    {/* 2. How does it work? */}
-      <ProductShowcase />{/* 3. How good are the results? */}
-      <Features />      {/* 4. What can it do beyond the basics? */}
-      <Testimonials />  {/* 5. Can I trust this? */}
+      <LiveDemo />      {/* 2. Try it yourself, right now */}
+      <HowItWorks />    {/* 3. How does it work? */}
+      <ProductShowcase />{/* 4. How good are the results? */}
+      <Features />      {/* 5. What can it do beyond the basics? */}
       <WhyPostPilot />  {/* 6. Why this instead of another tool? */}
       <Pricing />       {/* 7. Is it worth the cost? */}
       <FAQ />           {/* 8. What's stopping me? */}

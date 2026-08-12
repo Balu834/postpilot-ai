@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback, useRef } from "react"
 import { motion, AnimatePresence } from "framer-motion"
 import Link from "next/link"
 import {
-  Sparkles, ArrowRight, Play, Check, Star,
+  Sparkles, ArrowRight, Play, Check,
   CheckCircle2, TrendingUp, Zap, ChevronDown,
 } from "lucide-react"
 import { analytics } from "@/lib/analytics"
@@ -13,14 +13,6 @@ import { analytics } from "@/lib/analytics"
 // Constants
 // ─────────────────────────────────────────────────────────────────
 const TOPIC = "How to grow a SaaS startup"
-
-const AVATARS = [
-  { letter: "P", color: "#E1306C" },
-  { letter: "R", color: "#0077B5" },
-  { letter: "A", color: "#818cf8" },
-  { letter: "S", color: "#34d399" },
-  { letter: "M", color: "#F7BE4D" },
-]
 
 const PROCESSING_STEPS = [
   { label: "Understanding your topic…",   color: "#d97706" },
@@ -73,17 +65,11 @@ function StepArrow() {
 // Step 1 — Input card (interactive + auto-play modes)
 // ─────────────────────────────────────────────────────────────────
 function InputCard({
-  value, typed, isInteractive, isTyping, isDone,
-  onFocus, onChange, onGenerate,
+  typed, isTyping, isDone,
 }: {
-  value: string
   typed: string
-  isInteractive: boolean
   isTyping: boolean
   isDone: boolean
-  onFocus: () => void
-  onChange: (v: string) => void
-  onGenerate: () => void
 }) {
   const btnStyle: React.CSSProperties = isDone
     ? { background: "linear-gradient(135deg,#10b981,#34d399)", color: "#050816", boxShadow: "0 2px 10px rgba(16,185,129,0.25)" }
@@ -124,78 +110,39 @@ function InputCard({
         </span>
       </div>
 
-      {/* Input area — switches between animated display and real <input> */}
+      {/* Input area — animated preview only, not a real input */}
       <div
-        className="rounded-xl px-3 py-2.5 mb-3 border min-h-[40px] cursor-text transition-all duration-200"
+        className="rounded-xl px-3 py-2.5 mb-3 border min-h-[40px]"
         style={{
           background: "linear-gradient(135deg,#fffbeb,#fef9c3)",
-          borderColor: isInteractive ? "#F7BE4D" : "#fde68a",
-          boxShadow: isInteractive
-            ? "0 0 0 2px rgba(247,190,77,0.2), inset 0 1px 3px rgba(0,0,0,0.03)"
-            : "inset 0 1px 3px rgba(0,0,0,0.03)",
+          borderColor: "#fde68a",
+          boxShadow: "inset 0 1px 3px rgba(0,0,0,0.03)",
         }}
-        onClick={!isInteractive ? onFocus : undefined}
       >
-        {isInteractive ? (
-          <input
-            suppressHydrationWarning
-            type="text"
-            value={value}
-            onChange={e => onChange(e.target.value)}
-            onFocus={onFocus}
-            placeholder="Paste any idea, blog URL, YouTube link…"
-            disabled={isDone}
-            autoFocus
-            className="w-full bg-transparent text-[11px] font-semibold text-slate-800 placeholder:text-slate-300 placeholder:font-normal placeholder:italic outline-none disabled:opacity-60"
-          />
-        ) : (
-          <span className="text-[11px] font-semibold text-slate-800 leading-snug">
-            {typed || (
-              <span className="text-slate-300 italic font-normal text-[10px]">
-                Paste any idea, blog URL, YouTube link…
-              </span>
-            )}
-            {isTyping && typed.length < TOPIC.length && (
-              <motion.span
-                animate={{ opacity: [1, 0, 1] }}
-                transition={{ duration: 0.55, repeat: Infinity }}
-                className="inline-block w-0.5 h-3.5 align-middle ml-0.5"
-                style={{ background: "#F7BE4D" }}
-              />
-            )}
-          </span>
-        )}
+        <span className="text-[11px] font-semibold text-slate-800 leading-snug">
+          {typed || (
+            <span className="text-slate-300 italic font-normal text-[10px]">
+              Paste any idea, blog URL, YouTube link…
+            </span>
+          )}
+          {isTyping && typed.length < TOPIC.length && (
+            <motion.span
+              animate={{ opacity: [1, 0, 1] }}
+              transition={{ duration: 0.55, repeat: Infinity }}
+              className="inline-block w-0.5 h-3.5 align-middle ml-0.5"
+              style={{ background: "#F7BE4D" }}
+            />
+          )}
+        </span>
       </div>
 
-      {/* CTA — real <button> when interactive, presentational <div> during auto-play */}
-      {isInteractive ? (
-        <button
-          suppressHydrationWarning
-          onClick={onGenerate}
-          disabled={isDone}
-          className="w-full flex items-center justify-center gap-1.5 py-2 rounded-xl text-[11px] font-bold cursor-pointer select-none transition-all duration-500 disabled:cursor-not-allowed"
-          style={btnStyle}
-        >
-          {btnContent}
-        </button>
-      ) : (
-        <div
-          className="w-full flex items-center justify-center gap-1.5 py-2 rounded-xl text-[11px] font-bold cursor-default select-none transition-all duration-500"
-          style={btnStyle}
-        >
-          {btnContent}
-        </div>
-      )}
-
-      {/* "Try your own idea" nudge — visible only during auto-play idle/typing */}
-      {!isInteractive && !isDone && (
-        <p
-          className="text-center text-[9px] text-slate-400 mt-2 cursor-pointer hover:text-amber-600 transition-colors select-none"
-          onClick={onFocus}
-        >
-          ⌨️ Click to try with your own idea
-        </p>
-      )}
+      {/* CTA — presentational only, part of the animated preview */}
+      <div
+        className="w-full flex items-center justify-center gap-1.5 py-2 rounded-xl text-[11px] font-bold cursor-default select-none transition-all duration-500"
+        style={btnStyle}
+      >
+        {btnContent}
+      </div>
     </div>
   )
 }
@@ -330,7 +277,7 @@ function ProcessingCard({
               className="text-center text-[9px] font-bold mt-1.5"
               style={{ color: "#059669" }}
             >
-              🎉 6 pieces of content ready
+              🎉 5 pieces of content ready
             </motion.p>
           )}
         </AnimatePresence>
@@ -649,37 +596,21 @@ function PublishBar({ visible }: { visible: boolean }) {
 }
 
 // ─────────────────────────────────────────────────────────────────
-// Workflow — animation state machine (interactive + auto-play)
+// Workflow — decorative auto-play animation (not a real generator)
 // ─────────────────────────────────────────────────────────────────
 type Phase = "idle" | "typing" | "processing" | "complete"
-type Mode  = "auto" | "interactive"
 
 function WorkflowDemo() {
   const [phase,        setPhase]        = useState<Phase>("idle")
-  const [mode,         setMode]         = useState<Mode>("auto")
-  const [userInput,    setUserInput]    = useState(TOPIC)
   const [typedChars,   setTypedChars]   = useState(0)
   const [doneSteps,    setDoneSteps]    = useState<number[]>([])
   const [progress,     setProgress]     = useState(0)
   const [visibleCards, setVisibleCards] = useState(0)
   const [publishReady, setPublishReady] = useState(false)
 
-  const loopRef  = useRef<ReturnType<typeof setTimeout> | undefined>(undefined)
-  const modeRef  = useRef<Mode>("auto")
-  useEffect(() => { modeRef.current = mode }, [mode])
+  const loopRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined)
 
-  // Start a fresh generation run (both modes)
-  const startProcessing = useCallback(() => {
-    if (loopRef.current) clearTimeout(loopRef.current)
-    setTypedChars(0)
-    setDoneSteps([])
-    setProgress(0)
-    setVisibleCards(0)
-    setPublishReady(false)
-    setPhase("processing")
-  }, [])
-
-  // Auto-play reset → re-enter typing phase
+  // Reset → re-enter typing phase, loops forever
   const reset = useCallback(() => {
     if (loopRef.current) clearTimeout(loopRef.current)
     setTypedChars(0)
@@ -690,33 +621,14 @@ function WorkflowDemo() {
     setPhase("typing")
   }, [])
 
-  // User clicked the input area while auto-play is running
-  const handleFocus = useCallback(() => {
-    if (modeRef.current === "interactive") return
-    setMode("interactive")
-    if (loopRef.current) clearTimeout(loopRef.current)
-    if (phase === "typing") {
-      // Abort the typing animation; let user take over
-      setPhase("idle")
-      setTypedChars(0)
-    }
-    // If processing/complete, let it finish — user can generate again after
-  }, [phase])
-
-  // User clicked "Generate Content"
-  const handleGenerate = useCallback(() => {
-    setMode("interactive")
-    startProcessing()
-  }, [startProcessing])
-
-  // Boot — kick off auto-play after a short delay
+  // Boot — kick off the loop after a short delay
   useEffect(() => {
     const t = setTimeout(reset, 700)
     return () => clearTimeout(t)
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
-  // Typing phase (auto-play only)
+  // Typing phase
   useEffect(() => {
     if (phase !== "typing") return
     let chars = 0
@@ -732,7 +644,7 @@ function WorkflowDemo() {
     return () => { clearInterval(iv); if (followUp) clearTimeout(followUp) }
   }, [phase])
 
-  // Processing (both modes)
+  // Processing
   useEffect(() => {
     if (phase !== "processing") return
     const timers: ReturnType<typeof setTimeout>[] = []
@@ -760,9 +672,7 @@ function WorkflowDemo() {
       if (count >= 5) {
         clearInterval(iv)
         publishTimer = setTimeout(() => setPublishReady(true), 450)
-        if (modeRef.current === "auto") {
-          loopRef.current = setTimeout(reset, 8200)
-        }
+        loopRef.current = setTimeout(reset, 8200)
       }
     }, 160)
     return () => {
@@ -781,14 +691,9 @@ function WorkflowDemo() {
       {/* Step 1 */}
       <StepLabel emoji="💡" label="Your Input" color="#d97706" />
       <InputCard
-        value={userInput}
         typed={TOPIC.slice(0, typedChars)}
-        isInteractive={mode === "interactive"}
         isTyping={isTyping}
         isDone={isProcessing}
-        onFocus={handleFocus}
-        onChange={setUserInput}
-        onGenerate={handleGenerate}
       />
 
       <StepArrow />
@@ -997,42 +902,11 @@ export default function Hero() {
               transition={{ duration: 0.45, delay: 0.5 }}
               className="space-y-3"
             >
-              {/* Stars + rating */}
-              <div className="flex items-center gap-2 justify-center lg:justify-start">
-                <div className="flex">
-                  {[...Array(5)].map((_, i) => (
-                    <Star key={i} className="w-4 h-4" fill="#F7BE4D" style={{ color: "#F7BE4D" }} />
-                  ))}
-                </div>
-                <span className="text-sm font-bold text-slate-900">4.9 / 5</span>
-                <span className="text-slate-300">·</span>
-                <span className="text-sm text-slate-500">500+ reviews</span>
-              </div>
-
-              {/* Avatars + count */}
-              <div className="flex items-center gap-3 justify-center lg:justify-start">
-                <div className="flex -space-x-2">
-                  {AVATARS.map(a => (
-                    <div
-                      key={a.letter}
-                      className="w-8 h-8 rounded-full border-2 border-white flex items-center justify-center text-[11px] font-bold flex-shrink-0"
-                      style={{ background: a.color, color: "#fff" }}
-                    >
-                      {a.letter}
-                    </div>
-                  ))}
-                </div>
-                <p className="text-sm text-slate-500">
-                  <span className="font-semibold text-slate-900">10,000+</span> Posts Generated
-                </p>
-              </div>
-
               {/* Metric pills */}
               <div className="flex flex-wrap gap-2 justify-center lg:justify-start">
                 {[
-                  { icon: CheckCircle2, text: "500+ Creators",  color: "#059669" },
                   { icon: Zap,          text: "60s Generation", color: "#d97706" },
-                  { icon: TrendingUp,   text: "3× Engagement",  color: "#6366f1" },
+                  { icon: TrendingUp,   text: "8 Platforms",    color: "#6366f1" },
                   { icon: CheckCircle2, text: "No Credit Card", color: "#059669" },
                 ].map(item => (
                   <div
@@ -1068,8 +942,8 @@ export default function Hero() {
                 <Check className="w-3 h-3 text-emerald-600" />
               </div>
               <div>
-                <p className="text-[10px] font-bold text-slate-900 leading-none">6 posts ready</p>
-                <p className="text-[9px] text-slate-400 leading-none mt-0.5">in 3.8 seconds</p>
+                <p className="text-[10px] font-bold text-slate-900 leading-none">5 posts ready</p>
+                <p className="text-[9px] text-slate-400 leading-none mt-0.5">from one idea</p>
               </div>
             </motion.div>
 
@@ -1080,10 +954,10 @@ export default function Hero() {
               className="absolute -bottom-2 -left-3 z-20 flex items-center gap-2 bg-white rounded-xl px-3 py-2 border border-slate-200"
               style={{ boxShadow: "0 4px 16px rgba(0,0,0,0.08)" }}
             >
-              <span className="text-base leading-none">📈</span>
+              <span className="text-base leading-none">📡</span>
               <div>
-                <p className="text-[10px] font-bold text-slate-900 leading-none">3× Engagement</p>
-                <p className="text-[9px] text-slate-400 leading-none mt-0.5">avg. creator lift</p>
+                <p className="text-[10px] font-bold text-slate-900 leading-none">8 Platforms</p>
+                <p className="text-[9px] text-slate-400 leading-none mt-0.5">one idea, every channel</p>
               </div>
             </motion.div>
 
