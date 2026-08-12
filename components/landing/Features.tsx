@@ -29,7 +29,7 @@ const FEATURES = [
     title: "Viral Hook Generator",
     description:
       "Every post opens with a scroll-stopping hook. AI-crafted openings proven to drive clicks, saves, and shares — before you edit a word.",
-    outcome: "3× average engagement boost",
+    outcome: "Built to stop the scroll",
     color: "#d97706",
     bg: "#fffbeb",
     border: "#fde68a",
@@ -46,10 +46,10 @@ const FEATURES = [
   },
   {
     icon: CheckCircle2,
-    title: "Schedule-Ready Exports",
+    title: "Direct Publishing",
     description:
-      "Export directly to Buffer, Hootsuite, or CSV. Every post comes pre-formatted with captions and hashtags — ready to schedule in one click.",
-    outcome: "From idea to calendar instantly",
+      "Connect Instagram, LinkedIn, X, Facebook, Threads, Bluesky, Pinterest, and YouTube — schedule or publish straight from PostPilot, no other tool needed.",
+    outcome: "From idea to published instantly",
     color: "#0077B5",
     bg: "#eff8ff",
     border: "#bfdbfe",

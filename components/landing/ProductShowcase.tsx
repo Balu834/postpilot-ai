@@ -19,8 +19,6 @@ Here's what changed:
 → I started batching content with AI
 → I focused on ideas, not writing
 
-The result? My engagement went up 3× and I saved 200+ hours last year.
-
 The best content creators aren't writing more — they're thinking more strategically.
 
 What's your content creation process?
