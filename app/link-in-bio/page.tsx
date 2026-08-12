@@ -131,24 +131,27 @@ export default function LinkInBioPage() {
 
   const load = useCallback(async () => {
     const { data: { session } } = await supabase.auth.getSession()
-    if (!session) return
-    const res = await fetch("/api/link-in-bio", {
-      headers: { Authorization: `Bearer ${session.access_token}` },
-    })
-    const data = await res.json()
-    if (data.bio) {
-      setBio({
-        username:       data.bio.username ?? "",
-        display_name:   data.bio.display_name ?? "",
-        bio:            data.bio.bio ?? "",
-        avatar_url:     data.bio.avatar_url ?? null,
-        theme:          data.bio.theme ?? "dark",
-        custom_links:   data.bio.custom_links ?? [],
-        show_platforms: data.bio.show_platforms ?? true,
+    if (!session) { setLoading(false); return }
+    try {
+      const res = await fetch("/api/link-in-bio", {
+        headers: { Authorization: `Bearer ${session.access_token}` },
       })
+      const data = await res.json()
+      if (data.bio) {
+        setBio({
+          username:       data.bio.username ?? "",
+          display_name:   data.bio.display_name ?? "",
+          bio:            data.bio.bio ?? "",
+          avatar_url:     data.bio.avatar_url ?? null,
+          theme:          data.bio.theme ?? "dark",
+          custom_links:   data.bio.custom_links ?? [],
+          show_platforms: data.bio.show_platforms ?? true,
+        })
+      }
+      setAccounts(data.accounts ?? [])
+    } finally {
+      setLoading(false)
     }
-    setAccounts(data.accounts ?? [])
-    setLoading(false)
   }, [])
 
   useEffect(() => { load() }, [load])

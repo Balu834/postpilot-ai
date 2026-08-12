@@ -163,12 +163,15 @@ export default function BrandVoicePage() {
 
   useEffect(() => {
     supabase.auth.getSession().then(async ({ data: { session } }) => {
-      if (!session) return
+      if (!session) { setLoading(false); return }
       setToken(session.access_token)
-      const res  = await fetch("/api/brand-voice", { headers: { authorization: `Bearer ${session.access_token}` } })
-      const json = await res.json()
-      if (json.data) setVoice({ ...DEFAULT, ...json.data })
-      setLoading(false)
+      try {
+        const res  = await fetch("/api/brand-voice", { headers: { authorization: `Bearer ${session.access_token}` } })
+        const json = await res.json()
+        if (json.data) setVoice({ ...DEFAULT, ...json.data })
+      } finally {
+        setLoading(false)
+      }
     })
   }, [])
 
