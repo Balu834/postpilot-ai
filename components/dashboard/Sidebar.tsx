@@ -11,7 +11,7 @@ import {
   Gauge, Globe, Lightbulb, ImageIcon,
   Layers, GitBranch, FileSpreadsheet, UserCircle,
   Camera, MessageSquare, RefreshCw, TrendingUp, FileBarChart, FileEdit, CalendarDays, Eye, Users,
-  Brain, Target, Wand, ChevronLeft, ChevronRight,
+  Brain, Target, Wand, ChevronLeft, ChevronRight, Clapperboard,
 } from "lucide-react"
 import { supabase } from "@/lib/supabase"
 import UpgradeModal from "@/components/UpgradeModal"
@@ -30,6 +30,7 @@ const navSections: NavSection[] = [
     label: "Generate",
     items: [
       { icon: Wand2,         label: "Generate",      href: "/generate"   },
+      { icon: Clapperboard,  label: "Video Script",  href: "/video-script", badge: "NEW" },
       { icon: ImageIcon,     label: "AI Images",     href: "/images",    badge: "NEW" },
       { icon: Camera,        label: "Image Caption", href: "/caption"    },
       { icon: Layers,        label: "Carousel",      href: "/carousel"   },
@@ -43,8 +44,8 @@ const navSections: NavSection[] = [
     label: "Transform",
     items: [
       { icon: Mic2,           label: "Brand Voice",     href: "/brand-voice",     badge: "NEW" },
-      { icon: Repeat2,        label: "Blog → Posts",    href: "/repurpose",       badge: "HOT" },
-      { icon: Wand,           label: "Smart Repurpose", href: "/smart-repurpose", badge: "AI"  },
+      { icon: Repeat2,        label: "Blog → 24 Posts",      href: "/repurpose",       badge: "HOT" },
+      { icon: Wand,           label: "Repurpose · Brand Voice", href: "/smart-repurpose", badge: "AI"  },
       { icon: Brain,          label: "Content Brain",   href: "/brain",           badge: "NEW" },
       { icon: MessageSquare,  label: "AI Chat",         href: "/chat",            badge: "NEW" },
       { icon: Rss,            label: "RSS Import",      href: "/rss"              },

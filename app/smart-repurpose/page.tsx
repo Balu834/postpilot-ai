@@ -8,6 +8,7 @@ import {
 } from "lucide-react"
 import { supabase } from "@/lib/supabase"
 import { useRouter } from "next/navigation"
+import Link from "next/link"
 
 const SOURCE_TYPES = [
   { key: "podcast_transcript", label: "Podcast Transcript", emoji: "🎙️" },
@@ -160,10 +161,13 @@ export default function SmartRepurposePage() {
           <Wand2 className="w-5 h-5 text-[#f472b6]" />
         </div>
         <div>
-          <h1 className="text-xl font-bold text-white">Smart Repurpose Engine</h1>
+          <h1 className="text-xl font-bold text-white">Repurpose · Brand Voice</h1>
           <p className="text-slate-500 text-xs">
             Transform any raw content into 6 platform-ready posts — in your brand voice
           </p>
+          <Link href="/repurpose" className="text-[11px] text-[#f472b6]/80 hover:text-[#f472b6] transition-colors inline-block mt-0.5">
+            Need bigger volume, scheduling, or image export instead? Try Blog → 24 Posts →
+          </Link>
         </div>
       </div>
 

@@ -9,7 +9,8 @@ import { useState, useEffect, useRef, useCallback } from "react"
 const pageMeta: Record<string, { title: string; subtitle: string }> = {
   "/dashboard":    { title: "Dashboard",         subtitle: "Welcome back — let's create something great"           },
   "/generate":     { title: "Generate",          subtitle: "Turn your ideas into platform-ready posts"              },
-  "/repurpose":    { title: "Blog → 24 Posts",   subtitle: "Posts ready to share — get a full cross-platform pack"  },
+  "/repurpose":    { title: "Blog → 24 Posts",   subtitle: "High volume, scheduling & image export — for one-off content packs"  },
+  "/video-script": { title: "Video Script",      subtitle: "Hook, beats, caption & hashtags for Reels, TikTok & Shorts" },
   "/templates":    { title: "Templates",         subtitle: "12 proven content frameworks — click and generate"      },
   "/workspace":    { title: "Workspace",         subtitle: "Organize your content into campaigns"                   },
   "/schedule":     { title: "Schedule",          subtitle: "Plan and manage your content calendar"                  },
@@ -40,7 +41,7 @@ const pageMeta: Record<string, { title: string; subtitle: string }> = {
   "/preview":          { title: "Post Preview",       subtitle: "See exactly how your post will look on each platform"               },
   "/brain":            { title: "Content Brain",      subtitle: "AI memory of everything you've posted — topics, gaps, patterns"     },
   "/campaign":         { title: "Campaign Planner",   subtitle: "Goal-driven AI campaigns — generate a full content plan in seconds" },
-  "/smart-repurpose":  { title: "Smart Repurpose",    subtitle: "Transform any raw content into 6 platform-ready posts"              },
+  "/smart-repurpose":  { title: "Repurpose · Brand Voice", subtitle: "Brand-voiced, source-aware repurposing — Threads, Bluesky & Pinterest too" },
 }
 
 type Notification = {

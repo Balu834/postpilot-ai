@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef } from "react"
 import { motion, AnimatePresence } from "framer-motion"
+import Link from "next/link"
 import {
   Repeat2, Sparkles, RefreshCw, Copy, CheckCheck, Hash, Zap,
   CheckCircle2, Clock, CalendarClock, Edit3, ChevronDown, Check,
@@ -980,6 +981,9 @@ export default function RepurposePage() {
                   <div>
                     <h2 className="text-sm font-bold text-white">Blog → 24 Posts</h2>
                     <p className="text-[11px] text-slate-500">Paste any content — get a full cross-platform content pack</p>
+                    <Link href="/smart-repurpose" className="text-[10px] text-[#F7BE4D]/80 hover:text-[#F7BE4D] transition-colors inline-block mt-0.5">
+                      Need brand voice, Threads/Bluesky, or Twitter threads instead? Try Repurpose · Brand Voice →
+                    </Link>
                   </div>
                 </div>
                 {result && (
