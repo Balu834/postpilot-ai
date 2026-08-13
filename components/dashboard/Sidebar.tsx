@@ -6,7 +6,7 @@ import { usePathname, useRouter } from "next/navigation"
 import { motion, AnimatePresence } from "framer-motion"
 import {
   LayoutDashboard, Wand2, CalendarClock, BarChart3,
-  Settings, Zap, LogOut, History, Repeat2, FolderOpen,
+  Settings, Zap, LogOut, History, Repeat2, Repeat, FolderOpen,
   LayoutTemplate, Mic2, Inbox, Link2, Hash, Rss,
   Gauge, Globe, Lightbulb, ImageIcon,
   Layers, GitBranch, FileSpreadsheet, UserCircle,
@@ -59,6 +59,7 @@ const navSections: NavSection[] = [
       { icon: CalendarClock, label: "Schedule",  href: "/schedule"  },
       { icon: CalendarDays,  label: "Calendar",  href: "/calendar"  },
       { icon: FileEdit,      label: "Drafts",    href: "/drafts"    },
+      { icon: Repeat,        label: "Evergreen", href: "/evergreen", badge: "NEW" },
       { icon: FolderOpen,    label: "Workspace", href: "/workspace" },
     ],
   },

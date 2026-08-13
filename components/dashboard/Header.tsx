@@ -42,6 +42,7 @@ const pageMeta: Record<string, { title: string; subtitle: string }> = {
   "/brain":            { title: "Content Brain",      subtitle: "AI memory of everything you've posted — topics, gaps, patterns"     },
   "/campaign":         { title: "Campaign Planner",   subtitle: "Goal-driven AI campaigns — generate a full content plan in seconds" },
   "/smart-repurpose":  { title: "Repurpose · Brand Voice", subtitle: "Brand-voiced, source-aware repurposing — Threads, Bluesky & Pinterest too" },
+  "/evergreen":        { title: "Evergreen Queue",   subtitle: "Auto-recirculate your best posts on a repeat interval" },
 }
 
 type Notification = {
