@@ -13,6 +13,22 @@ export async function POST(req: NextRequest) {
   const { data: { user } } = await supabase.auth.getUser(token)
   if (!user?.email) return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
 
+  const supabaseAdmin = createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!
+  )
+  const { data: profile } = await supabaseAdmin
+    .from("users")
+    .select("welcome_sent")
+    .eq("id", user.id)
+    .single()
+
+  if (profile?.welcome_sent) {
+    return NextResponse.json({ success: true, skipped: true })
+  }
+
   await sendWelcomeEmail(user.email).catch(console.error)
+  await supabaseAdmin.from("users").update({ welcome_sent: true }).eq("id", user.id)
+
   return NextResponse.json({ success: true })
 }

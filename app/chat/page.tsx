@@ -104,7 +104,14 @@ function CopyBtn({ text }: { text: string }) {
 function MessageBubble({ message, isStreaming }: { message: Message; isStreaming?: boolean }) {
   const isUser = message.role === "user"
 
-  const formatted = message.content
+  const escaped = message.content
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;")
+
+  const formatted = escaped
     .replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>")
     .replace(/\*(.*?)\*/g, "<em>$1</em>")
     .replace(/`([^`]+)`/g, '<code class="bg-slate-100 text-slate-700 px-1.5 py-0.5 rounded text-[11px] font-mono">$1</code>')

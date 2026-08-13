@@ -1,6 +1,40 @@
 import { NextRequest, NextResponse } from "next/server"
+import { createClient } from "@supabase/supabase-js"
+import dns from "dns/promises"
+import net from "net"
 
 export const dynamic = "force-dynamic"
+
+// Blocks SSRF against internal services / cloud metadata endpoints by
+// resolving the hostname and checking the actual IP(s) it points to —
+// checking the hostname string alone doesn't stop DNS rebinding.
+function isDisallowedIp(ip: string): boolean {
+  if (net.isIPv4(ip)) {
+    const [a, b] = ip.split(".").map(Number)
+    if (a === 127) return true                      // loopback
+    if (a === 10) return true                        // private
+    if (a === 172 && b >= 16 && b <= 31) return true  // private
+    if (a === 192 && b === 168) return true           // private
+    if (a === 169 && b === 254) return true           // link-local / cloud metadata
+    if (a === 0) return true                          // "this" network
+    return false
+  }
+  if (net.isIPv6(ip)) {
+    const lower = ip.toLowerCase()
+    if (lower === "::1") return true                          // loopback
+    if (lower.startsWith("fc") || lower.startsWith("fd")) return true // unique local
+    if (lower.startsWith("fe80")) return true                 // link-local
+    return false
+  }
+  return true // unrecognized format — fail closed
+}
+
+async function assertPublicHost(hostname: string) {
+  const { address } = await dns.lookup(hostname)
+  if (isDisallowedIp(address)) {
+    throw new Error("This URL points to a private or internal address, which isn't allowed")
+  }
+}
 
 function extractTag(xml: string, tag: string): string {
   const re = new RegExp(
@@ -69,6 +103,15 @@ function parseXML(xml: string): RSSArticle[] {
 }
 
 export async function POST(req: NextRequest) {
+  const token = req.headers.get("authorization")?.replace("Bearer ", "")
+  if (!token) return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+  const supabase = createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+  )
+  const { data: { user } } = await supabase.auth.getUser(token)
+  if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+
   const { feedUrl } = await req.json()
   if (!feedUrl) return NextResponse.json({ error: "feedUrl required" }, { status: 400 })
 
@@ -78,6 +121,13 @@ export async function POST(req: NextRequest) {
 
   if (!["http:", "https:"].includes(url.protocol)) {
     return NextResponse.json({ error: "Only http/https URLs are allowed" }, { status: 400 })
+  }
+
+  try {
+    await assertPublicHost(url.hostname)
+  } catch (err: unknown) {
+    const msg = err instanceof Error ? err.message : "Invalid URL"
+    return NextResponse.json({ error: msg }, { status: 400 })
   }
 
   try {

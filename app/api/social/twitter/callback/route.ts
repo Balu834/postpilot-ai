@@ -9,6 +9,7 @@ const supabaseAdmin = createClient(
 export async function GET(req: NextRequest) {
   const appUrl = process.env.NEXT_PUBLIC_APP_URL!
   const code   = req.nextUrl.searchParams.get("code")
+  const state  = req.nextUrl.searchParams.get("state")
   const error  = req.nextUrl.searchParams.get("error")
 
   if (error || !code) {
@@ -17,8 +18,9 @@ export async function GET(req: NextRequest) {
 
   const codeVerifier = req.cookies.get("tw_cv")?.value
   const userId       = req.cookies.get("tw_uid")?.value
+  const storedState  = req.cookies.get("tw_state")?.value
 
-  if (!codeVerifier || !userId) {
+  if (!codeVerifier || !userId || !storedState || storedState !== state) {
     return NextResponse.redirect(`${appUrl}/settings?social_error=twitter_session`)
   }
 
@@ -66,6 +68,7 @@ export async function GET(req: NextRequest) {
     const res = NextResponse.redirect(`${appUrl}/settings?social_connected=twitter`)
     res.cookies.delete("tw_cv")
     res.cookies.delete("tw_uid")
+    res.cookies.delete("tw_state")
     return res
   } catch (err: unknown) {
     console.error("[OAuth]", err)

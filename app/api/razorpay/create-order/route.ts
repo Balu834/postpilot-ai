@@ -7,6 +7,11 @@ const razorpay = new Razorpay({
   key_secret: process.env.RAZORPAY_KEY_SECRET!,
 })
 
+const supabaseAdmin = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.SUPABASE_SERVICE_ROLE_KEY!
+)
+
 export async function POST(req: NextRequest) {
   try {
     // Auth check — prevent unauthenticated order creation
@@ -35,8 +40,18 @@ export async function POST(req: NextRequest) {
       amount,
       currency: "INR",
       receipt:  `receipt_${Date.now()}`,
-      notes:    { plan },
+      notes:    { plan, user_id: user.id },
     })
+
+    // Record the order server-side so /verify can trust what was actually
+    // paid for instead of a client-supplied plan value.
+    const { error: insertError } = await supabaseAdmin.from("payment_orders").insert({
+      order_id: order.id,
+      user_id:  user.id,
+      plan,
+      amount,
+    })
+    if (insertError) throw insertError
 
     return NextResponse.json({ orderId: order.id, amount, currency: "INR" })
   } catch (err: unknown) {

@@ -76,9 +76,10 @@ export default function RSSPage() {
     if (!feedUrl.trim()) return
     setFetching(true); setFetchErr(""); setArticles([]); setSelected(new Set()); setScheduled(null)
     try {
+      const { data: { session } } = await supabase.auth.getSession()
       const res  = await fetch("/api/rss/parse", {
         method:  "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${session?.access_token ?? ""}` },
         body:    JSON.stringify({ feedUrl }),
       })
       const data = await res.json()

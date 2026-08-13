@@ -208,7 +208,6 @@ export default function LoginPage() {
           analytics.login("email")
           analytics.identify(data.user.id, { email: data.user.email })
           localStorage.setItem(`postpilot_onboarded_${data.user.id}`, "true")
-          fetch("/api/email/welcome", { method: "POST", headers: { authorization: `Bearer ${data.session.access_token}` } }).catch(() => {})
         }
         router.replace("/dashboard")
       }
