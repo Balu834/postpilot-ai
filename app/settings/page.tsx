@@ -15,6 +15,11 @@ function isExpiringSoon(expiresAt: string | null): boolean {
   return new Date(expiresAt).getTime() - Date.now() < 7 * 24 * 60 * 60 * 1000
 }
 
+function isExpired(expiresAt: string | null): boolean {
+  if (!expiresAt) return false
+  return new Date(expiresAt).getTime() < Date.now()
+}
+
 const SOCIAL_PLATFORMS = [
   { key: "twitter",   label: "Twitter / X",  icon: "𝕏",  color: "#94a3b8", bg: "rgba(148,163,184,0.12)", manual: false },
   { key: "bluesky",   label: "Bluesky",      icon: "🦋", color: "#0085ff", bg: "rgba(0,133,255,0.12)",   manual: true  },
@@ -859,6 +864,7 @@ export default function SettingsPage() {
             const account    = accounts.find(a => a.platform === platform.key)
             const isLoading  = connecting === platform.key
             const expiring   = account ? isExpiringSoon(account.expires_at) : false
+            const expired    = account ? isExpired(account.expires_at) : false
             const comingSoon = 'comingSoon' in platform && platform.comingSoon
             return (
               <div key={platform.key}
@@ -878,14 +884,16 @@ export default function SettingsPage() {
                     {expiring && (
                       <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-full"
                         style={{ background: "rgba(251,146,60,0.15)", color: "#fb923c", border: "1px solid rgba(251,146,60,0.3)" }}>
-                        Expiring soon
+                        {expired ? "Expired" : "Expiring soon"}
                       </span>
                     )}
                   </div>
                   <p className="text-[11px] truncate" style={{ color: expiring ? "#fb923c" : account ? platform.color : "#475569" }}>
-                    {account
-                      ? account.username ? `@${account.username}` : "Connected"
-                      : "Not connected"
+                    {expired
+                      ? "Reconnect to keep posting"
+                      : account
+                        ? account.username ? `@${account.username}` : "Connected"
+                        : "Not connected"
                     }
                   </p>
                 </div>
