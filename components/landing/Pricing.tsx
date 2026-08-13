@@ -178,7 +178,7 @@ function PlanCard({
 
   return (
     <motion.div
-      initial={{ opacity: 0, y: 32 }}
+      initial={{ opacity: 1, y: 32 }}
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true, margin: "-40px" }}
       transition={{ duration: 0.45, delay: index * 0.1 }}
@@ -341,7 +341,7 @@ function PlanCard({
             {plan.features.map((f, i) => (
               <motion.li
                 key={f.text}
-                initial={{ opacity: 0, x: -8 }}
+                initial={{ opacity: 1, x: -8 }}
                 whileInView={{ opacity: 1, x: 0 }}
                 viewport={{ once: true }}
                 transition={{ delay: 0.05 * i + index * 0.08 }}
@@ -453,7 +453,7 @@ export default function Pricing() {
 
         {/* ── Section header ────────────────────────────────────── */}
         <motion.div
-          initial={{ opacity: 0, y: 24 }}
+          initial={{ opacity: 1, y: 24 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.5 }}
@@ -485,7 +485,7 @@ export default function Pricing() {
 
         {/* ── Billing toggle ─────────────────────────────────────── */}
         <motion.div
-          initial={{ opacity: 0, y: 12 }}
+          initial={{ opacity: 1, y: 12 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ delay: 0.15 }}
@@ -503,7 +503,7 @@ export default function Pricing() {
 
         {/* ── Trust strip ────────────────────────────────────────── */}
         <motion.div
-          initial={{ opacity: 0, y: 16 }}
+          initial={{ opacity: 1, y: 16 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ delay: 0.3 }}
@@ -546,7 +546,7 @@ export default function Pricing() {
 
         {/* ── Bottom note ────────────────────────────────────────── */}
         <motion.div
-          initial={{ opacity: 0, y: 12 }}
+          initial={{ opacity: 1, y: 12 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ delay: 0.5 }}

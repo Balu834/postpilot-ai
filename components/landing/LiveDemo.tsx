@@ -75,7 +75,7 @@ export default function LiveDemo() {
       <div className="max-w-3xl mx-auto relative">
         {/* Header */}
         <motion.div
-          initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}
+          initial={{ opacity: 1, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}
           className="text-center mb-10"
         >
           <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-semibold mb-5 border border-amber-200 bg-amber-50 text-amber-700">
@@ -95,7 +95,7 @@ export default function LiveDemo() {
 
         {/* Input */}
         <motion.div
-          initial={{ opacity: 0, y: 16 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}
+          initial={{ opacity: 1, y: 16 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}
           transition={{ delay: 0.1 }}
           className="rounded-2xl p-1 mb-4 border border-slate-200 shadow-sm bg-white"
         >

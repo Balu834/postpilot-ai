@@ -15,7 +15,7 @@ export default function CTA() {
     <section className="py-24 px-6" style={{ backgroundColor: "#ffffff" }}>
       <div className="max-w-4xl mx-auto">
         <motion.div
-          initial={{ opacity: 0, y: 30 }}
+          initial={{ opacity: 1, y: 30 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.6 }}

@@ -68,7 +68,7 @@ export default function HowItWorks() {
       <div className="max-w-6xl mx-auto relative">
         {/* Header */}
         <motion.div
-          initial={{ opacity: 0, y: 20 }}
+          initial={{ opacity: 1, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.5 }}
@@ -97,7 +97,7 @@ export default function HowItWorks() {
           {STEPS.map((step, i) => (
             <motion.div
               key={step.number}
-              initial={{ opacity: 0, y: 32 }}
+              initial={{ opacity: 1, y: 32 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.45, delay: i * 0.14 }}
@@ -165,7 +165,7 @@ export default function HowItWorks() {
 
         {/* Bottom trust note */}
         <motion.p
-          initial={{ opacity: 0 }}
+          initial={{ opacity: 1 }}
           whileInView={{ opacity: 1 }}
           viewport={{ once: true }}
           transition={{ delay: 0.5 }}

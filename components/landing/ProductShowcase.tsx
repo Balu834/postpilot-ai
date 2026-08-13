@@ -354,7 +354,7 @@ export default function ProductShowcase() {
       <div className="max-w-6xl mx-auto">
         {/* Header */}
         <motion.div
-          initial={{ opacity: 0, y: 20 }}
+          initial={{ opacity: 1, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.5 }}
@@ -377,7 +377,7 @@ export default function ProductShowcase() {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 lg:gap-16 items-start">
           {/* ── Left: Tab switcher + preview ── */}
           <motion.div
-            initial={{ opacity: 0, x: -24 }}
+            initial={{ opacity: 1, x: -24 }}
             whileInView={{ opacity: 1, x: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.6 }}
@@ -426,7 +426,7 @@ export default function ProductShowcase() {
 
           {/* ── Right: Selling points ── */}
           <motion.div
-            initial={{ opacity: 0, x: 24 }}
+            initial={{ opacity: 1, x: 24 }}
             whileInView={{ opacity: 1, x: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.6, delay: 0.1 }}
@@ -461,7 +461,7 @@ export default function ProductShowcase() {
               ].map((item, i) => (
                 <motion.div
                   key={item.title}
-                  initial={{ opacity: 0, x: 16 }}
+                  initial={{ opacity: 1, x: 16 }}
                   whileInView={{ opacity: 1, x: 0 }}
                   viewport={{ once: true }}
                   transition={{ delay: i * 0.08, duration: 0.4 }}
@@ -482,7 +482,7 @@ export default function ProductShowcase() {
 
             {/* CTA */}
             <motion.div
-              initial={{ opacity: 0, y: 12 }}
+              initial={{ opacity: 1, y: 12 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ delay: 0.4 }}
