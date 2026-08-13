@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react"
 import { motion, AnimatePresence } from "framer-motion"
-import { User, Key, Loader2, CheckCircle2, Zap, Crown, Link2, Unlink, AlertCircle, Bell, Gift, Copy, CheckCheck, X, Eye, EyeOff, Users, UserPlus, Trash2, Mail } from "lucide-react"
+import { User, Key, Loader2, CheckCircle2, Zap, Crown, Link2, Unlink, AlertCircle, Bell, Gift, Copy, CheckCheck, X, Eye, EyeOff, Users, UserPlus, Trash2, Mail, FileBarChart } from "lucide-react"
 import { useSearchParams } from "next/navigation"
 import { supabase } from "@/lib/supabase"
 import UpgradeModal from "@/components/UpgradeModal"
@@ -63,6 +63,22 @@ export default function SettingsPage() {
   const [inviteMsg,       setInviteMsg]       = useState<{ type: "success" | "error"; text: string } | null>(null)
   const [removingMember,  setRemovingMember]  = useState<string | null>(null)
 
+  // API access (Agency)
+  interface ApiKeyRow { id: string; name: string; key_prefix: string; created_at: string; last_used_at: string | null; revoked_at: string | null }
+  const [apiKeys,       setApiKeys]       = useState<ApiKeyRow[]>([])
+  const [newKeyName,    setNewKeyName]    = useState("")
+  const [creatingKey,   setCreatingKey]   = useState(false)
+  const [revokingKeyId, setRevokingKeyId] = useState<string | null>(null)
+  const [newlyCreatedKey, setNewlyCreatedKey] = useState<string | null>(null)
+  const [copiedKey,     setCopiedKey]     = useState(false)
+
+  // White-label branding (Agency)
+  const [brandName,      setBrandName]      = useState("")
+  const [brandLogoUrl,   setBrandLogoUrl]   = useState("")
+  const [uploadingLogo,  setUploadingLogo]  = useState(false)
+  const [savingBranding, setSavingBranding] = useState(false)
+  const [brandingSaved,  setBrandingSaved]  = useState(false)
+
   // Bluesky manual connect
   const [blueskyOpen,       setBlueskyOpen]       = useState(false)
   const [blueskyHandle,     setBlueskyHandle]     = useState("")
@@ -73,6 +89,7 @@ export default function SettingsPage() {
 
   const FREE_LIMIT = 30
   const isPro = planName !== "free"
+  const isAgency = planName === "agency"
 
   const loadAccounts = useCallback(async () => {
     const { data: { user } } = await supabase.auth.getUser()
@@ -235,6 +252,102 @@ export default function SettingsPage() {
     }
     setCredits(genRes.count ?? 0)
     setLoading(false)
+  }
+
+  useEffect(() => {
+    if (!isAgency) return
+    loadApiKeys()
+    loadBranding()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isAgency])
+
+  const loadApiKeys = async () => {
+    const { data: { session } } = await supabase.auth.getSession()
+    if (!session) return
+    const res = await fetch("/api/keys", { headers: { Authorization: `Bearer ${session.access_token}` } })
+    if (res.ok) setApiKeys((await res.json()).keys ?? [])
+  }
+
+  const handleCreateKey = async () => {
+    if (!newKeyName.trim()) return
+    setCreatingKey(true)
+    const { data: { session } } = await supabase.auth.getSession()
+    try {
+      const res = await fetch("/api/keys", {
+        method:  "POST",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${session?.access_token ?? ""}` },
+        body:    JSON.stringify({ name: newKeyName.trim() }),
+      })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error)
+      setNewlyCreatedKey(data.apiKey)
+      setNewKeyName("")
+      await loadApiKeys()
+    } catch {} finally {
+      setCreatingKey(false)
+    }
+  }
+
+  const handleRevokeKey = async (id: string) => {
+    setRevokingKeyId(id)
+    const { data: { session } } = await supabase.auth.getSession()
+    await fetch(`/api/keys/${id}`, {
+      method:  "DELETE",
+      headers: { Authorization: `Bearer ${session?.access_token ?? ""}` },
+    })
+    await loadApiKeys()
+    setRevokingKeyId(null)
+  }
+
+  const copyNewKey = async () => {
+    if (!newlyCreatedKey) return
+    await navigator.clipboard.writeText(newlyCreatedKey)
+    setCopiedKey(true)
+    setTimeout(() => setCopiedKey(false), 2000)
+  }
+
+  const loadBranding = async () => {
+    const { data: { session } } = await supabase.auth.getSession()
+    if (!session) return
+    const res = await fetch("/api/account/branding", { headers: { Authorization: `Bearer ${session.access_token}` } })
+    if (res.ok) {
+      const data = await res.json()
+      setBrandName(data.brand_name ?? "")
+      setBrandLogoUrl(data.brand_logo_url ?? "")
+    }
+  }
+
+  const handleLogoUpload = async (file: File) => {
+    setUploadingLogo(true)
+    const { data: { session } } = await supabase.auth.getSession()
+    try {
+      const formData = new FormData()
+      formData.append("file", file)
+      const res = await fetch("/api/upload/image", {
+        method:  "POST",
+        headers: { Authorization: `Bearer ${session?.access_token ?? ""}` },
+        body:    formData,
+      })
+      const data = await res.json()
+      if (res.ok) setBrandLogoUrl(data.url)
+    } catch {} finally {
+      setUploadingLogo(false)
+    }
+  }
+
+  const handleSaveBranding = async () => {
+    setSavingBranding(true)
+    const { data: { session } } = await supabase.auth.getSession()
+    try {
+      const res = await fetch("/api/account/branding", {
+        method:  "POST",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${session?.access_token ?? ""}` },
+        body:    JSON.stringify({ brand_name: brandName, brand_logo_url: brandLogoUrl }),
+      })
+      if (res.ok) { setBrandingSaved(true); setTimeout(() => setBrandingSaved(false), 2500) }
+    } catch {} finally {
+      setSavingBranding(false)
+    }
   }
 
   const handleSaveNotifications = async () => {
@@ -418,20 +531,194 @@ export default function SettingsPage() {
         )}
       </motion.div>
 
-      {/* API Keys */}
+      {/* AI Model Key */}
       <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }} className="glass rounded-2xl p-5 border border-white/6">
         <div className="flex items-center gap-2.5 mb-5">
           <div className="w-8 h-8 rounded-lg bg-[#818cf8]/15 flex items-center justify-center">
             <Key className="w-4 h-4 text-[#818cf8]" />
           </div>
           <div>
-            <h2 className="text-sm font-semibold text-white">API Keys</h2>
+            <h2 className="text-sm font-semibold text-white">AI Model Key</h2>
             <p className="text-[11px] text-slate-500">Keys are stored securely in your environment</p>
           </div>
         </div>
         <p className="text-xs text-slate-500 bg-white/3 rounded-xl px-4 py-3 border border-white/6">
           OpenAI API key is configured in <code className="text-slate-400">.env.local</code> as <code className="text-slate-400">OPENAI_API_KEY</code>
         </p>
+      </motion.div>
+
+      {/* API Access (Agency) */}
+      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.12 }} className="glass rounded-2xl p-5 border border-white/6">
+        <div className="flex items-center gap-2.5 mb-5">
+          <div className="w-8 h-8 rounded-lg bg-[#34d399]/15 flex items-center justify-center">
+            <Key className="w-4 h-4 text-[#34d399]" />
+          </div>
+          <div>
+            <h2 className="text-sm font-semibold text-white">API Access</h2>
+            <p className="text-[11px] text-slate-500">Create posts programmatically via the PostPilot API</p>
+          </div>
+          {!isAgency && (
+            <span className="ml-auto text-[10px] font-bold px-2 py-1 rounded-full bg-[#818cf8]/15 text-[#818cf8] border border-[#818cf8]/25">
+              AGENCY
+            </span>
+          )}
+        </div>
+
+        {!isAgency ? (
+          <div className="text-xs text-slate-500 bg-white/3 rounded-xl px-4 py-3 border border-white/6 flex items-center justify-between gap-3">
+            <span>API access is available on the Agency plan.</span>
+            <button
+              onClick={() => { analytics.upgradeClicked("settings_api"); setUpgradeOpen(true) }}
+              className="text-xs font-semibold bg-[#F7BE4D] text-[#050816] px-3 py-1.5 rounded-lg hover:bg-[#ffd166] transition-colors flex-shrink-0"
+            >
+              Upgrade →
+            </button>
+          </div>
+        ) : (
+          <div className="space-y-4">
+            {newlyCreatedKey && (
+              <div className="rounded-xl border border-emerald-500/25 bg-emerald-500/5 p-4 space-y-2">
+                <p className="text-xs font-semibold text-emerald-400">
+                  Copy this key now — you won&apos;t be able to see it again.
+                </p>
+                <div className="flex items-center gap-2">
+                  <code className="flex-1 text-xs text-slate-200 bg-black/30 rounded-lg px-3 py-2 overflow-x-auto whitespace-nowrap">
+                    {newlyCreatedKey}
+                  </code>
+                  <button onClick={copyNewKey}
+                    className="flex-shrink-0 flex items-center gap-1 text-xs font-medium px-3 py-2 rounded-lg bg-white/8 text-slate-300 hover:bg-white/12 transition-all">
+                    {copiedKey ? <CheckCheck className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
+                    {copiedKey ? "Copied" : "Copy"}
+                  </button>
+                </div>
+                <button onClick={() => setNewlyCreatedKey(null)} className="text-[11px] text-slate-500 hover:text-slate-300 transition-colors">
+                  Done
+                </button>
+              </div>
+            )}
+
+            <div className="flex gap-2">
+              <input
+                value={newKeyName}
+                onChange={e => setNewKeyName(e.target.value)}
+                onKeyDown={e => e.key === "Enter" && handleCreateKey()}
+                placeholder="Key name, e.g. Zapier integration"
+                className="flex-1 bg-white/5 border border-white/8 rounded-xl px-4 py-2.5 text-sm text-slate-200 placeholder-slate-600 focus:outline-none focus:border-[#F7BE4D]/40 transition-all"
+              />
+              <button
+                onClick={handleCreateKey}
+                disabled={creatingKey || !newKeyName.trim()}
+                className="flex-shrink-0 flex items-center gap-1.5 text-xs font-semibold bg-[#F7BE4D] text-[#050816] px-4 py-2.5 rounded-xl hover:bg-[#ffd166] transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+              >
+                {creatingKey ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : "Create Key"}
+              </button>
+            </div>
+
+            {apiKeys.length > 0 && (
+              <div className="space-y-2">
+                {apiKeys.map(k => (
+                  <div key={k.id}
+                    className="flex items-center justify-between gap-3 rounded-xl border border-white/6 bg-white/[0.02] px-4 py-2.5">
+                    <div className="min-w-0">
+                      <p className="text-xs font-medium text-slate-200 truncate">{k.name}</p>
+                      <p className="text-[10px] text-slate-500 font-mono">{k.key_prefix}…</p>
+                    </div>
+                    {k.revoked_at ? (
+                      <span className="text-[10px] text-slate-600 flex-shrink-0">Revoked</span>
+                    ) : (
+                      <button onClick={() => handleRevokeKey(k.id)} disabled={revokingKeyId === k.id}
+                        className="text-[11px] font-medium text-red-400 hover:text-red-300 transition-colors flex-shrink-0 disabled:opacity-40">
+                        {revokingKeyId === k.id ? "Revoking…" : "Revoke"}
+                      </button>
+                    )}
+                  </div>
+                ))}
+              </div>
+            )}
+
+            <details className="text-xs text-slate-500">
+              <summary className="cursor-pointer text-slate-400 hover:text-slate-300 transition-colors">API docs</summary>
+              <div className="mt-3 space-y-3 bg-black/20 rounded-xl p-4 font-mono text-[11px] overflow-x-auto">
+                <div>
+                  <p className="text-slate-500 mb-1"># List posts</p>
+                  <p className="text-slate-300">curl https://getpostpilot.vercel.app/api/v1/posts \</p>
+                  <p className="text-slate-300 pl-4">-H &quot;Authorization: Bearer ppk_live_...&quot;</p>
+                </div>
+                <div>
+                  <p className="text-slate-500 mb-1"># Create a scheduled post</p>
+                  <p className="text-slate-300">curl -X POST https://getpostpilot.vercel.app/api/v1/posts \</p>
+                  <p className="text-slate-300 pl-4">-H &quot;Authorization: Bearer ppk_live_...&quot; \</p>
+                  <p className="text-slate-300 pl-4">-H &quot;Content-Type: application/json&quot; \</p>
+                  <p className="text-slate-300 pl-4">{`-d '{"content":"Hello","platform":"linkedin","scheduled_time":"2026-01-01T09:00:00Z"}'`}</p>
+                </div>
+              </div>
+            </details>
+          </div>
+        )}
+      </motion.div>
+
+      {/* White-label Branding (Agency) */}
+      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.14 }} className="glass rounded-2xl p-5 border border-white/6">
+        <div className="flex items-center gap-2.5 mb-5">
+          <div className="w-8 h-8 rounded-lg bg-[#f472b6]/15 flex items-center justify-center">
+            <FileBarChart className="w-4 h-4 text-[#f472b6]" />
+          </div>
+          <div>
+            <h2 className="text-sm font-semibold text-white">White-label Branding</h2>
+            <p className="text-[11px] text-slate-500">Show your own brand on client reports instead of PostPilot AI</p>
+          </div>
+          {!isAgency && (
+            <span className="ml-auto text-[10px] font-bold px-2 py-1 rounded-full bg-[#818cf8]/15 text-[#818cf8] border border-[#818cf8]/25">
+              AGENCY
+            </span>
+          )}
+        </div>
+
+        {!isAgency ? (
+          <div className="text-xs text-slate-500 bg-white/3 rounded-xl px-4 py-3 border border-white/6 flex items-center justify-between gap-3">
+            <span>White-label branding is available on the Agency plan.</span>
+            <button
+              onClick={() => { analytics.upgradeClicked("settings_branding"); setUpgradeOpen(true) }}
+              className="text-xs font-semibold bg-[#F7BE4D] text-[#050816] px-3 py-1.5 rounded-lg hover:bg-[#ffd166] transition-colors flex-shrink-0"
+            >
+              Upgrade →
+            </button>
+          </div>
+        ) : (
+          <div className="space-y-3">
+            <div>
+              <label className="text-xs text-slate-400 mb-1.5 block">Brand Name</label>
+              <input
+                value={brandName}
+                onChange={e => setBrandName(e.target.value)}
+                placeholder="Your agency name"
+                className="w-full bg-white/5 border border-white/8 rounded-xl px-4 py-2.5 text-sm text-slate-200 placeholder-slate-600 focus:outline-none focus:border-[#F7BE4D]/40 transition-all"
+              />
+            </div>
+            <div>
+              <label className="text-xs text-slate-400 mb-1.5 block">Logo</label>
+              <div className="flex items-center gap-3">
+                {brandLogoUrl && (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img src={brandLogoUrl} alt="Brand logo" className="w-10 h-10 rounded-lg object-cover border border-white/8 flex-shrink-0" />
+                )}
+                <label className="text-xs font-medium px-3 py-2 rounded-lg bg-white/8 text-slate-300 hover:bg-white/12 transition-all cursor-pointer">
+                  {uploadingLogo ? "Uploading…" : brandLogoUrl ? "Change logo" : "Upload logo"}
+                  <input type="file" accept="image/*" className="hidden" disabled={uploadingLogo}
+                    onChange={e => { const f = e.target.files?.[0]; if (f) handleLogoUpload(f) }} />
+                </label>
+              </div>
+            </div>
+            <button
+              onClick={handleSaveBranding}
+              disabled={savingBranding}
+              className="flex items-center gap-1.5 text-xs font-semibold bg-[#F7BE4D] text-[#050816] px-4 py-2 rounded-xl hover:bg-[#ffd166] transition-colors disabled:opacity-40"
+            >
+              {savingBranding ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : brandingSaved ? <CheckCircle2 className="w-3.5 h-3.5" /> : null}
+              {brandingSaved ? "Saved" : "Save Branding"}
+            </button>
+          </div>
+        )}
       </motion.div>
 
       {/* Plan */}

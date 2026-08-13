@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { motion, AnimatePresence } from "framer-motion"
 import {
   FileBarChart, Sparkles, Loader2, AlertCircle, Printer,
@@ -79,6 +79,22 @@ export default function ReportsPage() {
   const [loading,    setLoading]    = useState(false)
   const [error,      setError]      = useState("")
   const [report,     setReport]     = useState<Report | null>(null)
+  const [brandName,  setBrandName]  = useState<string | null>(null)
+  const [brandLogo,  setBrandLogo]  = useState<string | null>(null)
+
+  useEffect(() => {
+    supabase.auth.getSession().then(async ({ data: { session } }) => {
+      if (!session) return
+      const res = await fetch("/api/account/branding", { headers: { Authorization: `Bearer ${session.access_token}` } })
+      if (res.ok) {
+        const data = await res.json()
+        if (data.isAgency) {
+          setBrandName(data.brand_name)
+          setBrandLogo(data.brand_logo_url)
+        }
+      }
+    })
+  }, [])
 
   const applyPreset = (days: number) => {
     const end   = new Date()
@@ -226,7 +242,9 @@ export default function ReportsPage() {
             <div className="rounded-2xl border border-[#F7BE4D]/15 bg-[#F7BE4D]/[0.03] p-5">
               <div className="flex items-center justify-between">
                 <div>
-                  <h2 className="text-lg font-extrabold text-white">PostPilot AI — Analytics Report</h2>
+                  <h2 className="text-lg font-extrabold text-white">
+                    {brandName ? `${brandName} — Analytics Report` : "PostPilot AI — Analytics Report"}
+                  </h2>
                   <p className="text-sm text-slate-500 mt-0.5">
                     {new Date(from).toLocaleDateString("en-IN", { month:"long",day:"numeric",year:"numeric" })}
                     {" → "}
@@ -234,10 +252,16 @@ export default function ReportsPage() {
                     {selected.length > 0 && ` · ${selected.map(p => PLATFORM_META[p]?.label).join(", ")}`}
                   </p>
                 </div>
-                <div className="w-10 h-10 rounded-xl bg-[#F7BE4D] flex items-center justify-center
-                  shadow-[0_0_20px_rgba(247,190,77,0.4)]">
-                  <Zap className="w-5 h-5 text-[#050816]" fill="currentColor" strokeWidth={0} />
-                </div>
+                {brandLogo ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img src={brandLogo} alt={brandName ?? "Brand logo"}
+                    className="w-10 h-10 rounded-xl object-cover flex-shrink-0" />
+                ) : (
+                  <div className="w-10 h-10 rounded-xl bg-[#F7BE4D] flex items-center justify-center
+                    shadow-[0_0_20px_rgba(247,190,77,0.4)] flex-shrink-0">
+                    <Zap className="w-5 h-5 text-[#050816]" fill="currentColor" strokeWidth={0} />
+                  </div>
+                )}
               </div>
             </div>
 
