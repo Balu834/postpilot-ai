@@ -1,8 +1,8 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { motion, AnimatePresence } from "framer-motion"
-import { Layers, Sparkles, Loader2, AlertCircle, Copy, CheckCheck, RotateCcw } from "lucide-react"
+import { Layers, Sparkles, Loader2, AlertCircle, Copy, CheckCheck, RotateCcw, Download, CheckCircle2 } from "lucide-react"
 import { supabase } from "@/lib/supabase"
 
 const TONES = ["engaging", "educational", "inspiring", "professional", "casual", "witty"]
@@ -57,7 +57,24 @@ export default function CarouselPage() {
   const [slides,   setSlides]   = useState<Slide[]>([])
   const [copiedAll, setCopiedAll] = useState(false)
 
+  const [theme,            setTheme]            = useState("gold")
+  const [linkedinConnected, setLinkedinConnected] = useState(false)
+  const [downloadingPdf,   setDownloadingPdf]   = useState(false)
+  const [pdfError,         setPdfError]         = useState("")
+  const [linkedinCommentary, setLinkedinCommentary] = useState("")
+  const [postingLinkedin,  setPostingLinkedin]  = useState(false)
+  const [linkedinPosted,   setLinkedinPosted]   = useState(false)
+  const [linkedinError,    setLinkedinError]    = useState("")
+
   const isThread = platform === "twitter"
+
+  useEffect(() => {
+    supabase.auth.getUser().then(async ({ data: { user } }) => {
+      if (!user) return
+      const { data } = await supabase.from("social_accounts").select("platform").eq("user_id", user.id).eq("platform", "linkedin").single()
+      setLinkedinConnected(!!data)
+    })
+  }, [])
 
   const handleGenerate = async () => {
     if (!topic.trim()) { setError("Enter a topic first."); return }
@@ -89,6 +106,54 @@ export default function CarouselPage() {
   const allText = isThread
     ? slides.map((s, i) => `${i + 1}/${slides.length} ${s.body}`).join("\n\n")
     : slides.map(s => `Slide ${s.slide}\n${s.headline ?? ""}\n${s.body}`).join("\n\n---\n\n")
+
+  const handleDownloadPdf = async () => {
+    setDownloadingPdf(true)
+    setPdfError("")
+    try {
+      const { data: { session } } = await supabase.auth.getSession()
+      const res = await fetch("/api/carousel/render-pdf", {
+        method:  "POST",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${session?.access_token ?? ""}` },
+        body:    JSON.stringify({ slides, theme }),
+      })
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}))
+        throw new Error(data.error ?? "Failed to render PDF")
+      }
+      const blob = await res.blob()
+      const url  = URL.createObjectURL(blob)
+      const a    = document.createElement("a")
+      a.href = url
+      a.download = `${title || "carousel"}.pdf`
+      a.click()
+      URL.revokeObjectURL(url)
+    } catch (e: unknown) {
+      setPdfError(e instanceof Error ? e.message : "Failed to download PDF")
+    } finally {
+      setDownloadingPdf(false)
+    }
+  }
+
+  const handlePostLinkedin = async () => {
+    setPostingLinkedin(true)
+    setLinkedinError("")
+    try {
+      const { data: { session } } = await supabase.auth.getSession()
+      const res = await fetch("/api/carousel/post-linkedin", {
+        method:  "POST",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${session?.access_token ?? ""}` },
+        body:    JSON.stringify({ slides, theme, title, commentary: linkedinCommentary }),
+      })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error ?? "Failed to post to LinkedIn")
+      setLinkedinPosted(true)
+    } catch (e: unknown) {
+      setLinkedinError(e instanceof Error ? e.message : "Failed to post to LinkedIn")
+    } finally {
+      setPostingLinkedin(false)
+    }
+  }
 
   const copyAll = async () => {
     await navigator.clipboard.writeText(allText)
@@ -312,6 +377,84 @@ export default function CarouselPage() {
                 </motion.div>
               ))}
             </div>
+
+            {/* Export as document */}
+            {!isThread && (
+              <div className="rounded-2xl border border-white/8 bg-white/[0.02] p-5 space-y-4 mt-2">
+                <p className="text-[11px] font-semibold text-slate-500 uppercase tracking-widest">
+                  Export as Document
+                </p>
+
+                <div>
+                  <label className="block text-[11px] font-semibold text-slate-500 uppercase tracking-widest mb-1.5">
+                    Visual Theme
+                  </label>
+                  <div className="flex gap-2">
+                    {(["gold", "dark", "light"] as const).map(t => (
+                      <button key={t} onClick={() => setTheme(t)}
+                        className={`px-3 py-1.5 rounded-xl text-xs font-semibold border capitalize transition-all ${
+                          theme === t
+                            ? "bg-[#F7BE4D]/15 border-[#F7BE4D]/30 text-[#F7BE4D]"
+                            : "border-white/8 text-slate-500 hover:text-slate-300"
+                        }`}>
+                        {t}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {pdfError && (
+                  <div className="flex items-center gap-2 text-red-400 text-xs bg-red-500/10 border border-red-500/20 rounded-xl px-3 py-2">
+                    <AlertCircle className="w-3.5 h-3.5 flex-shrink-0" />{pdfError}
+                  </div>
+                )}
+
+                <button onClick={handleDownloadPdf} disabled={downloadingPdf}
+                  className="flex items-center gap-1.5 text-xs font-semibold bg-white/8 text-slate-200 px-4 py-2.5 rounded-xl
+                    hover:bg-white/12 transition-all disabled:opacity-40">
+                  {downloadingPdf ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Download className="w-3.5 h-3.5" />}
+                  {downloadingPdf ? "Rendering…" : "Download as PDF"}
+                </button>
+
+                <div className="border-t border-white/6 pt-4 space-y-3">
+                  <p className="text-[11px] font-semibold text-slate-500 uppercase tracking-widest">
+                    Post as LinkedIn Document
+                  </p>
+                  {!linkedinConnected ? (
+                    <p className="text-xs text-slate-500 bg-white/3 rounded-xl px-4 py-3 border border-white/6">
+                      Connect LinkedIn in Settings → Connected Accounts to post carousels directly.
+                    </p>
+                  ) : linkedinPosted ? (
+                    <p className="text-xs text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 rounded-xl px-4 py-3 flex items-center gap-2">
+                      <CheckCircle2 className="w-4 h-4 flex-shrink-0" /> Published to LinkedIn.
+                    </p>
+                  ) : (
+                    <>
+                      <textarea
+                        value={linkedinCommentary}
+                        onChange={e => setLinkedinCommentary(e.target.value)}
+                        placeholder="Write a caption for this post…"
+                        rows={2}
+                        className="w-full bg-white/[0.03] border border-white/8 rounded-xl px-4 py-2.5
+                          text-sm text-white placeholder-slate-600 resize-none
+                          focus:outline-none focus:border-[#F7BE4D]/40 transition-all"
+                      />
+                      {linkedinError && (
+                        <div className="flex items-center gap-2 text-red-400 text-xs bg-red-500/10 border border-red-500/20 rounded-xl px-3 py-2">
+                          <AlertCircle className="w-3.5 h-3.5 flex-shrink-0" />{linkedinError}
+                        </div>
+                      )}
+                      <button onClick={handlePostLinkedin} disabled={postingLinkedin}
+                        className="flex items-center gap-1.5 text-xs font-semibold bg-[#0077B5] text-white px-4 py-2.5 rounded-xl
+                          hover:bg-[#0086cc] transition-all disabled:opacity-40">
+                        {postingLinkedin ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <span className="text-[10px] font-black">in</span>}
+                        {postingLinkedin ? "Publishing…" : "Post to LinkedIn"}
+                      </button>
+                    </>
+                  )}
+                </div>
+              </div>
+            )}
           </motion.div>
         )}
       </AnimatePresence>
