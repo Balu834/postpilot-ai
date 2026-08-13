@@ -27,7 +27,13 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ success: true, skipped: true })
   }
 
-  await sendWelcomeEmail(user.email).catch(console.error)
+  try {
+    await sendWelcomeEmail(user.email)
+  } catch (err) {
+    console.error(err)
+    return NextResponse.json({ error: "Failed to send welcome email" }, { status: 500 })
+  }
+
   await supabaseAdmin.from("users").update({ welcome_sent: true }).eq("id", user.id)
 
   return NextResponse.json({ success: true })

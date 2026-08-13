@@ -5,6 +5,24 @@ import net from "net"
 
 export const dynamic = "force-dynamic"
 
+// Unwraps IPv4-mapped IPv6 notation (::ffff:a.b.c.d or the pure-hex
+// equivalent ::ffff:XXXX:XXXX) to the underlying IPv4 address. Without this,
+// a domain can publish an AAAA record for ::ffff:169.254.169.254 and sail
+// straight past the IPv6 checks below while the OS routes it to the mapped
+// IPv4 address.
+function unwrapIPv4MappedIPv6(ip: string): string | null {
+  const lower = ip.toLowerCase()
+  const dotted = lower.match(/^::ffff:(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})$/)
+  if (dotted) return dotted[1]
+  const hex = lower.match(/^::ffff:([0-9a-f]{1,4}):([0-9a-f]{1,4})$/)
+  if (hex) {
+    const hi = parseInt(hex[1], 16)
+    const lo = parseInt(hex[2], 16)
+    return [(hi >> 8) & 0xff, hi & 0xff, (lo >> 8) & 0xff, lo & 0xff].join(".")
+  }
+  return null
+}
+
 // Blocks SSRF against internal services / cloud metadata endpoints by
 // resolving the hostname and checking the actual IP(s) it points to —
 // checking the hostname string alone doesn't stop DNS rebinding.
@@ -20,6 +38,8 @@ function isDisallowedIp(ip: string): boolean {
     return false
   }
   if (net.isIPv6(ip)) {
+    const mapped = unwrapIPv4MappedIPv6(ip)
+    if (mapped) return isDisallowedIp(mapped)
     const lower = ip.toLowerCase()
     if (lower === "::1") return true                          // loopback
     if (lower.startsWith("fc") || lower.startsWith("fd")) return true // unique local
@@ -30,9 +50,11 @@ function isDisallowedIp(ip: string): boolean {
 }
 
 async function assertPublicHost(hostname: string) {
-  const { address } = await dns.lookup(hostname)
-  if (isDisallowedIp(address)) {
-    throw new Error("This URL points to a private or internal address, which isn't allowed")
+  const records = await dns.lookup(hostname, { all: true })
+  for (const { address } of records) {
+    if (isDisallowedIp(address)) {
+      throw new Error("This URL points to a private or internal address, which isn't allowed")
+    }
   }
 }
 
