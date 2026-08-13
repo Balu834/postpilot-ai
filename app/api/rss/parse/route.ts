@@ -36,6 +36,35 @@ async function assertPublicHost(hostname: string) {
   }
 }
 
+// Fetches with redirects followed manually so each hop's target is
+// re-validated — a server that passes the initial check could otherwise
+// 30x-redirect the request to an internal address and bypass it entirely.
+async function fetchFeedSafely(startUrl: string, maxRedirects = 5): Promise<Response> {
+  let currentUrl = startUrl
+  for (let i = 0; i <= maxRedirects; i++) {
+    const url = new URL(currentUrl)
+    if (!["http:", "https:"].includes(url.protocol)) {
+      throw new Error("Only http/https URLs are allowed")
+    }
+    await assertPublicHost(url.hostname)
+
+    const res = await fetch(currentUrl, {
+      headers: { "User-Agent": "PostPilot-RSS-Reader/1.0", Accept: "application/rss+xml, application/atom+xml, application/xml, text/xml" },
+      signal:  AbortSignal.timeout(8000),
+      redirect: "manual",
+    })
+
+    if (res.status >= 300 && res.status < 400) {
+      const location = res.headers.get("location")
+      if (!location) throw new Error("Redirect response had no location header")
+      currentUrl = new URL(location, currentUrl).toString()
+      continue
+    }
+    return res
+  }
+  throw new Error("Too many redirects")
+}
+
 function extractTag(xml: string, tag: string): string {
   const re = new RegExp(
     `<${tag}[^>]*>(?:<!\\[CDATA\\[)?([\\s\\S]*?)(?:\\]\\]>)?<\\/${tag}>`,
@@ -124,17 +153,7 @@ export async function POST(req: NextRequest) {
   }
 
   try {
-    await assertPublicHost(url.hostname)
-  } catch (err: unknown) {
-    const msg = err instanceof Error ? err.message : "Invalid URL"
-    return NextResponse.json({ error: msg }, { status: 400 })
-  }
-
-  try {
-    const res = await fetch(feedUrl, {
-      headers: { "User-Agent": "PostPilot-RSS-Reader/1.0", Accept: "application/rss+xml, application/atom+xml, application/xml, text/xml" },
-      signal:  AbortSignal.timeout(8000),
-    })
+    const res = await fetchFeedSafely(feedUrl)
     if (!res.ok) throw new Error(`Feed returned ${res.status}`)
     const xml = await res.text()
     const articles = parseXML(xml).slice(0, 20)
