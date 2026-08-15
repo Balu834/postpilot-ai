@@ -190,14 +190,22 @@ export async function GET(req: NextRequest) {
   }
 
   const now = new Date().toISOString()
+  // A post stuck in "processing" this long means the run that claimed it
+  // never finished (timeout/crash) — safe to reclaim and retry.
+  const staleBefore = new Date(Date.now() - 15 * 60 * 1000).toISOString()
+
+  // Atomically claim due posts (pending -> processing) so two overlapping
+  // cron runs can't both select and publish the same post twice. Also
+  // reclaims anything left stuck in "processing" from a prior run that
+  // never reached its per-post status update.
   const { data: duePosts, error } = await supabaseAdmin
     .from("scheduled_posts")
+    .update({ status: "processing" })
+    .or(`and(status.eq.pending,scheduled_time.lte.${now}),and(status.eq.processing,scheduled_time.lte.${staleBefore})`)
     .select("*")
-    .eq("status", "pending")
-    .lte("scheduled_time", now)
 
   if (error) {
-    console.error("Cron: failed to fetch due posts", error)
+    console.error("Cron: failed to claim due posts", error)
     return NextResponse.json({ error: error.message }, { status: 500 })
   }
 

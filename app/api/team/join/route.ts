@@ -29,6 +29,9 @@ export async function POST(req: NextRequest) {
 
     if (error || !member) return NextResponse.json({ error: "Invalid or expired invite" }, { status: 404 })
     if (member.status === "active") return NextResponse.json({ error: "Invite already accepted" }, { status: 400 })
+    if (member.email.toLowerCase() !== user.email?.toLowerCase()) {
+      return NextResponse.json({ error: "This invite was sent to a different email address. Sign in with that account to accept it." }, { status: 403 })
+    }
 
     // Check invite is not older than 7 days
     const invitedAt = new Date(member.invited_at)
