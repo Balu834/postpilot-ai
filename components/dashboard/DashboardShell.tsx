@@ -4,6 +4,7 @@ import { useEffect, useState } from "react"
 import { SidebarProvider, useSidebar } from "@/lib/sidebar-context"
 import Sidebar from "./Sidebar"
 import Header from "./Header"
+import ReconnectBanner from "./ReconnectBanner"
 
 function ContentArea({ children }: { children: React.ReactNode }) {
   const { collapsed } = useSidebar()
@@ -25,6 +26,7 @@ function ContentArea({ children }: { children: React.ReactNode }) {
       }}
     >
       <Header />
+      <ReconnectBanner />
       <main className="flex-1 p-4 md:p-6">{children}</main>
     </div>
   )
