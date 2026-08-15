@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server"
 import { createClient } from "@supabase/supabase-js"
 import { sendPublishedEmail } from "@/lib/resend"
+import { getValidTwitterToken } from "@/lib/socialReplies"
 
 const supabaseAdmin = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -190,7 +191,8 @@ export async function POST(req: NextRequest) {
 
     try {
       if (post.platform === "twitter") {
-        await postToTwitter(post.content, account.access_token)
+        const accessToken = await getValidTwitterToken(user.id)
+        await postToTwitter(post.content, accessToken)
       } else if (post.platform === "bluesky") {
         if (!account.platform_user_id) throw new Error("Bluesky handle missing — please reconnect in Settings.")
         await postToBluesky(post.content, account.access_token, account.platform_user_id)

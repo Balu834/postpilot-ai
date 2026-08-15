@@ -10,10 +10,10 @@ const STYLE_SUFFIXES: Record<string, string> = {
   bold:           "bold graphic design, strong contrast, eye-catching, poster style",
 }
 
-const SIZE_MAP: Record<string, "1024x1024" | "1024x1792" | "1792x1024"> = {
+const SIZE_MAP: Record<string, "1024x1024" | "1024x1536" | "1536x1024"> = {
   square:    "1024x1024",
-  portrait:  "1024x1792",
-  landscape: "1792x1024",
+  portrait:  "1024x1536",
+  landscape: "1536x1024",
 }
 
 export async function POST(req: NextRequest) {
@@ -35,15 +35,31 @@ export async function POST(req: NextRequest) {
   const imageSize   = SIZE_MAP[size] ?? "1024x1024"
 
   const res = await openai.images.generate({
-    model:   "dall-e-3",
+    model:   "gpt-image-1",
     prompt:  fullPrompt,
     n:       1,
     size:    imageSize,
-    quality: "standard",
+    quality: "auto",
   })
 
   const first = res.data?.[0]
-  if (!first?.url) return NextResponse.json({ error: "No image returned" }, { status: 500 })
+  if (!first?.b64_json) return NextResponse.json({ error: "No image returned" }, { status: 500 })
 
-  return NextResponse.json({ url: first.url, revisedPrompt: first.revised_prompt ?? fullPrompt })
+  const supabaseAdmin = createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!
+  )
+  const imageBuffer = Buffer.from(first.b64_json, "base64")
+  const path = `${user.id}/${Date.now()}-ai.png`
+  const { error: uploadError } = await supabaseAdmin.storage
+    .from("post-images")
+    .upload(path, imageBuffer, { contentType: "image/png", upsert: false })
+
+  if (uploadError) return NextResponse.json({ error: uploadError.message }, { status: 500 })
+
+  const { data: { publicUrl } } = supabaseAdmin.storage
+    .from("post-images")
+    .getPublicUrl(path)
+
+  return NextResponse.json({ url: publicUrl, revisedPrompt: first.revised_prompt ?? fullPrompt })
 }

@@ -41,18 +41,17 @@ export async function POST(req: NextRequest) {
   ].join(" ")
 
   const imageRes = await openai.images.generate({
-    model:   "dall-e-3",
+    model:   "gpt-image-1",
     prompt,
     n:       1,
     size:    "1024x1024",
-    quality: "standard",
+    quality: "auto",
   })
 
-  const imageUrl = imageRes.data?.[0]?.url
-  if (!imageUrl) return NextResponse.json({ error: "Image generation failed" }, { status: 500 })
+  const b64 = imageRes.data?.[0]?.b64_json
+  if (!b64) return NextResponse.json({ error: "Image generation failed" }, { status: 500 })
 
-  // Fetch and upload to Supabase Storage so URL is permanent
-  const imageBuffer = await fetch(imageUrl).then(r => r.arrayBuffer())
+  const imageBuffer = Buffer.from(b64, "base64")
 
   // Deduct credit for free users after successful generation
   if (isFree) {

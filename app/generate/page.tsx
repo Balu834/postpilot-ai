@@ -1491,7 +1491,7 @@ export default function GeneratePage() {
                         ) : (
                           <div className="space-y-3">
                             <p className="text-[11px] text-slate-500">
-                              AI will generate a visual based on your Instagram caption using DALL-E 3.
+                              AI will generate a visual based on your Instagram caption.
                             </p>
                             {imgError && <p className="text-xs text-red-400">{imgError}</p>}
                             <motion.button

@@ -286,7 +286,7 @@ export default function SmartRepurposePage() {
                 <div className="flex items-center gap-2 mb-4">
                   <Image className="w-4 h-4 text-[#818cf8]" />
                   <p className="text-[11px] font-semibold text-[#818cf8]/70 uppercase tracking-widest">
-                    DALL-E Image Prompts
+                    AI Image Prompts
                   </p>
                 </div>
                 <div className="space-y-3">

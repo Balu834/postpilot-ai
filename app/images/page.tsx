@@ -103,7 +103,7 @@ export default function ImagesPage() {
           <h1 className="text-xl font-bold text-white">AI Image Generator</h1>
           <span className="text-[10px] font-bold px-2 py-0.5 rounded-full
             bg-[#818cf8]/15 border border-[#818cf8]/25 text-[#818cf8]">
-            DALL-E 3
+            GPT Image
           </span>
         </div>
         <p className="text-slate-500 text-sm ml-10.5">
@@ -244,7 +244,7 @@ export default function ImagesPage() {
 
           {loading && (
             <p className="text-[11px] text-slate-600 text-center">
-              DALL-E 3 takes 10–20 seconds. Hang tight…
+              Image generation takes 10–20 seconds. Hang tight…
             </p>
           )}
         </div>
@@ -364,7 +364,7 @@ export default function ImagesPage() {
                 {revisedPrompt && revisedPrompt !== prompt && (
                   <div className="rounded-xl bg-white/[0.02] border border-white/8 px-3.5 py-3">
                     <p className="text-[10px] font-semibold text-slate-600 uppercase tracking-wider mb-1">
-                      DALL-E enhanced your prompt
+                      Full prompt sent to the model
                     </p>
                     <p className="text-[11px] text-slate-500 leading-relaxed line-clamp-3">
                       {revisedPrompt}
