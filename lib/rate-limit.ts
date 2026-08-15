@@ -12,13 +12,17 @@ export async function checkRateLimit(userId: string): Promise<{ limited: boolean
   const windowStart = new Date(Date.now() - WINDOW_SECONDS * 1000).toISOString()
 
   const { count } = await supabaseAdmin
-    .from("generations")
+    .from("rate_limit_events")
     .select("id", { count: "exact", head: true })
     .eq("user_id", userId)
     .gte("created_at", windowStart)
 
   const used = count ?? 0
-  const remaining = Math.max(0, MAX_REQUESTS - used)
+  const limited = used >= MAX_REQUESTS
 
-  return { limited: used >= MAX_REQUESTS, remaining }
+  if (!limited) {
+    await supabaseAdmin.from("rate_limit_events").insert({ user_id: userId })
+  }
+
+  return { limited, remaining: Math.max(0, MAX_REQUESTS - used - (limited ? 0 : 1)) }
 }
