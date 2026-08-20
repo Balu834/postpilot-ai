@@ -112,14 +112,14 @@ export default function UpgradeModal({ open, onClose, onSuccess }: Props) {
 
       const planKey = `${selected}_${billing}` // e.g. pro_monthly
 
-      // 1. Create order server-side
-      const orderRes = await fetch("/api/razorpay/create-order", {
+      // 1. Create subscription server-side
+      const subRes = await fetch("/api/razorpay/create-subscription", {
         method:  "POST",
         headers: { "Content-Type": "application/json", Authorization: `Bearer ${session.access_token}` },
         body:    JSON.stringify({ plan: planKey }),
       })
-      const orderData = await orderRes.json()
-      if (!orderRes.ok) throw new Error(orderData.error)
+      const subData = await subRes.json()
+      if (!subRes.ok) throw new Error(subData.error)
 
       // 2. Load Razorpay script
       const loaded = await loadRazorpay()
@@ -131,11 +131,9 @@ export default function UpgradeModal({ open, onClose, onSuccess }: Props) {
 
       const options = {
         key:         process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID,
-        amount:      orderData.amount,
-        currency:    "INR",
+        subscription_id: subData.subscriptionId,
         name:        "PostPilot AI",
         description: `${plan.name} Plan — ${billing === "monthly" ? "Monthly" : "Yearly"}`,
-        order_id:    orderData.orderId,
         prefill: {
           email: user.email,
         },
@@ -143,14 +141,12 @@ export default function UpgradeModal({ open, onClose, onSuccess }: Props) {
         handler: async (response: any) => {
           try {
             // 4. Verify payment server-side
-            const verifyRes = await fetch("/api/razorpay/verify", {
+            const verifyRes = await fetch("/api/razorpay/verify-subscription", {
               method:  "POST",
               headers: { "Content-Type": "application/json", Authorization: `Bearer ${session.access_token}` },
               body:    JSON.stringify({
-                razorpay_order_id:   response.razorpay_order_id,
                 razorpay_payment_id: response.razorpay_payment_id,
                 razorpay_signature:  response.razorpay_signature,
-                plan:                planKey,
               }),
             })
             const verifyData = await verifyRes.json()

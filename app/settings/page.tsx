@@ -55,6 +55,9 @@ export default function SettingsPage() {
   const [referralCredits, setReferralCredits] = useState(0)
   const [copiedRef,         setCopiedRef]         = useState(false)
   const [paymentId,         setPaymentId]         = useState<string | null>(null)
+  const [subscriptionStatus, setSubscriptionStatus] = useState<string | null>(null)
+  const [hasSubscription,   setHasSubscription]   = useState(false)
+  const [cancellingSub,     setCancellingSub]     = useState(false)
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
   const [deleteInput,       setDeleteInput]       = useState("")
   const [deleting,          setDeleting]          = useState(false)
@@ -236,7 +239,7 @@ export default function SettingsPage() {
     if (!user) return
 
     const [profileRes, genRes, refRes] = await Promise.all([
-      supabase.from("users").select("name, email, plan_name, plan_expires_at, email_notify_published, email_notify_digest, referral_code, referral_credits, razorpay_payment_id").eq("id", user.id).single(),
+      supabase.from("users").select("name, email, plan_name, plan_expires_at, email_notify_published, email_notify_digest, referral_code, referral_credits, razorpay_payment_id, razorpay_subscription_id, subscription_status").eq("id", user.id).single(),
       supabase.from("generations").select("id", { count: "exact" }).eq("user_id", user.id),
       supabase.from("referrals").select("id", { count: "exact" }).eq("referrer_id", user.id),
     ])
@@ -252,6 +255,8 @@ export default function SettingsPage() {
       setReferralCredits(profileRes.data.referral_credits ?? 0)
       setReferralCount(refRes.count ?? 0)
       setPaymentId(profileRes.data.razorpay_payment_id ?? null)
+      setSubscriptionStatus(profileRes.data.subscription_status ?? null)
+      setHasSubscription(!!profileRes.data.razorpay_subscription_id)
     } else {
       setEmail(user.email || "")
     }
@@ -265,6 +270,23 @@ export default function SettingsPage() {
     loadBranding()
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isAgency])
+
+  const handleCancelSubscription = async () => {
+    if (!confirm("Cancel your subscription? You'll keep access until the end of your current billing period.")) return
+    setCancellingSub(true)
+    const { data: { session } } = await supabase.auth.getSession()
+    try {
+      const res = await fetch("/api/razorpay/cancel-subscription", {
+        method:  "POST",
+        headers: { Authorization: `Bearer ${session?.access_token ?? ""}` },
+      })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error)
+      setSubscriptionStatus("cancelled")
+    } catch {} finally {
+      setCancellingSub(false)
+    }
+  }
 
   const loadApiKeys = async () => {
     const { data: { session } } = await supabase.auth.getSession()
@@ -809,6 +831,28 @@ export default function SettingsPage() {
                       onClick={() => { analytics.upgradeClicked("settings_renew"); setUpgradeOpen(true) }}
                       className="font-semibold text-[#F7BE4D] hover:text-[#ffd166] transition-colors">
                       Renew now →
+                    </button>
+                  )}
+                </div>
+              )}
+
+              {/* Subscription status */}
+              {hasSubscription && subscriptionStatus && (
+                <div className="flex items-center justify-between px-4 py-3 rounded-xl border border-white/[0.06] bg-white/[0.02] text-[11px]">
+                  <span className="text-slate-500">
+                    {subscriptionStatus === "active"       ? "Auto-renews" :
+                     subscriptionStatus === "pending"      ? "Payment retrying" :
+                     subscriptionStatus === "halted"        ? "Payment failed — please update your payment method" :
+                     subscriptionStatus === "cancelled"     ? `Cancelled — access until ${expiry ? expiry.toLocaleDateString("en-IN", { day: "numeric", month: "short" }) : "period end"}` :
+                     subscriptionStatus === "paused"        ? "Paused" :
+                     subscriptionStatus}
+                  </span>
+                  {(subscriptionStatus === "active" || subscriptionStatus === "pending" || subscriptionStatus === "halted") && (
+                    <button
+                      onClick={handleCancelSubscription}
+                      disabled={cancellingSub}
+                      className="font-semibold text-red-400 hover:text-red-300 transition-colors disabled:opacity-50">
+                      {cancellingSub ? "Cancelling…" : "Cancel subscription"}
                     </button>
                   )}
                 </div>
