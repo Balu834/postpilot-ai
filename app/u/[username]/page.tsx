@@ -1,5 +1,8 @@
+import { cache } from "react"
 import { notFound } from "next/navigation"
+import Link from "next/link"
 import { createClient } from "@supabase/supabase-js"
+import type { Metadata } from "next"
 
 const supabaseAdmin = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -49,12 +52,33 @@ const THEME_STYLES: Record<Theme, {
   },
 }
 
-export default async function UserBioPage({ params }: { params: { username: string } }) {
-  const { data: bio } = await supabaseAdmin
+// Deduped via React's cache() so generateMetadata and the page component
+// share one DB hit per request instead of two.
+const getBio = cache(async (username: string) => {
+  const { data } = await supabaseAdmin
     .from("link_in_bio")
     .select("*")
-    .eq("username", params.username.toLowerCase())
+    .eq("username", username.toLowerCase())
     .single()
+  return data
+})
+
+type Props = { params: Promise<{ username: string }> }
+
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
+  const { username } = await params
+  const bio = await getBio(username)
+  if (!bio) return {}
+
+  return {
+    title:       `${bio.display_name ?? bio.username} | PostPilot`,
+    description: bio.bio ?? `${bio.display_name ?? bio.username} on PostPilot`,
+  }
+}
+
+export default async function UserBioPage({ params }: Props) {
+  const { username } = await params
+  const bio = await getBio(username)
 
   if (!bio) notFound()
 
@@ -69,23 +93,14 @@ export default async function UserBioPage({ params }: { params: { username: stri
   const socialAccounts: { platform: string; username: string | null }[] = accounts ?? []
 
   return (
-    <html lang="en">
-      <head>
-        <meta charSet="utf-8" />
-        <meta name="viewport" content="width=device-width, initial-scale=1" />
-        <title>{bio.display_name ?? bio.username} | PostPilot</title>
-        <meta name="description" content={bio.bio ?? `${bio.display_name ?? bio.username} on PostPilot`} />
-        <style>{`
-          * { box-sizing: border-box; margin: 0; padding: 0; }
-          body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; min-height: 100vh; }
-          a { text-decoration: none; }
-          .link-btn:hover { opacity: 0.85; transform: translateY(-1px); }
-          .link-btn { transition: opacity 0.15s, transform 0.15s; }
-          .social-btn:hover { opacity: 0.8; }
-          .social-btn { transition: opacity 0.15s; }
-        `}</style>
-      </head>
-      <body style={{ background: t.bg, color: t.text, minHeight: "100vh" }}>
+    <>
+      <style>{`
+        .link-btn:hover { opacity: 0.85; transform: translateY(-1px); }
+        .link-btn { transition: opacity 0.15s, transform 0.15s; }
+        .social-btn:hover { opacity: 0.8; }
+        .social-btn { transition: opacity 0.15s; }
+      `}</style>
+      <div style={{ background: t.bg, color: t.text, minHeight: "100vh", fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif" }}>
         <div style={{ maxWidth: 480, margin: "0 auto", padding: "48px 20px 80px" }}>
 
           {/* Avatar + Profile */}
@@ -123,6 +138,7 @@ export default async function UserBioPage({ params }: { params: { username: stri
                       padding: "8px 14px", borderRadius: 24,
                       background: `${m.color}18`, border: `1px solid ${m.color}35`,
                       color: m.color, fontSize: 13, fontWeight: 600,
+                      textDecoration: "none",
                     }}>
                     <span style={{ fontSize: 15 }}>{m.icon}</span>
                     <span>{handle}</span>
@@ -144,6 +160,7 @@ export default async function UserBioPage({ params }: { params: { username: stri
                       padding: "16px 20px", borderRadius: 16,
                       background: t.button, border: `1px solid ${t.border}`,
                       color: t.buttonText, fontSize: 14, fontWeight: 600,
+                      textDecoration: "none",
                     }}>
                     <span style={{ fontSize: 20, flexShrink: 0 }}>{link.emoji}</span>
                     <span style={{ flex: 1 }}>{link.label || link.url}</span>
@@ -160,12 +177,12 @@ export default async function UserBioPage({ params }: { params: { username: stri
 
           {/* Branding */}
           <div style={{ textAlign: "center", marginTop: 48 }}>
-            <a href="/" style={{ fontSize: 11, color: t.sub, opacity: 0.4 }}>
+            <Link href="/" style={{ fontSize: 11, color: t.sub, opacity: 0.4, textDecoration: "none" }}>
               Made with PostPilot AI ⚡
-            </a>
+            </Link>
           </div>
         </div>
-      </body>
-    </html>
+      </div>
+    </>
   )
 }

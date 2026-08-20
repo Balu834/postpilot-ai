@@ -1,22 +1,29 @@
 import { NextRequest, NextResponse } from "next/server"
+import { createClient } from "@supabase/supabase-js"
 import { openai } from "@/lib/openai"
 
-// In-memory IP rate limit: 1 demo per IP per 60s
-const ipTimestamps = new Map<string, number>()
+const supabaseAdmin = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.SUPABASE_SERVICE_ROLE_KEY!
+)
 
 export async function POST(req: NextRequest) {
+  // 1 demo per IP per 60s. Backed by a table, not an in-process Map —
+  // each request can land on a different serverless instance, so
+  // in-memory state never actually enforced anything on Vercel.
   const ip = req.headers.get("x-forwarded-for")?.split(",")[0].trim() ?? "unknown"
-  const now = Date.now()
-  const last = ipTimestamps.get(ip) ?? 0
-  if (now - last < 60_000) {
+  const windowStart = new Date(Date.now() - 60_000).toISOString()
+
+  const { count } = await supabaseAdmin
+    .from("demo_rate_limit_events")
+    .select("id", { count: "exact", head: true })
+    .eq("ip", ip)
+    .gte("created_at", windowStart)
+
+  if ((count ?? 0) > 0) {
     return NextResponse.json({ error: "One demo per minute — sign up for unlimited!" }, { status: 429 })
   }
-  ipTimestamps.set(ip, now)
-  // Prevent unbounded growth
-  if (ipTimestamps.size > 5000) {
-    const oldest = [...ipTimestamps.entries()].sort((a, b) => a[1] - b[1]).slice(0, 500)
-    oldest.forEach(([k]) => ipTimestamps.delete(k))
-  }
+  await supabaseAdmin.from("demo_rate_limit_events").insert({ ip })
 
   const { topic } = await req.json()
   if (!topic?.trim()) return NextResponse.json({ error: "Topic required" }, { status: 400 })
