@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server"
+import { signUid } from "@/lib/oauth-uid"
 import crypto from "crypto"
 import { createClient } from "@supabase/supabase-js"
 
@@ -27,7 +28,7 @@ export async function POST(req: NextRequest) {
     const url = `https://www.facebook.com/v19.0/dialog/oauth?${params}`
     const res = NextResponse.json({ url })
     res.cookies.set("fb_state", state,   { httpOnly: true, secure: true, maxAge: 600, sameSite: "lax" })
-    res.cookies.set("fb_uid",   user.id, { httpOnly: true, secure: true, maxAge: 600, sameSite: "lax" })
+    res.cookies.set("fb_uid",   signUid(user.id), { httpOnly: true, secure: true, maxAge: 600, sameSite: "lax" })
     return res
   } catch {
     return NextResponse.json({ error: "Failed to initiate Facebook auth" }, { status: 500 })

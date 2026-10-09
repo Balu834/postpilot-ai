@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server"
+import { signUid } from "@/lib/oauth-uid"
 import crypto from "crypto"
 import { createClient } from "@supabase/supabase-js"
 
@@ -29,7 +30,7 @@ export async function POST(req: NextRequest) {
     const url = `https://accounts.google.com/o/oauth2/v2/auth?${params}`
     const res = NextResponse.json({ url })
     res.cookies.set("yt_state", state,   { httpOnly: true, secure: true, maxAge: 600, sameSite: "lax" })
-    res.cookies.set("yt_uid",   user.id, { httpOnly: true, secure: true, maxAge: 600, sameSite: "lax" })
+    res.cookies.set("yt_uid",   signUid(user.id), { httpOnly: true, secure: true, maxAge: 600, sameSite: "lax" })
     return res
   } catch {
     return NextResponse.json({ error: "Failed to initiate YouTube auth" }, { status: 500 })

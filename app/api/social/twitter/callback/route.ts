@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server"
+import { verifyUid } from "@/lib/oauth-uid"
 import { createClient } from "@supabase/supabase-js"
 
 const supabaseAdmin = createClient(
@@ -17,7 +18,7 @@ export async function GET(req: NextRequest) {
   }
 
   const codeVerifier = req.cookies.get("tw_cv")?.value
-  const userId       = req.cookies.get("tw_uid")?.value
+  const userId       = verifyUid(req.cookies.get("tw_uid")?.value)
   const storedState  = req.cookies.get("tw_state")?.value
 
   if (!codeVerifier || !userId || !storedState || storedState !== state) {

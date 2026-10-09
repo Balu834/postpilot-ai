@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server"
+import { signUid } from "@/lib/oauth-uid"
 import crypto from "crypto"
 import { createClient } from "@supabase/supabase-js"
 
@@ -31,7 +32,7 @@ export async function POST(req: NextRequest) {
     const url = `https://twitter.com/i/oauth2/authorize?${params}`
     const res = NextResponse.json({ url })
     res.cookies.set("tw_cv",    codeVerifier, { httpOnly: true, secure: true, maxAge: 600, sameSite: "lax" })
-    res.cookies.set("tw_uid",   user.id,      { httpOnly: true, secure: true, maxAge: 600, sameSite: "lax" })
+    res.cookies.set("tw_uid",   signUid(user.id),      { httpOnly: true, secure: true, maxAge: 600, sameSite: "lax" })
     res.cookies.set("tw_state", state,        { httpOnly: true, secure: true, maxAge: 600, sameSite: "lax" })
     return res
   } catch {

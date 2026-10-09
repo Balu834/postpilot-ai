@@ -485,10 +485,12 @@ function DemoPostCard({ post, index }: { post: DemoPost; index: number }) {
 
 function AISuggestions({ prefs }: { prefs: UserPrefs | null }) {
   const router = useRouter()
+  // Hooks must run on every render: prefs arrive async, so an early return
+  // above this would change the hook count and crash the dashboard.
+  const [hovered, setHovered] = useState<number | null>(null)
   if (!prefs?.niche || !NICHE_DATA[prefs.niche]) return null
 
   const data    = NICHE_DATA[prefs.niche]
-  const [hovered, setHovered] = useState<number | null>(null)
 
   return (
     <motion.div

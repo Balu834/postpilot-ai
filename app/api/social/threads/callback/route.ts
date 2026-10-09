@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server"
+import { verifyUid } from "@/lib/oauth-uid"
 import { createClient } from "@supabase/supabase-js"
 
 const supabaseAdmin = createClient(
@@ -17,7 +18,7 @@ export async function GET(req: NextRequest) {
   }
 
   const storedState = req.cookies.get("threads_state")?.value
-  const userId      = req.cookies.get("threads_uid")?.value
+  const userId      = verifyUid(req.cookies.get("threads_uid")?.value)
 
   if (!storedState || storedState !== state || !userId) {
     return NextResponse.redirect(`${appUrl}/settings?social_error=threads_state`)
