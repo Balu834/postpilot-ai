@@ -7,6 +7,11 @@ import { supabase } from "@/lib/supabase"
 
 /* ─── Types ──────────────────────────────────────────────────── */
 type Billing = "monthly" | "yearly"
+
+// The yearly Razorpay plans were created with a monthly billing period, so they
+// would charge the yearly price every month. Keep yearly off until correct
+// yearly plans exist and RAZORPAY_PLAN_ID_*_YEARLY point at them.
+const YEARLY_BILLING_ENABLED = false
 type PlanKey = "pro" | "agency"
 
 interface Plan {
@@ -253,6 +258,7 @@ export default function UpgradeModal({ open, onClose, onSuccess }: Props) {
 
                 <div className="p-6">
                   {/* Billing toggle */}
+                  {YEARLY_BILLING_ENABLED && (
                   <div className="flex items-center justify-center gap-3 mb-6">
                     <div className="flex items-center gap-1 bg-white/[0.04] rounded-xl p-1 border border-white/[0.06]">
                       {(["monthly", "yearly"] as Billing[]).map(b => (
@@ -279,6 +285,7 @@ export default function UpgradeModal({ open, onClose, onSuccess }: Props) {
                       ))}
                     </div>
                   </div>
+                  )}
 
                   {/* Plan cards */}
                   <div className="grid grid-cols-2 gap-4 mb-6">

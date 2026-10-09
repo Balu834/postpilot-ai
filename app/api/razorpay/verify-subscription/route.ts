@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server"
 import crypto from "crypto"
 import Razorpay from "razorpay"
 import { createClient } from "@supabase/supabase-js"
+import { expiryFrom, planNameFor, safeEqualHex } from "@/lib/razorpay-plans"
 
 const razorpay = new Razorpay({
   key_id:     process.env.RAZORPAY_KEY_ID!,
@@ -44,7 +45,7 @@ export async function POST(req: NextRequest) {
       .update(body)
       .digest("hex")
 
-    if (expected !== razorpay_signature) {
+    if (!safeEqualHex(expected, razorpay_signature)) {
       return NextResponse.json({ error: "Invalid payment signature" }, { status: 400 })
     }
 
@@ -53,13 +54,22 @@ export async function POST(req: NextRequest) {
     // what the webhook will reference), rather than trusting anything
     // client-supplied or duplicating a local copy that could drift.
     const subscription = await razorpay.subscriptions.fetch(subscriptionId)
-    const planKey = (subscription.notes as Record<string, string> | undefined)?.plan
+    const notes = subscription.notes as Record<string, string> | undefined
+    const planKey = notes?.plan
     if (!planKey) return NextResponse.json({ error: "Subscription plan not found" }, { status: 400 })
+    if (notes?.user_id && notes.user_id !== caller.id) {
+      return NextResponse.json({ error: "This subscription does not belong to you" }, { status: 403 })
+    }
 
-    const isYearly = planKey.includes("yearly")
-    const planName = planKey.includes("agency") ? "agency" : "pro"
-    const expiresAt = new Date()
-    expiresAt.setMonth(expiresAt.getMonth() + (isYearly ? 12 : 1))
+    // The signature never expires, so a replayed payment_id+signature after a
+    // cancellation must not unlock anything: only grant while Razorpay itself
+    // says the subscription is live, and only up to the date it is paid for.
+    if (subscription.status !== "authenticated" && subscription.status !== "active") {
+      return NextResponse.json({ error: "Subscription is not active" }, { status: 409 })
+    }
+
+    const planName = planNameFor(planKey)
+    const expiresAt = expiryFrom(subscription.current_end as number | null | undefined, planKey)
 
     // Optimistic unlock for instant UI feedback — the webhook
     // (subscription.activated/charged) keeps this current on every

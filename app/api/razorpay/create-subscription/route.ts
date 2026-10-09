@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server"
 import Razorpay from "razorpay"
 import { createClient } from "@supabase/supabase-js"
+import { isPlanKey, planIdFor, planMatchesPrice } from "@/lib/razorpay-plans"
 
 const razorpay = new Razorpay({
   key_id:     process.env.RAZORPAY_KEY_ID!,
@@ -11,13 +12,6 @@ const supabaseAdmin = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
   process.env.SUPABASE_SERVICE_ROLE_KEY!
 )
-
-const PLAN_IDS: Record<string, string | undefined> = {
-  pro_monthly:    process.env.RAZORPAY_PLAN_ID_PRO_MONTHLY,
-  pro_yearly:     process.env.RAZORPAY_PLAN_ID_PRO_YEARLY,
-  agency_monthly: process.env.RAZORPAY_PLAN_ID_AGENCY_MONTHLY,
-  agency_yearly:  process.env.RAZORPAY_PLAN_ID_AGENCY_YEARLY,
-}
 
 // High enough to never realistically hit the ceiling — users leave via
 // cancellation, not by running out of billing cycles.
@@ -40,8 +34,18 @@ export async function POST(req: NextRequest) {
     if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
 
     const { plan } = await req.json()
-    const planId = PLAN_IDS[plan]
-    if (!planId) return NextResponse.json({ error: "Invalid plan" }, { status: 400 })
+    if (!isPlanKey(plan)) return NextResponse.json({ error: "Invalid plan" }, { status: 400 })
+    const planId = planIdFor(plan)
+    if (!planId) {
+      return NextResponse.json({ error: "This plan isn't available right now. Please contact support." }, { status: 503 })
+    }
+
+    // Never charge an amount or interval the pricing page didn't show.
+    const rpPlan = await razorpay.plans.fetch(planId).catch(() => null)
+    if (!planMatchesPrice(rpPlan as Parameters<typeof planMatchesPrice>[0], plan)) {
+      console.error(`Razorpay plan ${planId} does not match the displayed price for ${plan}`)
+      return NextResponse.json({ error: "This plan isn't available right now. Please contact support." }, { status: 503 })
+    }
 
     const subscription = await razorpay.subscriptions.create({
       plan_id:         planId,

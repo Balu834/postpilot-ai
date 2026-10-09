@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server"
 import crypto from "crypto"
 import { createClient } from "@supabase/supabase-js"
+import { expiryFrom, planNameFor } from "@/lib/razorpay-plans"
 
 const supabaseAdmin = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -18,28 +19,29 @@ function timingSafeEqualHex(a: string, b: string): boolean {
 // creation in create-subscription/route.ts), so the plan key — and
 // therefore the correct monthly/yearly billing interval — is available
 // right here without an extra API call back to Razorpay.
-async function extendAccess(subscriptionId: string, planKey: string | undefined, status: string) {
-  const isYearly = planKey?.includes("yearly") ?? false
-  const planName = planKey?.includes("agency") ? "agency" : "pro"
-
-  const expiresAt = new Date()
-  expiresAt.setMonth(expiresAt.getMonth() + (isYearly ? 12 : 1))
-
-  await supabaseAdmin
+async function extendAccess(
+  subscriptionId: string,
+  planKey: string | undefined,
+  currentEnd: number | null | undefined,
+  status: string,
+) {
+  const { error } = await supabaseAdmin
     .from("users")
     .update({
-      plan_name:           planName,
-      plan_expires_at:     expiresAt.toISOString(),
+      plan_name:           planNameFor(planKey),
+      plan_expires_at:     expiryFrom(currentEnd, planKey).toISOString(),
       subscription_status: status,
     })
     .eq("razorpay_subscription_id", subscriptionId)
+  if (error) throw error
 }
 
 async function setStatus(subscriptionId: string, status: string) {
-  await supabaseAdmin
+  const { error } = await supabaseAdmin
     .from("users")
     .update({ subscription_status: status })
     .eq("razorpay_subscription_id", subscriptionId)
+  if (error) throw error
 }
 
 export async function POST(req: NextRequest) {
@@ -75,7 +77,7 @@ export async function POST(req: NextRequest) {
     switch (event) {
       case "subscription.activated":
       case "subscription.charged":
-        await extendAccess(subscriptionId, planKey, "active")
+        await extendAccess(subscriptionId, planKey, subscriptionEntity?.current_end, "active")
         break
       case "subscription.pending":
         await setStatus(subscriptionId, "pending")
@@ -103,7 +105,10 @@ export async function POST(req: NextRequest) {
         break
     }
   } catch (err) {
+    // A 5xx makes Razorpay retry; acknowledging here would lose the update
+    // (e.g. a renewal that never extends access).
     console.error(`Razorpay webhook: failed to process ${event}`, err)
+    return NextResponse.json({ error: "Processing failed" }, { status: 500 })
   }
 
   return NextResponse.json({ received: true })

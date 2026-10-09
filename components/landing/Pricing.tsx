@@ -11,6 +11,9 @@ import {
 // ── Types ─────────────────────────────────────────────────────────
 type Billing = "monthly" | "yearly"
 
+// Off until correctly configured yearly Razorpay plans exist (see UpgradeModal).
+const YEARLY_BILLING_ENABLED = false
+
 interface Feature {
   text: string
   power?: boolean   // highlighted as a key selling feature
@@ -491,7 +494,7 @@ export default function Pricing() {
           transition={{ delay: 0.15 }}
           className="mb-12"
         >
-          <BillingToggle billing={billing} onChange={setBilling} />
+          {YEARLY_BILLING_ENABLED && <BillingToggle billing={billing} onChange={setBilling} />}
         </motion.div>
 
         {/* ── Pricing cards ──────────────────────────────────────── */}
