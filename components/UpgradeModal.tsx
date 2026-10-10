@@ -196,7 +196,7 @@ export default function UpgradeModal({ open, onClose, onSuccess }: Props) {
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           className="fixed inset-0 z-50 flex items-center justify-center p-4"
-          style={{ background: "rgba(5,8,22,0.85)", backdropFilter: "blur(12px)" }}
+          style={{ background: "rgba(15,23,42,0.45)", backdropFilter: "blur(8px)" }}
           onClick={e => e.target === e.currentTarget && onClose()}
         >
           <motion.div
@@ -206,9 +206,9 @@ export default function UpgradeModal({ open, onClose, onSuccess }: Props) {
             transition={{ type: "spring", stiffness: 320, damping: 28 }}
             className="w-full max-w-2xl rounded-2xl overflow-hidden"
             style={{
-              background: "rgba(10,14,30,0.95)",
-              border:     "1px solid rgba(255,255,255,0.08)",
-              boxShadow:  "0 32px 80px rgba(0,0,0,0.6)",
+              background: "#ffffff",
+              border:     "1px solid #e2e8f0",
+              boxShadow:  "0 24px 64px rgba(15,23,42,0.18)",
             }}
           >
             {/* Success state */}
@@ -226,10 +226,10 @@ export default function UpgradeModal({ open, onClose, onSuccess }: Props) {
                 >
                   <Check className="w-10 h-10 text-[#050816]" strokeWidth={3} />
                 </motion.div>
-                <h2 className="text-2xl font-black text-white mb-2 capitalize">
+                <h2 className="text-2xl font-black text-slate-900 mb-2 capitalize">
                   You&apos;re on {activatedPlan || "Pro"}! 🚀
                 </h2>
-                <p className="text-slate-400 text-sm mb-6">
+                <p className="text-slate-600 text-sm mb-6">
                   Unlimited generations unlocked. Your workspace is ready.
                 </p>
                 <button
@@ -243,14 +243,14 @@ export default function UpgradeModal({ open, onClose, onSuccess }: Props) {
             ) : (
               <>
                 {/* Header */}
-                <div className="flex items-center justify-between px-6 py-5 border-b border-white/[0.06]">
+                <div className="flex items-center justify-between px-6 py-5 border-b border-slate-200">
                   <div>
-                    <h2 className="text-lg font-black text-white">Upgrade PostPilot AI</h2>
+                    <h2 className="text-lg font-black text-slate-900">Upgrade PostPilot AI</h2>
                     <p className="text-xs text-slate-500 mt-0.5">Unlock unlimited AI generations</p>
                   </div>
                   <button
                     onClick={onClose}
-                    className="w-8 h-8 rounded-lg flex items-center justify-center text-slate-500 hover:text-white hover:bg-white/[0.06] transition-all"
+                    className="w-8 h-8 rounded-lg flex items-center justify-center text-slate-500 hover:text-slate-900 hover:bg-slate-100 transition-all"
                   >
                     <X className="w-4 h-4" />
                   </button>
@@ -260,7 +260,7 @@ export default function UpgradeModal({ open, onClose, onSuccess }: Props) {
                   {/* Billing toggle */}
                   {YEARLY_BILLING_ENABLED && (
                   <div className="flex items-center justify-center gap-3 mb-6">
-                    <div className="flex items-center gap-1 bg-white/[0.04] rounded-xl p-1 border border-white/[0.06]">
+                    <div className="flex items-center gap-1 bg-slate-100 rounded-xl p-1 border border-slate-200">
                       {(["monthly", "yearly"] as Billing[]).map(b => (
                         <button
                           key={b}
@@ -268,7 +268,7 @@ export default function UpgradeModal({ open, onClose, onSuccess }: Props) {
                           className="relative px-4 py-1.5 rounded-lg text-sm font-semibold transition-all"
                           style={{
                             background: billing === b ? "#F7BE4D" : "transparent",
-                            color:      billing === b ? "#050816" : "rgba(255,255,255,0.4)",
+                            color:      billing === b ? "#050816" : "#64748b",
                           }}
                         >
                           {b.charAt(0).toUpperCase() + b.slice(1)}
@@ -302,10 +302,10 @@ export default function UpgradeModal({ open, onClose, onSuccess }: Props) {
                           style={{
                             background: isActive
                               ? `linear-gradient(135deg, ${plan.color}15, ${plan.color}08)`
-                              : "rgba(255,255,255,0.025)",
+                              : "#f8fafc",
                             border: isActive
                               ? `1px solid ${plan.color}50`
-                              : "1px solid rgba(255,255,255,0.07)",
+                              : "1px solid #e2e8f0",
                             boxShadow: isActive ? `0 0 24px ${plan.color}18` : "none",
                           }}
                         >
@@ -321,7 +321,7 @@ export default function UpgradeModal({ open, onClose, onSuccess }: Props) {
                               style={{ background: `${plan.color}20`, color: plan.color }}>
                               {plan.icon}
                             </div>
-                            <span className="font-bold text-white text-sm">{plan.name}</span>
+                            <span className="font-bold text-slate-900 text-sm">{plan.name}</span>
                             {isActive && (
                               <div className="ml-auto w-5 h-5 rounded-full flex items-center justify-center"
                                 style={{ background: plan.color }}>
@@ -331,7 +331,7 @@ export default function UpgradeModal({ open, onClose, onSuccess }: Props) {
                           </div>
 
                           <div className="mb-3">
-                            <span className="text-2xl font-black text-white">₹{p.toLocaleString("en-IN")}</span>
+                            <span className="text-2xl font-black text-slate-900">₹{p.toLocaleString("en-IN")}</span>
                             <span className="text-xs text-slate-500">/mo</span>
                             {billing === "yearly" && (
                               <div className="text-[11px] text-slate-500 mt-0.5">
@@ -344,7 +344,7 @@ export default function UpgradeModal({ open, onClose, onSuccess }: Props) {
                             {plan.features.slice(0, 4).map(f => (
                               <li key={f} className="flex items-start gap-1.5">
                                 <Check className="w-3 h-3 flex-shrink-0 mt-0.5" style={{ color: plan.color }} />
-                                <span className="text-[11px] text-slate-400 leading-tight">{f}</span>
+                                <span className="text-[11px] text-slate-600 leading-tight">{f}</span>
                               </li>
                             ))}
                           </ul>
@@ -355,7 +355,7 @@ export default function UpgradeModal({ open, onClose, onSuccess }: Props) {
 
                   {/* Error */}
                   {error && (
-                    <p className="text-red-400 text-xs text-center mb-4 flex items-center justify-center gap-1.5">
+                    <p className="text-red-600 text-xs text-center mb-4 flex items-center justify-center gap-1.5">
                       <span className="w-1.5 h-1.5 rounded-full bg-red-400" />
                       {error}
                     </p>
@@ -391,10 +391,10 @@ export default function UpgradeModal({ open, onClose, onSuccess }: Props) {
                   {/* Trust */}
                   <div className="flex items-center justify-center gap-4 mt-4">
                     {["UPI", "Cards", "NetBanking", "EMI"].map(m => (
-                      <span key={m} className="text-[10px] text-slate-600 font-medium">{m}</span>
+                      <span key={m} className="text-[10px] text-slate-500 font-medium">{m}</span>
                     ))}
-                    <span className="text-[10px] text-slate-700">•</span>
-                    <span className="text-[10px] text-slate-600">Secured by Razorpay</span>
+                    <span className="text-[10px] text-slate-400">•</span>
+                    <span className="text-[10px] text-slate-500">Secured by Razorpay</span>
                   </div>
 
                 </div>
